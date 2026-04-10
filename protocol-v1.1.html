@@ -963,8 +963,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div id="pantryFilterDropdown" style="display:none;position:fixed;top:auto;left:12px;right:12px;z-index:250;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px;box-shadow:0 4px 24px rgba(0,0,0,.3)">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Status</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="pf-chip" data-filter="status:active" onclick="togglePantryFilter('status:active',this)">Active</button>
-        <button class="pf-chip" data-filter="status:inactive" onclick="togglePantryFilter('status:inactive',this)">Inactive</button>
+        <button class="pf-chip" data-filter="status:inprotocol" onclick="togglePantryFilter('status:inprotocol',this)">In protocol</button>
+        <button class="pf-chip" data-filter="status:instock" onclick="togglePantryFilter('status:instock',this)">In stock</button>
       </div>
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Category</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="pfCatChips"></div>
@@ -2523,9 +2523,8 @@ function renderChecklist(){
   const due=proto.compounds.filter(function(c){
     // Must be scheduled for today's DOW
     if(!isCompoundDueToday(c)) return false;
-    // If compound is in pantry and marked inactive, skip it
-    const pItem=pantry.find(function(p){return p.name===c.name;});
-    if(pItem&&!pItem.active) return false;
+    // Compound must be in active protocol to appear on Today checklist
+    // (pItem.active is no longer used — status is computed from protocol membership)
     return true;
   });
   if(!due.length){
@@ -2630,6 +2629,78 @@ function chipOneRow(el){
   el.classList.add('on');
 }
 
+
+// ════════════ MANUAL LOG STREAK TRACKING ════════════
+// Tracks consecutive days a compound is manually logged (not in protocol)
+// On day 3, prompts user to officially add it to their protocol
+
+function getManualStreak(name){
+  var mem=doseMem[name]||{};
+  return {count:mem.manualStreakCount||0, lastDate:mem.manualStreakDate||null};
+}
+
+function updateManualStreak(name, dose, route, form, site, timingWindow){
+  if(isInProtocol(name)){
+    // Already in protocol — reset streak, nothing to track
+    if(doseMem[name]) { doseMem[name].manualStreakCount=0; doseMem[name].manualStreakDate=null; }
+    return;
+  }
+  var mem=doseMem[name]||{};
+  var streak=mem.manualStreakCount||0;
+  var lastDate=mem.manualStreakDate||null;
+  var todayStr=today();
+  // Check if yesterday was logged (consecutive)
+  var yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  var yesterdayStr=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+  if(lastDate===yesterdayStr){
+    streak++;
+  } else if(lastDate===todayStr){
+    // Already logged today — don't double count
+    return;
+  } else {
+    // Gap in logging — reset streak to 1
+    streak=1;
+  }
+  doseMem[name]=Object.assign({},mem,{manualStreakCount:streak, manualStreakDate:todayStr});
+  persist(KEYS.doseMem, doseMem);
+  // On 3rd consecutive day, prompt to add to protocol
+  if(streak>=3){
+    setTimeout(function(){
+      var pItem=pantry.find(function(p){return p.name===name;});
+      showConfirm(
+        'Add '+name+' to your protocol?',
+        'You\'ve logged '+name+' manually 3 days in a row. Would you like to officially add it to your active protocol?',
+        'Add to protocol',
+        function(){
+          var proto=getActiveProtocol();
+          if(!proto) return;
+          var newCmp={
+            name:name,
+            dose:dose||'—',
+            route:route||'Subcutaneous',
+            form:form||'vial',
+            fasting:false,
+            site:site||'Abdomen',
+            timingWindow:timingWindow||'am',
+            frequency:'daily',
+            daysOfWeek:[0,1,2,3,4,5,6],
+            dateAdded:today()
+          };
+          proto.compounds.push(newCmp);
+          persist(KEYS.protocols, protocols);
+          // Reset streak
+          if(doseMem[name]){ doseMem[name].manualStreakCount=0; doseMem[name].manualStreakDate=null; }
+          persist(KEYS.doseMem, doseMem);
+          toast(name+' added to protocol \u2713');
+          renderToday();
+          renderPantry();
+        }
+      );
+    }, 1000);
+  }
+}
+
+
 function logCompound(name,uid){
   const dose=getDoseValue('dose-'+uid,'doseunit-'+uid)||getEffectiveDose(name)||'—';
   const siteEl=document.querySelector('#cre-'+uid+' .chip.on');
@@ -2649,10 +2720,12 @@ function logCompound(name,uid){
   if(isOverride){
     overrideCount=(prevMem.overrideCount||0)+1;
   }
-  doseMem[name]={dose:dose,route:entry.route,fedState:entry.fedState,date:today(),overrideCount:overrideCount};
+  doseMem[name]=Object.assign({},doseMem[name]||{},{dose:dose,route:entry.route,fedState:entry.fedState,date:today(),overrideCount:overrideCount});
   persist(KEYS.doseMem,doseMem);
   logs.unshift(entry);persist(KEYS.logs,logs);
   deductStock(name,dose);
+  // Track manual streak (only for compounds not already in protocol)
+  updateManualStreak(name,dose,entry.route,c.form,entry.site,c.timingWindow);
   toast(name.split(' ')[0]+' logged ✓');
   renderChecklist();
   // After 3 consecutive dose overrides, ask if user wants to update their pantry
@@ -3743,7 +3816,7 @@ function renderPantryFilterChips(){
   }
   if(clearBtn) clearBtn.style.display='';
   var labels={
-    'status:active':'Active','status:inactive':'Inactive',
+    'status:inprotocol':'In protocol','status:instock':'In stock',
     'form:vial':'Vial','form:oral':'Oral','form:prefilled':'Prefilled',
     'form:nasal':'Nasal','form:cream':'Topical'
   };
@@ -3752,6 +3825,19 @@ function renderPantryFilterChips(){
     return '<button class="pf-active" onclick="togglePantryFilter(\''+f+'\',null)">'+label+' <span style="font-size:11px;line-height:1">\u00d7</span></button>';
   }).join('');
 }
+function isInProtocol(name){
+  var proto=getActiveProtocol();
+  return !!(proto&&proto.compounds&&proto.compounds.some(function(c){return c.name===name;}));
+}
+function isInStock(item){
+  if(!item) return false;
+  if(item.form==='oral'||item.form==='oral_powder') return !!(item.capsRemaining>0||item.servingsRemaining>0);
+  if(item.form==='prefilled') return !!(item.pensRemaining>0);
+  if(item.form==='nasal') return !!(item.spraysRemaining>0);
+  if(item.form==='cream') return !!(item.remainingG>0);
+  // vial — any vials or open vial mg
+  return !!(item.vials>0||item.openVialMg>0);
+}
 function applyPantryFilters(items){
   if(!pantryFilters.length) return items;
   var statusFilters=pantryFilters.filter(function(f){return f.startsWith('status:');});
@@ -3759,9 +3845,10 @@ function applyPantryFilters(items){
   var formFilters=pantryFilters.filter(function(f){return f.startsWith('form:');});
   return items.filter(function(c){
     if(statusFilters.length){
-      var isActive=c.active===true;
+      var inProto=isInProtocol(c.name);
+      var inStock=isInStock(c);
       var matchStatus=statusFilters.some(function(f){
-        return (f==='status:active'&&isActive)||(f==='status:inactive'&&!isActive);
+        return (f==='status:inprotocol'&&inProto)||(f==='status:instock'&&inStock);
       });
       if(!matchStatus) return false;
     }
@@ -3796,7 +3883,13 @@ function renderPantry(){
   }
   const proto=getActiveProtocol();
   // Sort + filter items
-  var sorted=[...pantry];
+  // Sort: In protocol first → In stock only → Library
+  var sorted=[...pantry].sort(function(a,b){
+    var ap=isInProtocol(a.name)?2:isInStock(a)?1:0;
+    var bp=isInProtocol(b.name)?2:isInStock(b)?1:0;
+    if(bp!==ap) return bp-ap;
+    return a.name.localeCompare(b.name);
+  });
   if(pantrySort==='search'){
     var searchEl=document.getElementById('pantrySearchInput');
     if(searchEl&&pantrySearchTerm&&!searchEl.value) searchEl.value=pantrySearchTerm;
@@ -3823,7 +3916,9 @@ function renderPantry(){
     var low=daysLeft!==null&&daysLeft<(c.reorderDays||14);
     var out=daysLeft===0;
     var formLabel={vial:'Vial',oral:'Oral',oral_powder:'Oral powder',prefilled:'Pre-filled pen',nasal:'Nasal spray',cream:'Topical'}[c.form]||c.form;
-    var doseDisplay=(doseMem[c.name]&&doseMem[c.name].dose)||c.dose;
+    var doseDisplay=(doseMem[c.name]&&doseMem[c.name].dose&&doseMem[c.name].date===today()&&doseMem[c.name].dose!=='—')?doseMem[c.name].dose:(c.dose||'—');
+    var inProto=isInProtocol(c.name);
+    var inStock=isInStock(c);
     var physHint='';
     if(c.form==='oral'&&c.capStrength){
       var dmv=parseDoseMg(doseDisplay);
@@ -3836,6 +3931,9 @@ function renderPantry(){
     } else if(c.form==='nasal'&&c.mcgPerSpray&&c.spraysPerDose){
       physHint=' &middot; <span style="color:var(--p1)">'+c.spraysPerDose+' spray'+(c.spraysPerDose!==1?'s':'')+'</span>';
     }
+    var badges='';
+    if(inProto) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1);white-space:nowrap">&#9679; In protocol</span> ';
+    if(inStock) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.35);white-space:nowrap">&#9679; In stock</span>';
     var id=c.id;
     var sf='';
     if(c.form==='oral'){
@@ -3897,18 +3995,16 @@ function renderPantry(){
     daysRowHtml+='<button class="restock-btn" onclick="openRestock(\''+id+'\')" style="margin-top:0">+ Restock</button>';
     daysRowHtml+='</div>';
     var lowWarnHtml=low?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);padding-top:6px;border-top:1px solid var(--bd)">&#9888; '+(out?'Out of stock':'Low stock')+' \u2014 reorder soon.</div>':'';
-    return '<div class="pc'+(c.active?'':' inactive')+(low?' low-stock':'')+'" id="pc-'+id+'">'
+    return '<div class="pc'+(low?' low-stock':'')+'" id="pc-'+id+'">'
       +'<div class="pc-top">'
       +'<div class="pc-dot" style="background:'+(c.color||'var(--mid)')+'"></div>'
       +'<div class="pc-name-wrap">'
       +'<div class="pc-name">'+c.name+'</div>'
       +'<div class="pc-form">'+formLabel+' \u00b7 '+c.route+' \u00b7 '+doseDisplay+physHint+'</div>'
-      +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">'+renderTagPills(c)+'</div>'
+      +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">'+renderTagPills(c)+badges+'</div>'
       +'</div>'
       +'<div class="pc-actions">'
-      +'<button class="pc-toggle'+(c.active?' on':'')+'" onclick="togglePantry(\''+id+'\')">'+(c.active?'Active':'Off')+'</button>'
       +'<button class="pc-edit-btn" onclick="openPantryEdit(\''+id+'\')">Edit</button>'
-      +'<button class="pc-edit-btn" style="color:var(--p5);border-color:rgba(242,92,84,.3)" onclick="deletePantryItem(\''+id+'\')">Del</button>'
       +'</div>'
       +'</div>'
       +'<div class="pc-stock">'+sf+daysRowHtml+lowWarnHtml+'</div>'
