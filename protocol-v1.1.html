@@ -5964,7 +5964,7 @@ async function initApp(){
   var newlyAdded=mergeDefaultPantry();
   // dp_ inactive migration removed — mergeDefaultPantry handles active:false on new items only
   // One-time fix: correct pantry items that were incorrectly marked active on old builds
-  var activeFixKey='pt_active_fix_v2';
+  var activeFixKey='pt_active_fix_v3';
   if(!localStorage.getItem(activeFixKey)){
     var protoActiveNames=new Set();
     protocols.forEach(function(proto){
