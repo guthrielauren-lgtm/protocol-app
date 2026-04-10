@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <title>Protocol — brand mark</title>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="#0a1628" rx="72"/>
+
+  <!-- P letterform — geometric sans, constructed from rectangles -->
+  <!-- Vertical stem -->
+  <rect x="112" y="100" width="52" height="200" rx="10" fill="#3dd68c"/>
+  <!-- Top bowl — horizontal bar -->
+  <rect x="112" y="100" width="148" height="48" rx="10" fill="#3dd68c"/>
+  <!-- Mid bowl — horizontal bar -->
+  <rect x="112" y="196" width="148" height="48" rx="10" fill="#3dd68c"/>
+  <!-- Right stem of bowl (upper half only) -->
+  <rect x="212" y="100" width="48" height="144" rx="10" fill="#3dd68c"/>
+</svg>
