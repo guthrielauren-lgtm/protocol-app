@@ -5963,24 +5963,22 @@ async function initApp(){
   // Migrate any new default compounds into existing pantry
   var newlyAdded=mergeDefaultPantry();
   // dp_ inactive migration removed — mergeDefaultPantry handles active:false on new items only
-  // One-time fix: correct pantry items that were incorrectly marked active on old builds
-  var activeFixKey='pt_active_fix_v3';
-  if(!localStorage.getItem(activeFixKey)){
-    var protoActiveNames=new Set();
-    protocols.forEach(function(proto){
-      if(proto.compounds) proto.compounds.forEach(function(c){protoActiveNames.add(c.name.toLowerCase());});
-    });
-    var fixCount=0;
-    pantry.forEach(function(p){
-      var isDpItem=(p.id||'').indexOf('dp_')===0||DEFAULT_PANTRY.some(function(d){return d.name.toLowerCase()===p.name.toLowerCase();});
-      if(isDpItem&&!protoActiveNames.has(p.name.toLowerCase())&&p.active===true){
-        p.active=false;
-        fixCount++;
-      }
-    });
-    localStorage.setItem(activeFixKey,'1');
-    if(fixCount>0){await persist(KEYS.pantry,pantry);}
-  }
+  // Every load: correct pantry items that are incorrectly marked active
+  // Only default pantry compounds (dp_ prefix) that aren't in any protocol should be inactive
+  // This is safe and cheap to run on every load
+  var protoActiveNames=new Set();
+  protocols.forEach(function(proto){
+    if(proto.compounds) proto.compounds.forEach(function(c){protoActiveNames.add(c.name.toLowerCase());});
+  });
+  var fixCount=0;
+  pantry.forEach(function(p){
+    var isDpItem=(p.id||'').indexOf('dp_')===0||DEFAULT_PANTRY.some(function(d){return d.name.toLowerCase()===p.name.toLowerCase();});
+    if(isDpItem&&!protoActiveNames.has(p.name.toLowerCase())&&p.active===true){
+      p.active=false;
+      fixCount++;
+    }
+  });
+  if(fixCount>0){await persist(KEYS.pantry,pantry);}
   if(newlyAdded.length){
     await persist(KEYS.pantry,pantry);
     setTimeout(function(){
