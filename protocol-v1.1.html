@@ -306,7 +306,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .goal-btn:hover{border-color:var(--bd2);color:var(--text)}.goal-btn.on{background:var(--p1d);border-color:var(--p1);color:var(--p1)}
 @media(max-width:767px){.goal-btn{font-size:13px;padding:14px}}
 .sugg-card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:5px;display:flex;align-items:flex-start;gap:11px;transition:border-color .15s}
-.sugg-card.selected{border-color:var(--p1);background:var(--p1d)}.sugg-card.not-in-pantry{opacity:.55}
+.sugg-card.selected{border-color:var(--p1);background:var(--p1d)}.sugg-card.not-in-pantry{}
 .sugg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .sugg-info{flex:1;min-width:0}
 .sugg-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px}
@@ -945,10 +945,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   
 
   
-  <button class="pantry-add-toggle" onclick="togglePantryAddForm()">
-    <span style="font-size:16px;color:var(--p1)">+</span>
-    <span id="pantryAddToggleLabel">Add custom compound</span>
-  </button>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <button class="pantry-add-toggle" onclick="togglePantryAddForm()" style="flex:1;margin-bottom:0">
+      <span style="font-size:16px;color:var(--p1)">+</span>
+      <span id="pantryAddToggleLabel">Add custom compound</span>
+    </button>
+    <button class="btn ghost" onclick="openLibraryBrowser()" style="flex-shrink:0;white-space:nowrap;font-family:var(--mono);font-size:11px">Browse library</button>
+  </div>
   <div class="pantry-add-form" id="pantryAddForm">
     <div class="g2">
       <div class="field"><label>Name</label><input type="text" id="newName" placeholder="e.g. Selank"></div>
@@ -1017,7 +1020,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <button id="pantryFilterClearAll" onclick="clearPantryFilters()" style="display:none;font-family:var(--mono);font-size:10px;padding:4px 8px;border:none;background:none;color:var(--dim);cursor:pointer;text-decoration:underline">Clear all</button>
     </div>
     <!-- Filter dropdown -->
-    <div id="pantryFilterDropdown" style="display:none;position:fixed;top:auto;left:12px;right:12px;z-index:250;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px;box-shadow:0 4px 24px rgba(0,0,0,.3)">
+    <div id="pantryFilterDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:250;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px;box-shadow:0 4px 24px rgba(0,0,0,.3);max-height:60vh;overflow-y:auto;margin-top:4px">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Status</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
         <button class="pf-chip" data-filter="status:inprotocol" onclick="togglePantryFilter('status:inprotocol',this)">In protocol</button>
@@ -1042,10 +1045,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       style="width:100%;font-family:var(--mono);font-size:13px;padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--text);outline:none"
       oninput="pantrySearchTerm=this.value;renderPantry()">
   </div>
-  <div id="pantryWelcomeBanner" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:8px;padding:12px 14px;margin-bottom:12px;position:relative">
-    <button onclick="dismissPantryBanner()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--p1);font-size:16px;cursor:pointer;line-height:1">&#x2715;</button>
-    <div style="font-family:var(--sans);font-size:13px;font-weight:500;color:var(--p1);margin-bottom:4px">Welcome to your pantry &#127378;</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6">Compounds from your active protocol are highlighted. Tap <strong style="color:var(--text)">Off</strong> to activate any compound, then add stock to track days remaining. Use the filter to find what you need.</div>
+  <div id="pantryWelcomeBanner" style="display:none;background:var(--sf);border:1px solid var(--p1);border-radius:10px;padding:16px;margin-bottom:12px;position:relative">
+    <button onclick="dismissPantryBanner()" style="position:absolute;top:10px;right:12px;background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;line-height:1">&#x2715;</button>
+    <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Your pantry is your source of truth</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);white-space:nowrap;flex-shrink:0;margin-top:1px">Edit</span>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6">Tap <strong style="color:var(--text)">Edit</strong> on any compound to fill in concentration details — mg per vial, reconstitution volume, and frequency. This powers the dosing calculator on your Today tab so you always know exactly how many units to draw.</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2);white-space:nowrap;flex-shrink:0;margin-top:1px">+ Restock</span>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6">Tap <strong style="color:var(--text)">+ Restock</strong> when you receive a new supply. Enter how many vials or capsules you have and the app will track days remaining and alert you when it's time to reorder.</div>
+      </div>
+    </div>
   </div>
   <div id="pantryGrid"></div>
 </div>
@@ -1141,6 +1153,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="build-step" id="bstep-3">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Protocol summary</div>
       <div id="reviewSummary"></div>
+      <div id="unstockedSection" style="margin-bottom:14px"></div>
       <div id="conflictSection" style="margin-bottom:14px"></div>
       <div class="btn-row">
         <button class="btn" id="finalSaveBtn" onclick="finalSaveProtocol()">Save &amp; Activate Protocol</button>
@@ -1302,13 +1315,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <label class="toggle-sw"><input type="checkbox" id="autoBackupEnabled" onchange="saveBackupPrefs(this.checked)" checked><span class="toggle-track"></span></label>
   </div>
   <div class="sec-lbl" style="margin-top:18px">Pantry</div>
-  <div class="settings-row" style="cursor:pointer" onclick="restorePantryDefaults()">
-    <div><div class="settings-label">Restore Pantry Defaults</div><div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Re-add any missing default compounds — won't overwrite existing data</div></div>
-    <span style="color:var(--dim)">&#x203A;</span>
-  </div>
-  <div class="settings-row" style="cursor:pointer;margin-top:4px" onclick="resetPantrySetupFlags()">
-    <div><div class="settings-label">Reset Pantry Setup</div><div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Re-run the pantry setup chooser — your compound data is untouched</div></div>
-    <span style="color:var(--dim)">&#x203A;</span>
+   <span style="color:var(--dim)">&#x203A;</span>
   </div>
 
   <div class="sec-lbl" style="margin-top:18px">Snapshot History</div>
@@ -1354,7 +1361,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <button class="tab-btn"    id="tb-insights" onclick="nav('insights')"><span class="tab-icon">◈</span><span class="tab-label">Insights</span></button>
   <button class="tab-btn"    id="tb-build"    onclick="nav('build')"><span class="tab-icon">⬡</span><span class="tab-label">Build</span></button>
   <button class="tab-btn"    id="tb-pantry"   onclick="nav('pantry')"><span class="tab-icon">◉</span><span class="tab-label">Pantry</span></button>
-  <button class="tab-btn"    id="tb-settings" onclick="nav('settings')"><span class="tab-icon" style="font-size:28px">⚙</span><span class="tab-label">Settings</span></button>
+  <button class="tab-btn"    id="tb-settings" onclick="nav('settings')"><span class="tab-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="tab-label">Settings</span></button>
 </nav>
 </div>
 
@@ -1421,7 +1428,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <input type="hidden" id="restockId">
     <div class="g2" style="margin-bottom:10px">
       <div class="field"><label id="restockQtyLabel">Vials adding</label><input type="number" inputmode="decimal" id="restockQty" placeholder="2" min="0" step="1"></div>
-      <div class="field"><label>New Expiry Date</label><input type="date" id="restockExpiry"></div>
     </div>
     <div class="field" style="margin-bottom:14px"><label>Notes</label><input type="text" id="restockNotes" placeholder="e.g. batch #, supplier"></div>
     <button class="btn" onclick="saveRestock()">Confirm Restock</button>
@@ -1733,9 +1739,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 </div>
 
 <div class="modal-overlay" id="addToProtoModal">
-  <div class="modal">
-    <div class="modal-title">Add from Pantry <button class="modal-close" onclick="closeModal('addToProtoModal')">✕</button></div>
-    <div id="addToProtoList"></div>
+  <div class="modal" style="max-height:85vh;padding:0;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 0;flex-shrink:0">
+      <div class="modal-title" style="margin-bottom:12px">Add Compound <button class="modal-close" onclick="closeModal('addToProtoModal')">&#x2715;</button></div>
+      <div style="display:flex;border-bottom:1px solid var(--bd);margin:0 -20px;padding:0 20px">
+        <button id="atpTabPantry" onclick="switchAddToProtoTab('pantry')" style="flex:1;font-family:var(--mono);font-size:11px;padding:8px 0;border:none;background:none;color:var(--p1);border-bottom:2px solid var(--p1);cursor:pointer">From Pantry</button>
+        <button id="atpTabLib" onclick="switchAddToProtoTab('library')" style="flex:1;font-family:var(--mono);font-size:11px;padding:8px 0;border:none;background:none;color:var(--dim);border-bottom:2px solid transparent;cursor:pointer">From Library</button>
+      </div>
+      <div id="atpLibSearch" style="display:none;padding:10px 0 0">
+        <input type="text" placeholder="Search library..." oninput="filterAddProtoLibrary(this.value,_atpProtoCtx)" style="width:100%;font-family:var(--mono);font-size:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);color:var(--text)">
+      </div>
+    </div>
+    <div id="addToProtoList" style="overflow-y:auto;flex:1;padding:0 20px 16px"></div>
   </div>
 </div>
 
@@ -1928,6 +1943,36 @@ function getActiveProtocol(){
   var id=activeProtoIds.length?activeProtoIds[0]:activeProtoId;
   return protocols.find(function(p){return p.id===id;})||null;
 }
+// Returns the active pantry item for a compound name — respects activeConcentration flag
+// If multiple stocked entries exist, returns the one marked activeConcentration:true
+// Falls back to lowest days-remaining (finish soonest first)
+function getActivePantryItem(name){
+  var matches=pantry.filter(function(p){return p.name.toLowerCase()===name.toLowerCase();});
+  if(!matches.length) return null;
+  if(matches.length===1) return matches[0];
+  // Multi-concentration: prefer activeConcentration:true
+  var active=matches.find(function(p){return p.activeConcentration===true&&isInStock(p);});
+  if(active) return active;
+  // Auto-resolve: lowest days remaining among stocked items
+  var stocked=matches.filter(function(p){return isInStock(p);});
+  if(!stocked.length) return matches[0];
+  stocked.sort(function(a,b){
+    var da=calcDaysLeft(a,null)||999,db=calcDaysLeft(b,null)||999;
+    return da-db;
+  });
+  return stocked[0];
+}
+
+// Check if a compound name has multiple stocked pantry entries with different concentrations
+function hasConcentrationConflict(name){
+  var stocked=pantry.filter(function(p){
+    return p.name.toLowerCase()===name.toLowerCase()&&isInStock(p);
+  });
+  if(stocked.length<2) return false;
+  var vialMgs=new Set(stocked.map(function(p){return p.vialMg||0;}));
+  return vialMgs.size>1;
+}
+
 function getActiveProtocols(){
   return protocols.filter(function(p){return activeProtoIds.indexOf(p.id)>-1;});
 }
@@ -1949,11 +1994,19 @@ function nav(tab){
   Object.keys(names).forEach(function(t){var el=document.getElementById('phdr-'+t);if(el)el.style.display=t===tab?'block':'none';});
   if(tab==='body')     renderBodyComp();
   if(tab==='pantry')   renderPantry();
-  if(tab==='pantry'&&!localStorage.getItem('pt_pantry_setup')&&!localStorage.getItem('pt_pantry_welcomed')){
-    setTimeout(function(){openModal('pantryChoiceModal');},350);
+  if(tab==='pantry'){
+    if(!localStorage.getItem('pt_pantry_setup')&&!localStorage.getItem('pt_pantry_welcomed')){
+      setTimeout(function(){openModal('pantryChoiceModal');},350);
+    }
+    // Post-onboarding: first pantry close goes to Today
+    if(localStorage.getItem('pt_pantry_post_onboard')==='1'){
+      localStorage.removeItem('pt_pantry_post_onboard');
+      localStorage.setItem('pt_pantry_first_visited','1');
+    }
   }
   if(tab==='build')    renderBuild();
   if(tab==='settings') renderSettings();
+  if(tab==='today') localStorage.setItem('pt_visited_today','1');
 }
 
 // ════════════ PROTOCOL MANAGEMENT ════════════
@@ -1966,6 +2019,12 @@ function activateProtocol(id){
     // Retroactively label baseline — one-time only
     var baseline=bodyLogs.find(function(l){return l.isBaseline&&!l.protocolStartId;});
     if(baseline){baseline.phase='Protocol Start';baseline.protocolStartId=id;persist(KEYS.bodyLogs,bodyLogs);}
+    // Check for concentration conflicts in this protocol's compounds
+    var proto=protocols.find(function(p){return p.id===id;});
+    if(proto&&proto.compounds){
+      var conflicts=proto.compounds.filter(function(c){return hasConcentrationConflict(c.name);});
+      if(conflicts.length) promptConcentrationPick(conflicts[0].name,conflicts.slice(1).map(function(c){return c.name;}));
+    }
   }
   activeProtoId=activeProtoIds[0]||null;
   persist(KEYS.activeProtoIds,activeProtoIds);
@@ -2741,10 +2800,12 @@ function renderChecklist(){
       var logged=isLoggedToday(c.name);
       var color=getPColor(c.name);
       var dose=getEffectiveDose(c.name)||entry.dose;
-      var pItem=pantry.find(function(p){return p.name===c.name;});
+      var pItem=getActivePantryItem(c.name)||pantry.find(function(p){return p.name===c.name;});
       var daysLeft=calcDaysLeft(pItem,c);
       var low=daysLeft!==null&&daysLeft<(pItem?pItem.reorderDays||14:14);
-      var conflictNote=entry.protos.length>1?(entry.protos.length+' protocols'+(entry.doseConflict?' \u00b7 highest dose shown':'')):'';
+      var conflictNote=entry.protos.length>1?(entry.protos.length+' protocols'+(entry.doseConflict?' · highest dose shown':'')):'';
+      var _si=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+      var notStocked=!_si||!isInStock(_si);
       var sites=['Abdomen','Thigh','Glute','N/A'];
       var sitePills=sites.map(function(s){return'<button class="chip'+(c.site===s?' on':'')+'" onclick="chipOneRow(this)">'+s+'</button>';}).join('');
       html+='<div class="cr'+(logged?' logged':'')+(low?' low-stock':'')+'" id="cr-'+uid+'">'
@@ -2753,7 +2814,8 @@ function renderChecklist(){
         +'<div class="cr-meta">'+dose
         +(displayPrefs.showRoute!==false&&c.route?' \u00b7 '+c.route:'')
         +(displayPrefs.showFasted!==false&&c.fasting?' \u00b7 Fasted':'')
-        +(conflictNote?' \u00b7 <span style="color:var(--p2)">'+conflictNote+'</span>':'')
+        +(conflictNote?' · <span style="color:var(--p2)">'+conflictNote+'</span>':'')
+        +(notStocked?' · <span style="color:var(--p2)">⚠ not in stock</span>':'')
         +'</div></div>'
         +'<div class="cr-right">'+(low?'<span title="'+(daysLeft===0?'Out of stock':daysLeft+' days left')+'" style="font-size:13px">\u26a0\ufe0f</span>':'')
         +'<div class="cr-check">'+(logged?'\u2713':'\u25cb')+'</div></div></div>'
@@ -2816,12 +2878,15 @@ function renderChecklist(){
   if(adHocUnique.length){
     var adHocHtml='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-top:14px;margin-bottom:6px">Added Today</div>';
     adHocUnique.forEach(function(l){
+      var _adPItem=pantry.find(function(p){return p.name===l.compound;});
+      var _adRoute=l.route||(_adPItem&&_adPItem.route)||'Subcutaneous';
+      var _adFast=l.fedState==='fasted'||(_adPItem&&_adPItem.fasting);
       adHocHtml+='<div class="cr logged" style="border-color:var(--p2)">'
         +'<div class="cr-main">'
         +'<div class="cr-dot" style="background:'+getPColor(l.compound)+'"></div>'
         +'<div class="cr-info">'
         +'<div class="cr-name">'+l.compound+'</div>'
-        +'<div class="cr-meta">'+l.dose+' \u00b7 '+l.time+'</div>'
+        +'<div class="cr-meta">'+l.dose+' \u00b7 '+_adRoute+(_adFast?' \u00b7 Fasted':'')+'</div>'
         +'</div>'
         +'<div class="cr-right">'
         +'<span style="font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--p2);color:var(--p2)">+ outside protocol</span>'
@@ -2963,9 +3028,17 @@ function openAddCompoundToday(){
   const sel=document.getElementById('addTodaySelect');
   const proto=getActiveProtocol();
   const protoNames=new Set((proto&&proto.compounds?proto.compounds:[]).map(function(c){return c.name;}));
-  sel.innerHTML=pantry.filter(function(p){return p.active;}).map(function(p){
-    return '<option value="'+p.name+'">'+p.name+(protoNames.has(p.name)?' (in protocol)':'')+'</option>';
-  }).join('');
+  var pantryForToday=pantry.filter(function(p){return p.name&&p.name.trim();});
+  if(!pantryForToday.length){
+    sel.innerHTML='<option value="">No compounds in pantry yet</option>';
+  } else {
+    sel.innerHTML=pantryForToday.map(function(p){
+      var inProto=protoNames.has(p.name);
+      var stocked=isInStock(p);
+      var label=p.name+(inProto?' (in protocol)':'')+(stocked?'':' — no stock');
+      return '<option value="'+p.name+'">'+label+'</option>';
+    }).join('');
+  }
   sel.onchange=function(){
     const doseEl=document.getElementById('addTodayDose');
     if(doseEl) doseEl.value=getEffectiveDose(sel.value)||'';
@@ -3847,8 +3920,47 @@ function calcDaysLeft(pItem,protoCmp){
   return Math.floor(totalMg/(doseMgVal*dosesPerDay));
 }
 
+function promptConcentrationPick(name,remaining){
+  var _concQueue=remaining||[];
+  var entries=pantry.filter(function(p){
+    return p.name.toLowerCase()===name.toLowerCase()&&isInStock(p);
+  });
+  var sub=document.getElementById('concPickerSub');
+  var list=document.getElementById('concPickerList');
+  if(sub) sub.textContent='You have '+entries.length+' concentrations of '+name+' in stock. Which would you like to use first?';
+  if(list) list.innerHTML=entries.map(function(p){
+    var dl=calcDaysLeft(p,null);
+    return'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd)">'      +'<div style="flex:1">'      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+(p.vialMg||'?')+'mg / vial</div>'      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">'+(p.vials||0)+' vials'+(dl!==null?' · ~'+dl+'d left':'')+'</div>'      +'</div>'      +'<button class="btn sm" onclick="setActiveConcentration(\''+p.id+'\',\''+name+'\')">Use this first</button>'      +'</div>';
+  }).join('');
+  openModal('concPickerModal');
+  window._concQueue=_concQueue;
+}
+function setActiveConcentration(id,name){
+  pantry.forEach(function(p){
+    if(p.name.toLowerCase()===name.toLowerCase()) p.activeConcentration=(p.id===id);
+  });
+  persist(KEYS.pantry,pantry);
+  closeModal('concPickerModal');
+  toast(name+' concentration set ✓');
+  var q=window._concQueue||[];
+  if(q.length) setTimeout(function(){promptConcentrationPick(q[0],q.slice(1));},400);
+}
+function checkConcentrationPromotion(name){
+  var entries=pantry.filter(function(p){return p.name.toLowerCase()===name.toLowerCase();});
+  if(entries.length<2) return;
+  var active=entries.find(function(p){return p.activeConcentration===true;});
+  if(!active||isInStock(active)) return;
+  var next=entries.filter(function(p){return !p.activeConcentration&&isInStock(p);});
+  if(!next.length) return;
+  next[0].activeConcentration=true;
+  active.activeConcentration=false;
+  persist(KEYS.pantry,pantry);
+  toast(name+' stock depleted — switching to '+(next[0].vialMg||'next')+'mg/vial supply ✓','var(--p1)',5000);
+}
+
 function deductStock(name,doseStr){
-  const item=pantry.find(function(p){return p.name===name;});
+  checkConcentrationPromotion(name);
+  const item=getActivePantryItem(name)||pantry.find(function(p){return p.name===name;});
   if(!item) return;
   if(item.form==='oral'){
     if(item.capsRemaining==null||item.capsRemaining<=0) return;
@@ -3914,11 +4026,16 @@ function setPantrySort(s){
 }
 
 function renderRestockSection(){
-  const proto=getActiveProtocol();
-  const protoNames=new Set(proto&&proto.compounds?proto.compounds.map(function(c){return c.name;}):[]); 
-  // Only items with stock tracking set up that are low or out
+  var activeProtos=getActiveProtocols();
+  var allProtoNames=new Set();
+  activeProtos.forEach(function(p){
+    if(p.compounds) p.compounds.forEach(function(c){allProtoNames.add(c.name.toLowerCase());});
+  });
+  var proto=getActiveProtocol();
+  const protoNames=allProtoNames;
+  // Low/out stock items
   const items=pantry.filter(function(c){
-    const hasStock=(c.vialMg!=null&&c.vialMg>0)||(c.capsRemaining!=null);
+    const hasStock=(c.vialMg!=null&&c.vialMg>0)||(c.capsRemaining!=null)||(c.pensRemaining!=null)||(c.spraysRemaining!=null);
     if(!hasStock) return false;
     const pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
     const dl=calcDaysLeft(c,pcmp);
@@ -3939,11 +4056,40 @@ function renderRestockSection(){
   }
   const list=document.getElementById('restockList');
   if(!list) return;
-  if(!items.length){
-    list.innerHTML='<div style="padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--dim)">All stocked — nothing needs reordering.</div>';
-    return;
+  // In-protocol, needs ordering — highest priority, shown first
+  var needsOrdering=pantry.filter(function(c){
+    if(!protoNames.has(c.name.toLowerCase())) return false;
+    return !isInStock(c);
+  });
+  var _needsHtml='';
+  if(needsOrdering.length){
+    _needsHtml='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p5);padding:10px 14px 4px">In protocol — needs ordering</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">These compounds are in your protocol but have no stock. Check the box once you’ve placed an order, then tap <strong style="color:var(--text)">Add to Stock</strong> when it arrives.</div>'
+      +needsOrdering.map(function(c){
+        var ordKey='proto_ord_'+c.id;
+        var ordered=localStorage.getItem(ordKey)==='1';
+        var db=COMPOUND_DB.find(function(d){return d.name===c.name;});
+        var desc=(c.notes)||(db&&db.rationale)||'';
+        return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
+          +'<input type="checkbox" '+(ordered?'checked':'')+' onchange="toggleProtoOrdered(\''+c.id+'\',this.checked)" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--p5)">'
+          +'<div style="flex:1;min-width:0"><div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+c.name+'</div>'
+          +(desc?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px;line-height:1.5">'+desc.split('.')[0]+'.</div>':'')
+          +'</div>'
+          +'<button class="btn sm" onclick="openRestock(\''+c.id+'\')" style="font-size:10px;padding:5px 10px">Add to Stock</button>'
+          +'</div>';
+      }).join('');
   }
-  list.innerHTML=items.map(function(c){
+  list.innerHTML=_needsHtml;
+
+  var _noLowStock=!items.length;
+  if(_noLowStock){
+    // list already has needsOrdering — don't overwrite
+  }
+  if(items.length){
+    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);padding:10px 14px 4px;border-top:2px solid var(--bd)">Running low or out of stock</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">Check the box once you\u2019ve placed a reorder. Tap <strong style="color:var(--text)">+ Restock</strong> when your new supply arrives to update your stock count.</div>';
+  }
+  list.innerHTML+=items.map(function(c){
     const pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
     const dl=calcDaysLeft(c,pcmp);
     const inProto=protoNames.has(c.name);
@@ -3959,10 +4105,59 @@ function renderRestockSection(){
       +'<button class="btn sm" onclick="openRestock(\''+c.id+'\')" style="padding:5px 10px;font-size:10px">+ Restock</button>'
       +'</div>';
   }).join('');
+  var want=[];
+  try{var ws=localStorage.getItem('pt_restock_want');if(ws)want=JSON.parse(ws);}catch(e){}
+  if(want.length){
+    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 14px 4px;border-top:2px solid var(--bd)">To order — not yet in pantry</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">Check the box once you’ve placed an order to track it as pending. Remove it once it arrives and you’ve added it to your pantry.</div>'
+      +want.map(function(name){
+        var ordKey='rp_want_ordered_'+name.replace(/\s+/g,'_');
+        var ordered=localStorage.getItem(ordKey)==='1';
+        var db=COMPOUND_DB.find(function(d){return d.name===name;});
+        var desc=db&&db.rationale?db.rationale.split('.')[0]+'.':'';
+        return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
+          +'<input type="checkbox" '+(ordered?'checked':'')+' onchange="toggleWantOrdered(\''+name+'\',this.checked)" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--p3)">'
+          +'<div style="flex:1;min-width:0"><div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+name+'</div>'
+          +(desc?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">'+desc+'</div>':'')
+          +'</div>'
+          +'<button onclick="removeFromWantList(\''+name+'\')" style="background:none;border:none;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;text-decoration:underline;flex-shrink:0">Remove</button>'
+          +'</div>';
+      }).join('');
+  }
+  // Update badge count to include want list
+  var needsOrderingCount=pantry.filter(function(c){return protoNames.has(c.name.toLowerCase())&&!isInStock(c);}).length;
+  var _totalCount=items.length+want.length+needsOrderingCount;
+  if(badge) badge.textContent=_totalCount;
+  if(badge) badge.style.display=_totalCount?'inline':'none';
+  if(btn) btn.style.color=_totalCount?'var(--p2)':'var(--dim)';
+  // If nothing at all to show, display empty state
+  if(!_totalCount&&list) list.innerHTML='<div style="padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--dim)">All stocked — nothing needs reordering.</div>';
+  // Auto-expand if there are items to see
+  if(_totalCount&&list&&list.style.display==='none'){
+    list.style.display='block';
+    var chev=document.getElementById('restockChev');
+    if(chev) chev.textContent='^';
+  }
+}
+
+function toggleWantOrdered(name,checked){
+  localStorage.setItem('rp_want_ordered_'+name.replace(/\s+/g,'_'),checked?'1':'0');
+  renderRestockSection();
+}
+function removeFromWantList(name){
+  var want=[];
+  try{var s=localStorage.getItem('pt_restock_want');if(s)want=JSON.parse(s);}catch(e){}
+  want=want.filter(function(n){return n!==name;});
+  localStorage.setItem('pt_restock_want',JSON.stringify(want));
+  renderRestockSection();
 }
 
 function toggleOrdered(id,checked){
   localStorage.setItem('rp_ordered_'+id,checked?'1':'0');
+  renderRestockSection();
+}
+function toggleProtoOrdered(id,checked){
+  localStorage.setItem('proto_ord_'+id,checked?'1':'0');
   renderRestockSection();
 }
 
@@ -4182,6 +4377,9 @@ function renderPantry(){
   }
   function renderCard(c){
     var pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
+    // Pull frequency and fasting from protocol if available, else use pantry
+    var displayFreq=(pcmp&&pcmp.frequency)||c.frequency||'daily';
+    var displayFasting=(pcmp!=null)?pcmp.fasting:c.fasting;
     var daysLeft=calcDaysLeft(c,pcmp);
     var low=daysLeft!==null&&daysLeft<(c.reorderDays||14);
     var out=daysLeft===0;
@@ -4204,35 +4402,30 @@ function renderPantry(){
     var badges='';
     if(inProto) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1);white-space:nowrap">&#9679; In protocol</span> ';
     if(inStock) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.35);white-space:nowrap">&#9679; In stock</span>';
+    // Multi-concentration: show Active badge
+    var sameName=pantry.filter(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+    if(sameName.length>1&&c.activeConcentration) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);white-space:nowrap">&#9679; Active conc.</span>';
     var id=c.id;
     var sf='';
     if(c.form==='oral'){
       sf='<div class="pc-stock-fields g2">'
-        +'<div class="stock-f"><label>Capsules remaining</label>'
+        +'<div class="stock-f"><label title="Total capsules you have on hand">Capsules on hand</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.capsRemaining!=null?c.capsRemaining:'')+'" placeholder="e.g. 60" min="0" step="1" onchange="updateStock(\''+id+'\',\'capsRemaining\',this.value)"></div>'
-        +'<div class="stock-f"><label>Expiry</label>'
-        +'<input type="date" value="'+(c.expiry||'')+'" onchange="updateStock(\''+id+'\',\'expiry\',this.value)"></div>'
         +'</div>';
     } else if(c.form==='oral_powder'){
       sf='<div class="pc-stock-fields g2">'
-        +'<div class="stock-f"><label>Servings remaining</label>'
+        +'<div class="stock-f"><label title="Total servings remaining in your supply">Servings on hand</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.servingsRemaining!=null?c.servingsRemaining:'')+'" placeholder="e.g. 80" min="0" step="1" onchange="updateStock(\''+id+'\',\'servingsRemaining\',this.value)"></div>'
-        +'<div class="stock-f"><label>Expiry</label>'
-        +'<input type="date" value="'+(c.expiry||'')+'" onchange="updateStock(\''+id+'\',\'expiry\',this.value)"></div>'
         +'</div>';
     } else if(c.form==='nasal'){
       sf='<div class="pc-stock-fields g2">'
-        +'<div class="stock-f"><label>Sprays remaining</label>'
+        +'<div class="stock-f"><label title="Total sprays remaining across all bottles">Sprays on hand</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.spraysRemaining!=null?c.spraysRemaining:'')+'" placeholder="e.g. 120" min="0" step="1" onchange="updateStock(\''+id+'\',\'spraysRemaining\',this.value)"></div>'
-        +'<div class="stock-f"><label>Expiry</label>'
-        +'<input type="date" value="'+(c.expiry||'')+'" onchange="updateStock(\''+id+'\',\'expiry\',this.value)"></div>'
         +'</div>';
     } else if(c.form==='prefilled'){
       sf='<div class="pc-stock-fields g2">'
-        +'<div class="stock-f"><label>Pens remaining</label>'
+        +'<div class="stock-f"><label title="Total pens or prefilled syringes on hand">Pens on hand</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.pensRemaining!=null?c.pensRemaining:'')+'" placeholder="e.g. 3" min="0" step="1" onchange="updateStock(\''+id+'\',\'pensRemaining\',this.value)"></div>'
-        +'<div class="stock-f"><label>Expiry</label>'
-        +'<input type="date" value="'+(c.expiry||'')+'" onchange="updateStock(\''+id+'\',\'expiry\',this.value)"></div>'
         +'</div>';
     } else if(c.form==='cream'){
       sf='<div class="pc-stock-fields g2">'
@@ -4243,18 +4436,14 @@ function renderPantry(){
         +'</div>';
     } else {
       sf='<div class="pc-stock-fields g3">'
-        +'<div class="stock-f"><label>mg / vial</label>'
+        +'<div class="stock-f"><label title="How many mg are in each full vial — used to calculate units to draw">mg per vial</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.vialMg||'')+'" placeholder="5" min="0" step="0.1" onchange="updateStock(\''+id+'\',\'vialMg\',this.value)"></div>'
-        +'<div class="stock-f"><label>Full vials</label>'
+        +'<div class="stock-f"><label title="Number of sealed, unopened vials you have">Sealed vials</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.vials||0)+'" placeholder="0" min="0" step="1" onchange="updateStock(\''+id+'\',\'vials\',this.value)"></div>'
-        +'<div class="stock-f"><label>Open vial (mg left)</label>'
+        +'<div class="stock-f"><label title="mg remaining in the vial currently in use">Open vial (mg left)</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.openVialMg||'')+'" placeholder="e.g. 3.2" min="0" step="0.1" onchange="updateStock(\''+id+'\',\'openVialMg\',this.value)"></div>'
         +'</div>'
-        +'<div class="pc-stock-fields g2" style="margin-top:4px">'
-        +'<div class="stock-f"><label>Expiry</label>'
-        +'<input type="date" value="'+(c.expiry||'')+'" onchange="updateStock(\''+id+'\',\'expiry\',this.value)"></div>'
-        +'<div></div>'
-        +'</div>';
+        ;
     }
     var daysRowHtml='<div class="pc-stock-row">';
     if(daysLeft!==null){
@@ -4586,12 +4775,30 @@ function savePantryEdit(){
   toast(item.name+' updated ✓');
 }
 
+function openPantryItemEdit(id){
+  // Navigate to pantry and open edit modal for this item
+  nav('pantry');
+  setTimeout(function(){
+    var item=pantry.find(function(p){return p.id===id;});
+    if(item) openPantryEdit(id);
+  },150);
+}
+
 function openRestock(id){
   const item=pantry.find(function(p){return p.id===id;});if(!item) return;
+  // If vial form with no concentration data, prompt Edit first
+  if((item.form==='vial'||item.form==='prefilled')&&!item.vialMg&&!item.reconVol){
+    showConfirm(
+      'Fill in details first',
+      item.name+' needs concentration details (mg/vial and reconstitution volume) before you can track stock accurately. Tap Edit to fill those in first.',
+      'Edit '+item.name,
+      function(){openPantryItemEdit(item.id);}
+    );
+    return;
+  }
   document.getElementById('restockId').value=id;
   const rt=document.getElementById('restockTitle');if(rt)rt.textContent='Restock — '+item.name;
   document.getElementById('restockQty').value='';
-  document.getElementById('restockExpiry').value='';
   document.getElementById('restockNotes').value='';
   // Update the label to match form type
   const ql=document.getElementById('restockQtyLabel');
@@ -4605,7 +4812,7 @@ function saveRestock(){
   const id=document.getElementById('restockId').value;
   const item=pantry.find(function(p){return p.id===id;});if(!item) return;
   const adding=parseFloat(document.getElementById('restockQty').value)||0;
-  const expiry=document.getElementById('restockExpiry').value;
+  var expiry='';
   const notes=document.getElementById('restockNotes').value;
   if(item.form==='oral'){
     item.capsRemaining=(item.capsRemaining||0)+adding;
@@ -4620,9 +4827,8 @@ function saveRestock(){
   } else {
     item.vials=(item.vials||0)+adding;
   }
-  if(expiry) item.expiry=expiry;
   item.stockLog=item.stockLog||[];
-  item.stockLog.push({date:today(),time:new Date().toTimeString().substring(0,5),added:adding,expiry:expiry,notes:notes,form:item.form});
+  item.stockLog.push({date:today(),time:new Date().toTimeString().substring(0,5),added:adding,notes:notes,form:item.form});
   persist(KEYS.pantry,pantry);
   var unitMap={oral:'caps',oral_powder:'servings',nasal:'sprays',prefilled:'pens',cream:'g',vial:'vials'};
   const unit=unitMap[item.form]||'units';
@@ -4657,7 +4863,17 @@ function renderBuild(){
 function goToStep(n){
   if(n===1&&!selectedGoals.length){toast('Select at least one goal first ✗','var(--p5)');return;}
   if(n===2) buildCustomizeStep();
-  if(n===3) buildReviewStep();
+  if(n===3){
+    // Validate compound details before advancing to review
+    var selected=buildCompounds.filter(function(c){return c.selected;});
+    if(!selected.length){toast('Add at least one compound ✗','var(--p5)');return;}
+    var missingDose=selected.filter(function(c){return !c.dose||c.dose==='—'||c.dose==='';});
+    if(missingDose.length){
+      toast('Set a dose for: '+missingDose.map(function(c){return c.name.split(' ')[0];}).join(', ')+' ✗','var(--p5)',4000);
+      return;
+    }
+    buildReviewStep();
+  }
   document.querySelectorAll('.build-step').forEach(function(el,i){el.classList.toggle('on',i===n);});
   currentBuildStep=n;
   updateStepIndicators();
@@ -4769,13 +4985,133 @@ function suggCard(c,i,notInPantry){
     +'<div class="sugg-detail">'+(c.dose||'—')+' · '+(c.timing||'—')+' · '+(c.frequency||'daily')+'<br>'+(c.rationale||'')+'</div></div>'
     +'<div class="sugg-right">'
     +'<button class="sugg-select-btn" onclick="toggleSuggestion('+i+')">'+(c.selected?'✓ Selected':'Select')+'</button>'
-    +(notInPantry?'<button class="sugg-add-pantry" onclick="addSuggToPantry(\''+c.name+'\')">Add to Pantry</button>':'')
+    +(notInPantry?'<button class="sugg-add-pantry" onclick="addToWantList(\''+c.name+'\')">+ Restock list</button>':'')
     +'</div></div>';
 }
 
 function toggleSuggestion(i){
   if(buildCompounds[i]) buildCompounds[i].selected=!buildCompounds[i].selected;
   renderSuggestions();
+}
+
+function addAllUnstockedToWantList(){
+  var selected=buildCompounds.filter(function(c){return c.selected;});
+  var unstocked=selected.filter(function(c){
+    var p=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+    return !p||!isInStock(p);
+  });
+  var want=[];
+  try{var ws=localStorage.getItem('pt_restock_want');if(ws)want=JSON.parse(ws);}catch(e){}
+  var added=0;
+  unstocked.forEach(function(c){
+    if(want.indexOf(c.name)===-1){want.push(c.name);added++;}
+  });
+  localStorage.setItem('pt_restock_want',JSON.stringify(want));
+  renderRestockSection();
+  if(added) toast(added+' compound'+(added>1?'s':'')+' added to restock list ✓');
+  // Refresh the review step to show updated state
+  buildReviewStep();
+}
+
+function openLibraryBrowser(){
+  renderLibraryBrowser('');
+  var searchEl=document.getElementById('libraryBrowserSearch');
+  if(searchEl){var inp=searchEl.querySelector('input');if(inp)inp.value='';}
+  openModal('libraryBrowserModal');
+}
+
+function filterLibraryBrowser(q){
+  renderLibraryBrowser(q||'');
+}
+
+function renderLibraryBrowser(q){
+  var list=document.getElementById('libraryBrowserList');
+  if(!list) return;
+  var pantryNames=new Set(pantry.map(function(p){return p.name.toLowerCase();}));
+  var query=(q||'').toLowerCase().trim();
+
+  // Filter COMPOUND_DB: exclude items already in pantry
+  var available=COMPOUND_DB.filter(function(c){
+    if(pantryNames.has(c.name.toLowerCase())) return false;
+    if(!query) return true;
+    return c.name.toLowerCase().indexOf(query)>-1
+      ||(c.cat||'').toLowerCase().indexOf(query)>-1
+      ||(c.rationale||'').toLowerCase().indexOf(query)>-1;
+  });
+
+  if(!available.length){
+    list.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:16px 0;text-align:center">'+(query?'No matches found.':'All library compounds are already in your pantry.')+'</div>';
+    return;
+  }
+
+  // Group by category
+  var byCategory={};
+  available.forEach(function(c){
+    var cat=c.cat||'other';
+    if(!byCategory[cat]) byCategory[cat]=[];
+    byCategory[cat].push(c);
+  });
+
+  var html='';
+  CAT_ORDER.forEach(function(cat){
+    var group=byCategory[cat];
+    if(!group||!group.length) return;
+    var color=CAT_COLORS[cat]||'var(--mid)';
+    var label=CAT_LABELS[cat]||cat;
+    html+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:10px 0 6px;border-top:1px solid var(--bd)">'
+      +label+'</div>';
+    group.forEach(function(c){
+      html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px"></div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-family:var(--serif);font-size:14px;color:var(--text);margin-bottom:2px">'+c.name+'</div>'
+          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5">'+c.dose+' · '+(c.route||'')+'</div>'
+          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:2px">'+(c.rationale||'')+'</div>'
+        +'</div>'
+        +'<button class="btn sm" onclick="addFromLibrary(\''+c.name+'\')" style="flex-shrink:0;font-size:10px">Add</button>'
+        +'</div>';
+    });
+  });
+  list.innerHTML=html;
+}
+
+function addFromLibrary(name){
+  var dbItem=COMPOUND_DB.find(function(c){return c.name===name;});
+  if(!dbItem) return;
+  if(pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
+    toast(name+' is already in your pantry');
+    return;
+  }
+  var entry=Object.assign({},dbItem,{
+    id:'usr_'+Date.now(),
+    vialMg:null,vials:0,capsRemaining:null,capDose:null,
+    reconVol:null,openVialMg:null,
+    reorderDays:14,stockLog:[],
+    active:false,
+    notes:dbItem.rationale||''
+  });
+  pantry.push(entry);
+  persist(KEYS.pantry,pantry);
+  toast(name+' added to pantry — tap Edit to fill in stock details ✓','var(--p1)',4000);
+  // Re-render the modal list (it will now exclude this compound)
+  var searchEl=document.getElementById('libraryBrowserSearch');
+  var q=searchEl?((searchEl.querySelector('input')||{}).value||''):'';
+  renderLibraryBrowser(q);
+  renderPantry();
+}
+
+function addToWantList(name){
+  var want=[];
+  try{var s=localStorage.getItem('pt_restock_want');if(s)want=JSON.parse(s);}catch(e){}
+  if(want.indexOf(name)===-1){
+    want.push(name);
+    localStorage.setItem('pt_restock_want',JSON.stringify(want));
+    toast(name+' added to restock list ✓');
+  } else {
+    toast(name+' already on restock list');
+  }
+  renderSuggestions();
+  renderRestockSection();
 }
 
 function addSuggToPantry(name){
@@ -4842,25 +5178,20 @@ function renderCustomizeCompounds(compounds){
           +'<select onchange="updateBC('+i+',\'timingWindow\',this.value)">'+twOptions+'</select>'
           +'</div>'
         +'</div>'
-        +'<div class="g2">'
-          +'<div class="field"><label>Route</label>'
-          +'<select onchange="updateBC('+i+',\'route\',this.value)">'+routeOptions+'</select>'
-          +'</div>'
-          +'<div class="field"><label>Site</label>'
-          +'<select onchange="updateBC('+i+',\'site\',this.value)">'+siteOptions+'</select>'
-          +'</div>'
-        +'</div>'
-        +'<div class="g2">'
-          +'<div class="field"><label>Frequency</label>'
-          +'<select onchange="updateBCFreq('+i+',this.value)">'+freqOptions+'</select>'
-          +'</div>'
-          +'<div class="field"><label>Fasting</label>'
-          +'<select onchange="updateBC('+i+',\'fasting\',this.value===\'true\')">'
-          +'<option value="true"'+(c.fasting?' selected':'')+'>Yes — fasted</option>'
-          +'<option value="false"'+(!c.fasting?' selected':'')+'>No</option>'
-          +'</select>'
-          +'</div>'
-        +'</div>'
+        +(function(){
+          var pItem=pantry.find(function(p){return p.name===c.name;});
+          var db=COMPOUND_DB.find(function(d){return d.name===c.name;});
+          var freq=(pItem&&pItem.frequency)||(db&&db.frequency)||'daily';
+          var fast=(pItem!=null)?pItem.fasting:!!(db&&db.fasting);
+          return '<div class="g2">'
+            +'<div class="field"><label style="color:var(--dim)">Frequency <span style="font-size:9px">(from pantry)</span></label>'
+            +'<div style="font-family:var(--mono);font-size:12px;padding:8px 10px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;color:var(--mid)">'+freq+'</div>'
+            +'</div>'
+            +'<div class="field"><label style="color:var(--dim)">Fasting <span style="font-size:9px">(from pantry)</span></label>'
+            +'<div style="font-family:var(--mono);font-size:12px;padding:8px 10px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;color:var(--mid)">'+(fast?'Yes — fasted':'No')+'</div>'
+            +'</div>'
+            +'</div>';
+        }())
         +'<div class="field"><label>Days of Week</label>'
           +'<div class="dow-pills" id="dow-'+i+'">'+dowPills+'</div>'
         +'</div>'
@@ -4908,7 +5239,89 @@ function removeCustomizeCompound(i){
   buildCustomizeStep();
 }
 
-function openAddToNewProtocol(){
+var _atpProtoCtx=null;
+
+function switchAddToProtoTab(tab){
+  var tp=document.getElementById('atpTabPantry');
+  var tl=document.getElementById('atpTabLib');
+  var ls=document.getElementById('atpLibSearch');
+  if(tp){tp.style.color=tab==='pantry'?'var(--p1)':'var(--dim)';tp.style.borderBottomColor=tab==='pantry'?'var(--p1)':'transparent';}
+  if(tl){tl.style.color=tab==='library'?'var(--p1)':'var(--dim)';tl.style.borderBottomColor=tab==='library'?'var(--p1)':'transparent';}
+  if(ls) ls.style.display=tab==='library'?'block':'none';
+  if(tab==='pantry'){
+    if(_atpProtoCtx==='new') openAddToNewProtocol(true);
+    else openAddCompoundToEditor(_atpProtoCtx,true);
+  } else {
+    var si=ls?ls.querySelector('input'):null;
+    if(si) si.value='';
+    filterAddProtoLibrary('',_atpProtoCtx);
+  }
+}
+
+function filterAddProtoLibrary(q,ctx){
+  var list=document.getElementById('addToProtoList');
+  if(!list) return;
+  var inProtoNames=new Set();
+  if(ctx==='new'){
+    buildCompounds.filter(function(c){return c.selected;}).forEach(function(c){inProtoNames.add(c.name.toLowerCase());});
+  } else if(ctx){
+    var pr=protocols.find(function(p){return p.id===ctx;});
+    if(pr&&pr.compounds) pr.compounds.forEach(function(c){inProtoNames.add(c.name.toLowerCase());});
+  }
+  var query=(q||'').toLowerCase().trim();
+  var available=COMPOUND_DB.filter(function(c){
+    if(inProtoNames.has(c.name.toLowerCase())) return false;
+    if(!query) return true;
+    return c.name.toLowerCase().indexOf(query)>-1||(c.rationale||'').toLowerCase().indexOf(query)>-1;
+  });
+  if(!available.length){
+    list.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:16px 0;text-align:center">'+(query?'No matches.':'All library compounds already in this protocol.')+'</div>';
+    return;
+  }
+  var bycat={};
+  available.forEach(function(c){var cat=c.cat||'other';if(!bycat[cat])bycat[cat]=[];bycat[cat].push(c);});
+  var html='';
+  CAT_ORDER.forEach(function(cat){
+    var grp=bycat[cat];if(!grp||!grp.length) return;
+    var color=CAT_COLORS[cat]||'var(--mid)';
+    html+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 0 4px;border-top:1px solid var(--bd)">'+(CAT_LABELS[cat]||cat)+'</div>';
+    grp.forEach(function(c){
+      var safeName=c.name.replace(/'/g,'\u2019');
+      var safeCtx=(ctx||'').replace(/'/g,'\u2019');
+      html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px"></div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+c.name+'</div>'
+          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+c.dose+' · '+(c.route||'')+'</div>'
+          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px;line-height:1.4">'+(c.rationale||'')+'</div>'
+        +'</div>'
+        +'<button class="btn sm" data-cname="'+safeName+'" data-ctx="'+safeCtx+'" onclick="addLibCompoundToProto(this.dataset.cname,this.dataset.ctx)" style="font-size:10px;flex-shrink:0">Add</button>'
+        +'</div>';
+    });
+  });
+  list.innerHTML=html||'<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:16px 0;text-align:center">No matches.</div>';
+}
+
+function addLibCompoundToProto(name,ctx){
+  if(!pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
+    var db=COMPOUND_DB.find(function(d){return d.name===name;});
+    if(db){
+      pantry.push(Object.assign({},db,{
+        id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+        vialMg:null,vials:0,reconVol:null,openVialMg:null,
+        capsRemaining:null,capDose:null,pensRemaining:null,spraysRemaining:null,
+        reorderDays:14,stockLog:[],active:false,notes:db.rationale||''
+      }));
+      persist(KEYS.pantry,pantry);
+    }
+  }
+  if(ctx==='new') addCompoundToNewProto(name);
+  else addCompoundToEditor(ctx,name);
+}
+
+function openAddToNewProtocol(keepTab){
+  _atpProtoCtx='new';
+  if(!keepTab){switchAddToProtoTab('pantry');return;}
   const list=document.getElementById('addToProtoList');
   const inProto=new Set(buildCompounds.filter(function(c){return c.selected;}).map(function(c){return c.name;}));
   list.innerHTML=pantry.map(function(p){
@@ -4967,6 +5380,33 @@ function buildReviewStep(){
     +'</div></div>'+compHtml
     +(notes?'<div style="font-family:var(--mono);font-size:11px;color:var(--mid);margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">'+notes+'</div>':'')
     +'</div>';
+
+  // Unstocked compounds — prompt to add to restock list
+  var unstocked=selectedComps.filter(function(c){
+    var p=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+    return !p||!isInStock(p);
+  });
+  var unstockedSection=document.getElementById('unstockedSection');
+  if(unstockedSection){
+    if(unstocked.length){
+      var want=[];
+      try{var ws=localStorage.getItem('pt_restock_want');if(ws)want=JSON.parse(ws);}catch(e){}
+      var notYetWanted=unstocked.filter(function(c){return want.indexOf(c.name)===-1;});
+      unstockedSection.innerHTML=
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--p2);margin-bottom:8px">⚠ Not in stock</div>'
+        +'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px">'
+        +'<div style="font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:8px;line-height:1.6">'
+        +unstocked.map(function(c){return c.name;}).join(', ')
+        +' '+(unstocked.length===1?'is':'are')+' not currently in stock.</div>'
+        +(notYetWanted.length
+          ?'<button class="btn sm" onclick="addAllUnstockedToWantList()" style="background:var(--p2);border-color:var(--p2);color:var(--bg)">'
+            +'Add all to restock list →</button>'
+          :'<div style="font-family:var(--mono);font-size:10px;color:var(--p2)">✓ Already on your restock list</div>')
+        +'</div>';
+    } else {
+      unstockedSection.innerHTML='';
+    }
+  }
 
   const conflicts=detectConflicts(selectedComps);
   const conflictSection=document.getElementById('conflictSection');
@@ -5084,13 +5524,17 @@ function renderProtoEditor(proto){
     +'<option value="var(--p4)"'+(proto.color==='var(--p4)'?' selected':'')+'>Violet</option>'
     +'<option value="var(--p5)"'+(proto.color==='var(--p5)'?' selected':'')+'>Coral</option></select></div>'
     +'<div class="field"><label>Notes</label><input type="text" id="epNo_'+proto.id+'" value="'+(proto.notes||'')+'" oninput="liveUpdateProto(\''+proto.id+'\',\'notes\',this.value)"></div></div></div>'
-    +'<div class="editor-tabs"><button class="editor-tab on" id="etab-sched" onclick="switchEditorTab(\'sched\')">📅 Schedule</button>'
-    +'<button class="editor-tab" id="etab-edit" onclick="switchEditorTab(\'edit\')">✏️ Edit All</button></div>'
-    +'<div id="editor-sched-view">'+renderEditorScheduleView(proto)+'</div>'
-    +'<div id="editor-edit-view" style="display:none">'+renderEditorEditView(proto)+'</div>'
+    +'<div class="editor-tabs"><button class="editor-tab" id="etab-sched" onclick="switchEditorTab(\'sched\')">📅 Schedule</button>'
+    +'<button class="editor-tab on" id="etab-edit" onclick="switchEditorTab(\'edit\')">✏️ Edit All</button></div>'
+    +'<div id="editor-sched-view" style="display:none">'+renderEditorScheduleView(proto)+'</div>'
+    +'<div id="editor-edit-view">'+renderEditorEditView(proto)+'</div>'
     +'<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'
     +'<button class="btn sm" onclick="openAddCompoundToEditor(\''+proto.id+'\')">+ Add Compound</button>'
-    +'<button class="btn ghost sm" onclick="dupProtocol(\''+proto.id+'\')">Duplicate Protocol</button></div>';
+    +'<button class="btn ghost sm" onclick="dupProtocol(\''+proto.id+'\')">Duplicate Protocol</button></div>'
+    +'<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd)">'
+    +'<button class="btn" style="width:100%;justify-content:center" onclick="saveAndGoToPantry()">Save &amp; Set Up Pantry →</button>'
+    +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;margin-top:8px">Changes save automatically — this takes you to the Pantry to add stock</div>'
+    +'</div>';
 }
 
 function switchEditorTab(tab){
@@ -5126,7 +5570,7 @@ function renderEditorEditView(proto){
     const twOptions=TIMING_WINDOWS.filter(function(tw){return tw.key!=='weekly';})
       .map(function(tw){return'<option value="'+tw.key+'"'+((c.timingWindow||'am')===tw.key?' selected':'')+'>'+tw.label+'</option>';}).join('');
     const dowPills=DAYS.map(function(d,j){return'<button class="dow-pill'+((c.daysOfWeek||[0,1,2,3,4,5,6]).indexOf(j)!==-1?' on':'')+'" onclick="toggleEditorDow(\''+proto.id+'\','+i+','+j+',this)">'+d+'</button>';}).join('');
-    return'<div class="review-compound"><div class="rc-hdr" onclick="toggleRC(this)">'
+    return'<div class="review-compound"><div class="rc-hdr open" onclick="toggleRC(this)">'
       +'<div class="rc-dot" style="background:'+getPColor(c.name)+'"></div>'
       +'<div class="rc-name">'+c.name+'</div>'
       +'<div class="rc-summary">'+c.dose+' · '+c.frequency+'</div>'
@@ -5178,7 +5622,9 @@ function removeEditorCompound(protoId,i){
   proto.compounds.splice(i,1);persist(KEYS.protocols,protocols);
   renderProtoEditor(proto);if(activeProtoId===protoId) renderChecklist();
 }
-function openAddCompoundToEditor(protoId){
+function openAddCompoundToEditor(protoId,keepTab){
+  _atpProtoCtx=protoId;
+  if(!keepTab){switchAddToProtoTab('pantry');return;}
   const proto=protocols.find(function(p){return p.id===protoId;});if(!proto) return;
   const inProto=new Set((proto.compounds||[]).map(function(c){return c.name;}));
   const list=document.getElementById('addToProtoList');
@@ -5218,13 +5664,32 @@ function _doAddCompoundToEditor(protoId,name){
   if(activeProtoId===protoId) renderChecklist();
   toast(name+' added ✓');
 }
+function saveAndGoToPantry(){
+  persist(KEYS.protocols,protocols);
+  toast('Protocol saved ✓');
+  // closeProtoEditor handles nav('pantry') in post-onboarding case
+  // For returning users, we nav to pantry explicitly after close
+  var wasPostOnboard=localStorage.getItem('pt_just_edited_proto')==='1';
+  closeProtoEditor();
+  if(!wasPostOnboard) nav('pantry');
+}
+
 function closeProtoEditor(){
   editingProtoId=null;
   const wrap=document.getElementById('protoEditorWrap');if(wrap)wrap.style.display='none';
   const bs=document.getElementById('builderSection');if(bs)bs.style.display='block';
   renderBuild();
-  // Refresh Today so protocol changes (dose/DOW/frequency) are immediately reflected
   renderToday();
+  // Post-onboarding: after first protocol edit, route to Pantry with guidance
+  if(localStorage.getItem('pt_just_edited_proto')==='1'){
+    localStorage.removeItem('pt_just_edited_proto');
+    localStorage.setItem('pt_pantry_welcomed','1'); // ensure banner shows
+    localStorage.removeItem('pt_pantry_banner_dismissed');
+    // Set flag so pantry knows to show guidance
+    localStorage.setItem('pt_pantry_post_onboard','1');
+    nav('pantry');
+    // First time leaving pantry → Today (handled in nav())
+  }
 }
 function dupProtocol(id){
   const proto=protocols.find(function(p){return p.id===id;});if(!proto) return;
@@ -5384,6 +5849,21 @@ async function seedDefaults(){
 
 
 function finishInit(){
+  // Migrate: remove auto-library dp_ items with no stock and not in any protocol
+  var protoCompoundNames=new Set();
+  protocols.forEach(function(p){
+    if(p.compounds) p.compounds.forEach(function(c){protoCompoundNames.add(c.name.toLowerCase());});
+  });
+  var pantryBefore=pantry.length;
+  pantry=pantry.filter(function(p){
+    var isDp=(p.id||'').startsWith('dp_');
+    if(!isDp) return true;
+    if(protoCompoundNames.has(p.name.toLowerCase())) return true;
+    if(isInStock(p)) return true;
+    return false;
+  });
+  if(pantry.length!==pantryBefore) persist(KEYS.pantry,pantry);
+
   // Migrate: remove legacy blank placeholder protocols (0 compounds, default name)
   var blankNames=['My Protocol','My First Protocol'];
   var before=protocols.length;
@@ -5423,7 +5903,36 @@ function finishInit(){
   initTheme();
   takeAutoSnapshot();
   registerServiceWorker();
-  updateMobHeader();nav('today');
+  updateMobHeader();
+  // Post-onboarding routing: if first run, open protocol editor for setup
+  var justOnboarded=localStorage.getItem('pt_just_onboarded');
+  if(justOnboarded==='1'){
+    localStorage.removeItem('pt_just_onboarded');
+    // Navigate to Build and open the active protocol in the editor
+    localStorage.setItem('pt_just_edited_proto','1');
+    nav('build');
+    setTimeout(function(){
+      var proto=protocols.find(function(p){return p.id===activeProtoId;});
+      if(proto&&proto.compounds&&proto.compounds.length){
+        openProtoEditor(proto.id);
+        // Inject one-time guidance banner into the editor
+        var wrap=document.getElementById('protoEditorWrap');
+        if(wrap){
+          var banner=document.createElement('div');
+          banner.id='onboardEditorBanner';
+          banner.style.cssText='background:var(--p3d);border:1px solid var(--p3);border-radius:8px;padding:12px 16px;margin-bottom:14px;font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.7;position:relative';
+          banner.innerHTML='<button onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer">&#x2715;</button>'
+            +'<strong style="color:var(--p3)">Review your protocol compounds</strong><br>'
+            +'For each compound, confirm the <strong>Dose</strong>, set the <strong>Timing Window</strong> (when in the day), <strong>Frequency</strong> (how often), and <strong>Days of Week</strong>. Tap ← Back to Build when done.';
+          wrap.insertBefore(banner,wrap.firstChild);
+        }
+      } else {
+        nav('today');
+      }
+    },200);
+  } else {
+    nav('today');
+  }
 }
 
 // ═══════════ THEME ═══════════
@@ -6537,8 +7046,6 @@ function obImportBodySpecCSV(input){
 
 async function finishOnboarding(){
   try{
-    // Merge default pantry (all inactive)
-    mergeDefaultPantry();
     var proto;
     if(selectedTemplateId){
       var tmpl=PROTOCOL_TEMPLATES.find(function(t){return t.id===selectedTemplateId;});
@@ -6553,6 +7060,30 @@ async function finishOnboarding(){
     }
     if(!proto) proto={id:'proto_'+Date.now(),name:'My Protocol',durationWeeks:12,startDate:today(),compounds:[],color:'var(--p1)'};
     protocols=[proto];activeProtoIds=[proto.id];activeProtoId=proto.id;
+    // Auto-create pantry entries for each protocol compound with no existing record
+    proto.compounds.forEach(function(c){
+      var exists=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+      if(!exists){
+        var db=COMPOUND_DB.find(function(d){return d.name.toLowerCase()===c.name.toLowerCase();});
+        pantry.push({
+          id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+          name:c.name,
+          form:(db&&db.form)||c.form||'vial',
+          cat:(db&&db.cat)||'other',
+          dose:c.dose||(db&&db.dose)||'—',
+          route:c.route||(db&&db.route)||'Subcutaneous',
+          site:c.site||(db&&db.site)||'Abdomen',
+          fasting:c.fasting||!!(db&&db.fasting),
+          color:(db&&db.color)||'var(--mid)',
+          notes:(db&&db.rationale)||'',
+          active:false,
+          vialMg:null,vials:0,reconVol:null,openVialMg:null,
+          capsRemaining:null,capDose:null,pensRemaining:null,
+          spraysRemaining:null,remainingG:null,
+          reorderDays:14,stockLog:[]
+        });
+      }
+    });
 
     // Save profile
     saveProfile({goals:selectedGoals});
@@ -6577,6 +7108,7 @@ async function finishOnboarding(){
     }
 
     localStorage.setItem('pt_onboarded','1');
+    localStorage.setItem('pt_just_onboarded','1');
     localStorage.setItem('pt_tc_accepted',new Date().toISOString());
     localStorage.setItem('pt_goals',JSON.stringify(selectedGoals));
     await persist(KEYS.protocols,protocols);
@@ -6935,32 +7467,7 @@ async function initApp(){
   researchUnlocked=localStorage.getItem('pt_research_unlocked')==='1';
 
   // Migrate and launch
-  if(!pantry) pantry=[];  // Initialize in memory only — don't persist empty pantry
-  // Migrate any new default compounds into existing pantry
-  var newlyAdded=mergeDefaultPantry();
-  // dp_ inactive migration removed — mergeDefaultPantry handles active:false on new items only
-  // Every load: correct pantry items that are incorrectly marked active
-  // Only default pantry compounds (dp_ prefix) that aren't in any protocol should be inactive
-  // This is safe and cheap to run on every load
-  var protoActiveNames=new Set();
-  protocols.forEach(function(proto){
-    if(proto.compounds) proto.compounds.forEach(function(c){protoActiveNames.add(c.name.toLowerCase());});
-  });
-  var fixCount=0;
-  pantry.forEach(function(p){
-    var isDpItem=(p.id||'').indexOf('dp_')===0||DEFAULT_PANTRY.some(function(d){return d.name.toLowerCase()===p.name.toLowerCase();});
-    if(isDpItem&&!protoActiveNames.has(p.name.toLowerCase())&&p.active===true){
-      p.active=false;
-      fixCount++;
-    }
-  });
-  if(fixCount>0){await persist(KEYS.pantry,pantry);}
-  if(newlyAdded.length){
-    await persist(KEYS.pantry,pantry);
-    setTimeout(function(){
-      toast('✨ '+newlyAdded.length+' new compound'+(newlyAdded.length>1?'s':'')+' added to your pantry. Activate and add stock if in your inventory.', 'var(--p1)', 6000);
-    }, 2000);
-  }
+  if(!pantry) pantry=[];
   pantry=pantry.map(function(p){
     return Object.assign({vialMg:null,vials:0,capsRemaining:null,capDose:null,
       expiry:'',reorderDays:14,stockLog:[],site:'Abdomen',fasting:false},p);
@@ -7353,101 +7860,7 @@ function toggleEpTag(btn){
   btn.classList.toggle('on');
 }
 
-// Get current secondary tags from pill state
-function getEpTags(){
-  var pills=document.querySelectorAll('#epTagPills .ep-tag.on');
-  return Array.from(pills).map(function(p){return p.dataset.tag;});
-}
 
-// Set tag pills from array
-function setEpTags(tags){
-  document.querySelectorAll('#epTagPills .ep-tag').forEach(function(p){
-    p.classList.toggle('on',(tags||[]).indexOf(p.dataset.tag)>-1);
-  });
-}
-
-// Update cat hint when primary changes — hide any tag that matches primary
-function updateCatHint(){
-  var catEl=document.getElementById('epCat');
-  if(!catEl) return;
-  // Remove primary from secondary pills (no duplication)
-  var primaryVal=catEl.value;
-  document.querySelectorAll('#epTagPills .ep-tag').forEach(function(p){
-    p.style.display=p.dataset.tag===primaryVal?'none':'';
-  });
-}
-
-// Auto-suggest tags from local map, fall back to AI for unknown compounds
-function suggestTagsForCompound(name){
-  var suggest=document.getElementById('epTagSuggest');
-  if(!suggest) return;
-  suggest.style.display='none';
-  _epTagSuggestion=null;
-  if(!name||name.length<2) return;
-  var local=getCompoundTags(name);
-  if(local){
-    // Apply primary cat immediately
-    var catEl=document.getElementById('epCat');
-    if(catEl&&catEl.value==='other') catEl.value=local.cat;
-    // Suggest secondary tags (exclude primary)
-    var primaryVal=catEl?catEl.value:'other';
-    var secondaryTags=local.tags.filter(function(t){return t!==primaryVal;});
-    if(secondaryTags.length){
-      _epTagSuggestion=secondaryTags;
-      suggest.textContent='Suggested tags: '+secondaryTags.map(function(t){return TAG_LABELS[t]||t;}).join(', ')+' — tap to apply';
-      suggest.style.display='block';
-    }
-    updateCatHint();
-  } else {
-    // Unknown compound — try AI suggestion
-    suggestTagsViaAI(name);
-  }
-}
-
-function applyTagSuggestion(){
-  if(!_epTagSuggestion) return;
-  setEpTags(_epTagSuggestion);
-  var suggest=document.getElementById('epTagSuggest');
-  if(suggest) suggest.style.display='none';
-}
-
-async function suggestTagsViaAI(name){
-  var suggest=document.getElementById('epTagSuggest');
-  if(!suggest) return;
-  suggest.textContent='Looking up '+name+'…';
-  suggest.style.display='block';
-  try{
-    var cats=Object.keys(TAG_LABELS).join(', ');
-    var prompt='For the supplement or peptide "'+name+'", suggest the most appropriate primary category and up to 2 secondary tags from this list: '+cats+'. Reply with ONLY a JSON object like: {"cat":"metabolic","tags":["performance","healing"]}. No other text.';
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:100,messages:[{role:'user',content:prompt}]})
-    });
-    var data=await resp.json();
-    var text=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
-    var s=text.indexOf('{'),e=text.lastIndexOf('}');
-    if(s>-1){
-      var result=JSON.parse(text.slice(s,e+1));
-      var catEl=document.getElementById('epCat');
-      if(catEl&&result.cat&&catEl.value==='other') catEl.value=result.cat;
-      updateCatHint();
-      var primaryVal=catEl?catEl.value:'other';
-      var secondaryTags=(result.tags||[]).filter(function(t){return t!==primaryVal&&TAG_LABELS[t];});
-      if(secondaryTags.length){
-        _epTagSuggestion=secondaryTags;
-        suggest.textContent='Suggested: '+secondaryTags.map(function(t){return TAG_LABELS[t]||t;}).join(', ')+' — tap to apply';
-        suggest.style.display='block';
-      } else {
-        suggest.style.display='none';
-      }
-    }
-  } catch(e){
-    suggest.style.display='none';
-  }
-}
-
-// Render tag pills on a pantry card
 function renderTagPills(item){
   var tags=item.tags||[];
   var primaryCat=item.cat||'other';
@@ -7456,10 +7869,6 @@ function renderTagPills(item){
     return '<span style="font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid var(--bd);color:var(--dim);white-space:nowrap">'+(TAG_LABELS[t]||t)+'</span>';
   }).join('');
 }
-
-// ── CATEGORY MULTI-SELECT DROPDOWN ──
-
-var _catDropdownOpen=false;
 
 function buildCatDropdown(primaryCat, selectedTags){
   var menu=document.getElementById('catCheckboxes');
@@ -7667,8 +8076,9 @@ window.addEventListener('beforeinstallprompt', function(e) {
   // Only show if not already installed and not dismissed in last 7 days
   var dismissed = localStorage.getItem('pt_install_dismissed');
   var now = Date.now();
-  if (!dismissed || (now - parseInt(dismissed)) > 7 * 24 * 3600 * 1000) {
-    setTimeout(showInstallBanner, 2000); // 2s delay after load
+  var visitedToday = localStorage.getItem('pt_visited_today');
+  if (visitedToday && (!dismissed || (now - parseInt(dismissed)) > 7 * 24 * 3600 * 1000)) {
+    setTimeout(showInstallBanner, 2000);
   }
 });
 
@@ -7713,7 +8123,8 @@ window.addEventListener('load', function() {
   var isStandalone = window.navigator.standalone === true;
   var dismissed = localStorage.getItem('pt_install_dismissed');
   var now = Date.now();
-  if (isIOS && !isStandalone && (!dismissed || (now - parseInt(dismissed)) > 7 * 24 * 3600 * 1000)) {
+  var visitedTodayIOS = localStorage.getItem('pt_visited_today');
+  if (isIOS && !isStandalone && visitedTodayIOS && (!dismissed || (now - parseInt(dismissed)) > 7 * 24 * 3600 * 1000)) {
     setTimeout(showInstallBanner, 2000);
   }
 });
@@ -7974,6 +8385,37 @@ document.addEventListener('DOMContentLoaded', initApp);
       <button class="btn" onclick="saveBackfillCheckin()">Save check-in</button>
       <button class="btn ghost" onclick="closeModal('backfillCheckinModal')">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ LIBRARY BROWSER MODAL ═══════════ -->
+<div class="modal-overlay" id="libraryBrowserModal">
+  <div class="modal" style="max-height:85vh;padding:0;display:flex;flex-direction:column">
+    <!-- Sticky header -->
+    <div style="padding:22px 20px 12px;border-bottom:1px solid var(--bd);flex-shrink:0">
+      <div class="modal-title" style="margin-bottom:10px">Compound Library
+        <button class="modal-close" onclick="closeModal('libraryBrowserModal')">&#x2715;</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:10px;line-height:1.6">
+        Showing compounds not yet in your pantry. Tap <strong style="color:var(--text)">Add</strong> to add one — then fill in stock details.
+      </div>
+      <div id="libraryBrowserSearch">
+        <input type="text" placeholder="Search compounds..." oninput="filterLibraryBrowser(this.value)"
+          style="width:100%;font-family:var(--mono);font-size:12px;padding:9px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);color:var(--text)">
+      </div>
+    </div>
+    <!-- Scrollable content -->
+    <div id="libraryBrowserList" style="overflow-y:auto;flex:1;padding:0 20px 20px"></div>
+  </div>
+</div>
+
+<!-- ═══════════ CONCENTRATION PICKER MODAL ═══════════ -->
+<div class="modal-overlay" id="concPickerModal">
+  <div class="modal">
+    <div class="modal-title">Choose Starting Concentration <button class="modal-close" onclick="closeModal('concPickerModal')">✕</button></div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:14px;line-height:1.6" id="concPickerSub">You have multiple concentrations in stock. Which would you like to use first?</div>
+    <div id="concPickerList" style="margin-bottom:16px"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">The app will automatically switch to your next supply when this one runs out.</div>
   </div>
 </div>
 
