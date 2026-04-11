@@ -1185,16 +1185,44 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
   <!-- BACKUP -->
   <div class="sec-lbl" style="margin-top:18px">Backup &amp; Data</div>
-  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:10px;line-height:1.7">Protocol stores all data locally on your device — nothing goes to a server. <strong style="color:var(--text)">Save a backup JSON regularly</strong> so you can restore your data if you switch devices or clear your browser. Auto-snapshots save the last 7 days in-app.</div>
-  <div class="settings-row">
-    <div class="settings-label">Auto-backup (daily)</div>
-    <label class="toggle-sw"><input type="checkbox" id="autoBackupEnabled" onchange="saveBackupPrefs(this.checked)" checked><span class="toggle-track"></span></label>
+
+  <!-- iOS Storage Warning -->
+  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:12px">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ iOS Storage Notice</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7">iOS may clear your data after 7 days of inactivity or when storage is low. Save a backup to Files regularly to protect your protocol history.</div>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;margin-bottom:14px">
-    <button class="btn sm" onclick="exportData()">↓ Backup JSON</button>
-    
-    <label class="btn ghost sm" style="cursor:pointer">↑ Restore<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
-    
+
+  <!-- Primary: Save to Files (iCloud) -->
+  <div style="background:var(--sf);border:1px solid var(--p1);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Save to Files</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">iCloud Drive · Google Drive · Dropbox</div>
+      </div>
+      <span style="font-size:20px">📁</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6;margin-bottom:10px">Tap to export your backup JSON. The Files picker lets you save directly to iCloud Drive so it syncs across devices and survives storage resets.</div>
+    <button class="btn" style="width:100%;justify-content:center" onclick="exportToFiles()">↓ Save to Files</button>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;text-align:center">Save after each session for best protection</div>
+  </div>
+
+  <!-- Secondary: Restore from Files -->
+  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Restore from backup</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6;margin-bottom:10px">Lost your data? Import a previously saved JSON backup to restore your full history.</div>
+    <label class="btn ghost sm" style="cursor:pointer;width:100%;justify-content:center;display:flex">
+      ↑ Import backup file
+      <input type="file" accept=".json" style="display:none" onchange="importData(this)">
+    </label>
+  </div>
+
+  <!-- Auto-snapshot toggle -->
+  <div class="settings-row">
+    <div>
+      <div class="settings-label">Auto-snapshot (daily)</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">In-app snapshot kept 7 days — last-resort recovery only</div>
+    </div>
+    <label class="toggle-sw"><input type="checkbox" id="autoBackupEnabled" onchange="saveBackupPrefs(this.checked)" checked><span class="toggle-track"></span></label>
   </div>
   <div class="sec-lbl" style="margin-top:18px">Pantry</div>
   <div class="settings-row" style="cursor:pointer" onclick="restorePantryDefaults()">
@@ -1655,13 +1683,13 @@ const KEYS={logs:'pt_logs_v2',doseMem:'pt_dose_mem',bodyLogs:'pt_body_v1',
             protocols:'pt_protocols_v1',activeProtoId:'pt_active_proto'};
 
 async function persist(key,val){
+  // localStorage only — window.storage is Claude artifact storage, not available on GitHub Pages
   const s=JSON.stringify(val);
   localStorage.setItem(key,s);
-  try{await window.storage.set(key,s);}catch(e){}
 }
 async function load(key,fb=null){
-  try{const r=await window.storage.get(key);if(r)return JSON.parse(r.value);}catch(e){}
-  const ls=localStorage.getItem(key);
+  // localStorage only — consistent scope on GitHub Pages PWA
+  var ls=localStorage.getItem(key);
   return ls?JSON.parse(ls):fb;
 }
 
@@ -2565,17 +2593,29 @@ function renderChecklist(){
             if(caps) hint='<div style="font-family:var(--mono);font-size:11px;color:var(--p3);margin:10px 0 2px;padding:6px 10px;background:var(--p3d);border-radius:5px;display:inline-block">'
               +dose+' · <strong>'+caps+' capsule'+(caps>1?'s':'')+'</strong>'
               +(pItem.capDose?' @ '+pItem.capDose+'mg ea':'')+'</div>';
-          } else if(pItem&&(pItem.form==='vial'||pItem.form==='prefilled')&&pItem.syringeUnits){
-            hint='<div style="font-family:var(--mono);font-size:11px;color:var(--p3);margin:10px 0 2px;padding:6px 10px;background:var(--p3d);border-radius:5px;display:inline-block">'
-              +dose+' · <strong>'+pItem.syringeUnits+' units</strong>'
-              +' on '+pItem.syringeSize+'u syringe'
-              +(pItem.syringeConc?' @ '+pItem.syringeConc+'mg/mL':'')+'</div>';
+          } else if(pItem&&(pItem.form==='vial'||pItem.form==='prefilled')){
+            // Compute units live from vialMg + reconVol + dose
+            var computedUnits=null;
+            if(pItem.vialMg&&pItem.reconVol){
+              var doseMgCalc=parseDoseMg(dose);
+              if(doseMgCalc>0){
+                var concCalc=pItem.vialMg/pItem.reconVol;
+                computedUnits=Math.round((doseMgCalc/concCalc)*100);
+              }
+            }
+            var unitsToShow=computedUnits!==null?computedUnits:pItem.syringeUnits;
+            if(unitsToShow){
+              hint='<div style="font-family:var(--mono);font-size:11px;color:var(--p3);margin:10px 0 2px;padding:6px 10px;background:var(--p3d);border-radius:5px;display:inline-block">'
+                +dose+' · <strong>'+unitsToShow+' units</strong>'
+                +(pItem.vialMg&&pItem.reconVol?' @ '+(pItem.vialMg/pItem.reconVol).toFixed(2)+'mg/mL':pItem.syringeConc?' @ '+pItem.syringeConc+'mg/mL':'')
+                +'</div>';
+            }
           }
           return hint?'<div style="margin-bottom:2px">'+hint+'</div>':'';
         }())
         +'<div class="cr-dose-row">'
         +'<div class="dose-wrap" style="flex:1">'
-        +'<input class="cr-dose-input" id="dose-'+uid+'" value="'+numPart(dose)+'" type="text" inputmode="decimal" placeholder="'+numPart(c.dose)+'">'
+        +'<input class="cr-dose-input" id="dose-'+uid+'" value="'+numPart(dose)+'" type="text" inputmode="decimal" placeholder="'+numPart(dose)+'">'
         +'<div class="unit-toggle" id="doseunit-'+uid+'">'
         +'<button'+(unitPart(dose)==='mcg'?' class="on"':'')+' data-unit="mcg" onclick="toggleDoseUnit(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\')">mcg</button>'
         +'<button'+(unitPart(dose)==='mg'?' class="on"':'')+' data-unit="mg" onclick="toggleDoseUnit(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\')">mg</button>'
@@ -3825,9 +3865,64 @@ function renderPantryFilterChips(){
     return '<button class="pf-active" onclick="togglePantryFilter(\''+f+'\',null)">'+label+' <span style="font-size:11px;line-height:1">\u00d7</span></button>';
   }).join('');
 }
-function isInProtocol(name){
+function isInProtocol(name, pantryItemId){
   var proto=getActiveProtocol();
-  return !!(proto&&proto.compounds&&proto.compounds.some(function(c){return c.name===name;}));
+  if(!proto||!proto.compounds) return false;
+  return proto.compounds.some(function(c){
+    if(c.name!==name) return false;
+    // If protocol entry is linked to a specific pantry item ID, only that item qualifies
+    if(c.pantryItemId&&pantryItemId) return c.pantryItemId===pantryItemId;
+    return true;
+  });
+}
+
+// Check if a compound name has multiple pantry items (duplicates)
+function getDuplicatePantryItems(name){
+  return pantry.filter(function(p){return p.name.toLowerCase()===name.toLowerCase();});
+}
+
+// When adding a compound to protocol that has duplicates, prompt which version to link
+function linkProtocolCompoundToPantryItem(protoCmp){
+  var dupes=getDuplicatePantryItems(protoCmp.name);
+  if(dupes.length<=1){
+    // Only one version — auto-link
+    if(dupes.length===1) protoCmp.pantryItemId=dupes[0].id;
+    return;
+  }
+  // Multiple versions — build choice list
+  var options=dupes.map(function(p,i){
+    var desc=p.name;
+    if(p.vialMg&&p.reconVol) desc+=' ('+p.vialMg+'mg/'+p.reconVol+'mL)';
+    else if(p.dose) desc+=' ('+p.dose+')';
+    return {id:p.id,label:desc};
+  });
+  // Show disambiguation — sequential confirms for each option
+  var optIdx=0;
+  function askNextOption(){
+    if(optIdx>=options.length) return;
+    var opt=options[optIdx];
+    var remaining=options.length-optIdx-1;
+    var sub=opt.label+(remaining>0?' — or tap Cancel to see other versions.':' — this is your only other option.');
+    showConfirm(
+      'Which '+protoCmp.name+' is in your protocol?',
+      sub,
+      'Use this one',
+      function(){
+        protoCmp.pantryItemId=opt.id;
+        persist(KEYS.protocols,protocols);
+        renderPantry();
+        toast(protoCmp.name+' linked ✓');
+      }
+    );
+    optIdx++;
+    // Wire Cancel to show next option if available
+    var cancelBtn=document.getElementById('confirmCancelBtn');
+    if(cancelBtn&&remaining>0){
+      var origOnclick=cancelBtn.onclick;
+      cancelBtn.onclick=function(){closeModal('confirmModal');askNextOption();};
+    }
+  }
+  askNextOption();
 }
 function isInStock(item){
   if(!item) return false;
@@ -4936,13 +5031,8 @@ function buildStaticSuggestions(goals,activePantry){
 
 // ════════════ EXPORT / IMPORT ════════════
 function exportData(){
-  const backup={version:10,exported:new Date().toISOString(),
-    logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
-    pantry:pantry,protocols:protocols,activeProtoId:activeProtoId};
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='protocol-backup-'+today()+'.json';a.click();
-  toast('Backup downloaded ✓');
+  // Alias to the Files-aware export for consistency
+  exportToFiles();
 }
 function importData(input){
   const file=input.files[0];if(!file) return;
@@ -4977,7 +5067,7 @@ async function restoreFromPrompt(input){
 async function seedDefaults(){
   // Commercial version — no hardcoded personal data
   // User starts fresh; data built through logging and imports
-  if(!pantry||!pantry.length){pantry=[];await persist(KEYS.pantry,pantry);}
+  if(!pantry) pantry=[];  // Initialize in memory only — don't persist empty pantry
   if(!protocols.length){
     const starter={id:'proto_'+Date.now(),name:'My First Protocol',durationWeeks:12,
       startDate:today(),compounds:[],color:'var(--p1)'};
@@ -4994,6 +5084,8 @@ async function seedDefaults(){
 
 
 function finishInit(){
+  // iOS Files backup reminder — show if last save was >3 days ago
+  setTimeout(function(){showFilesBackupReminder();},4000);
   // Close pantry filter dropdown on outside click — registered once
   document.addEventListener('click', function(e){
     var dd=document.getElementById('pantryFilterDropdown');
@@ -6020,27 +6112,192 @@ function restorePantryDefaults(){
 }
 
 
+
+
+
+function showFilesBackupReminder(){
+  // Only show on iOS PWA (standalone mode)
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isStandalone=window.navigator.standalone===true;
+  if(!isIOS||!isStandalone) return;
+  // Check last save time
+  var lastSave=localStorage.getItem('pt_last_files_save');
+  var now=Date.now();
+  var threeDays=3*24*3600*1000;
+  if(lastSave&&(now-parseInt(lastSave))<threeDays) return;
+  // Show gentle toast nudge
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.innerHTML='💾 Tap to <span style="text-decoration:underline;cursor:pointer" onclick="exportToFiles();document.getElementById(\'toast\').classList.remove(\'show\')">save backup to Files</span> · <span style="cursor:pointer;opacity:.7" onclick="document.getElementById(\'toast\').classList.remove(\'show\')">✕</span>';
+  t.style.background='var(--sf2)';
+  t.style.color='var(--text)';
+  t.style.border='1px solid var(--p1)';
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');t.innerHTML='';t.style.background='';t.style.color='';t.style.border='';},10000);
+}
+
+// ════════════ iCLOUD / FILES EXPORT ════════════
+// On iOS PWA, Web Share API is the only way to trigger the Files picker
+// This lets users save directly to iCloud Drive, Google Drive, Dropbox etc.
+// Desktop falls back to standard download
+function exportToFiles(){
+  localStorage.setItem('pt_last_files_save', Date.now().toString());
+  var backup={version:10,exported:new Date().toISOString(),
+    logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
+    pantry:pantry,protocols:protocols,activeProtoId:activeProtoId};
+  var jsonStr=JSON.stringify(backup,null,2);
+  var filename='protocol-backup-'+today()+'.json';
+  // iOS PWA: use Web Share API to trigger Files picker
+  if(navigator.share&&navigator.canShare){
+    var blob=new Blob([jsonStr],{type:'application/json'});
+    var file=new File([blob],filename,{type:'application/json'});
+    if(navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'Protocol Backup',text:'Protocol backup — '+today()})
+        .then(function(){toast('Backup shared ✓ — choose Files or iCloud to save');}
+        ,function(err){if(err.name!=='AbortError'){exportDataFallback(jsonStr,filename);}})
+      return;
+    }
+  }
+  // Desktop / Android fallback
+  exportDataFallback(jsonStr,filename);
+}
+function exportDataFallback(jsonStr,filename){
+  var blob=new Blob([jsonStr],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=filename;a.click();
+  toast('Backup downloaded ✓ — save to iCloud Drive for best protection');
+}
+
+// ════════════ STORAGE WIPE RECOVERY ════════════
+function showStorageWipeRecovery(){
+  // Hide onboarding, show a recovery message in the app shell
+  var ob=document.getElementById('onboarding');
+  if(ob) ob.classList.add('hidden');
+  // Show recovery overlay
+  var rec=document.getElementById('storageRecoveryScreen');
+  if(rec){ rec.style.display='flex'; return; }
+  // Create it if not in HTML
+  var div=document.createElement('div');
+  div.id='storageRecoveryScreen';
+  div.style.cssText='position:fixed;inset:0;background:var(--bg,#0a0a0a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;z-index:9999;text-align:center';
+  div.innerHTML='<div style="font-size:36px;margin-bottom:16px">⚠️</div>'
+    +'<div style="font-family:var(--sans,sans-serif);font-size:18px;font-weight:600;color:#fff;margin-bottom:10px">Storage was cleared</div>'
+    +'<div style="font-family:var(--mono,monospace);font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:28px;max-width:320px">iOS cleared your app\'s local storage — this can happen when storage is low or after extended inactivity. Your data may be recoverable from a backup.</div>'
+    +'<button onclick="attemptRecoveryFromSnapshot()" style="width:100%;max-width:320px;padding:14px;background:#3dd68c;color:#0a1628;font-family:var(--mono,monospace);font-size:13px;font-weight:600;border:none;border-radius:8px;margin-bottom:10px;cursor:pointer">Restore from last backup</button>'
+    +'<button onclick="importRecoveryJSON()" style="width:100%;max-width:320px;padding:14px;background:none;color:#3dd68c;font-family:var(--mono,monospace);font-size:13px;border:1px solid #3dd68c;border-radius:8px;margin-bottom:10px;cursor:pointer">Import JSON backup</button>'
+    +'<button onclick="dismissRecoveryAndOnboard()" style="width:100%;max-width:320px;padding:12px;background:none;color:rgba(255,255,255,.3);font-family:var(--mono,monospace);font-size:11px;border:none;cursor:pointer">Start fresh (data is gone)</button>';
+  document.body.appendChild(div);
+}
+
+function attemptRecoveryFromSnapshot(){
+  // Try to find snapshots — they may still exist if only core keys were wiped
+  var snaps=[];
+  try{var s=localStorage.getItem('pt_snapshots');if(s)snaps=JSON.parse(s);}catch(e){}
+  if(snaps&&snaps.length){
+    var snap=snaps[0];
+    var d=snap.data;
+    logs=d.logs||[];bodyLogs=d.bodyLogs||[];pantry=d.pantry||[];
+    protocols=d.protocols||[];activeProtoId=d.activeProtoId||null;
+    checkins=d.checkins||[];doseMem=d.doseMem||{};
+    localStorage.setItem('pt_onboarded','1');
+    localStorage.setItem('pt_tc_accepted',new Date().toISOString());
+    localStorage.setItem('pt_tour_done','1');
+    persist(KEYS.logs,logs);persist(KEYS.bodyLogs,bodyLogs);
+    persist(KEYS.pantry,pantry);persist(KEYS.protocols,protocols);
+    persist(KEYS.activeProtoId,activeProtoId);persist(KEYS.doseMem,doseMem);
+    sessionStorage.removeItem('pt_wipe_detected');
+    var rec=document.getElementById('storageRecoveryScreen');
+    if(rec) rec.style.display='none';
+    toast('Data restored from backup ✓');
+    finishInit();
+  } else {
+    toast('No backup snapshot found ✗','var(--p5)');
+  }
+}
+
+function importRecoveryJSON(){
+  var input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0];if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var d=JSON.parse(ev.target.result);
+        if(!d.protocols&&!d.logs){toast('Invalid backup file ✗','var(--p5)');return;}
+        logs=d.logs||[];bodyLogs=d.bodyLogs||[];pantry=d.pantry||[];
+        protocols=d.protocols||[];activeProtoId=d.activeProtoId||null;
+        checkins=d.checkins||[];doseMem=d.doseMem||{};
+        localStorage.setItem('pt_onboarded','1');
+        localStorage.setItem('pt_tc_accepted',new Date().toISOString());
+        localStorage.setItem('pt_tour_done','1');
+        persist(KEYS.logs,logs);persist(KEYS.bodyLogs,bodyLogs);
+        persist(KEYS.pantry,pantry);persist(KEYS.protocols,protocols);
+        persist(KEYS.activeProtoId,activeProtoId);persist(KEYS.doseMem,doseMem);
+        sessionStorage.removeItem('pt_wipe_detected');
+        var rec=document.getElementById('storageRecoveryScreen');
+        if(rec) rec.style.display='none';
+        toast('Data imported successfully ✓');
+        finishInit();
+      }catch(err){toast('Could not read backup file ✗','var(--p5)');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function dismissRecoveryAndOnboard(){
+  sessionStorage.removeItem('pt_wipe_detected');
+  var rec=document.getElementById('storageRecoveryScreen');
+  if(rec) rec.remove();
+  var ob=document.getElementById('onboarding');
+  if(ob) ob.classList.remove('hidden');
+}
+
+
 async function initApp(){
   // Check onboarding FIRST before any data loads
   // New users always see onboarding regardless of any stored data
   var onboarded=localStorage.getItem('pt_onboarded');
-  // Fallback: if any protocol or log data exists, treat as returning user even if
-  // pt_onboarded was somehow cleared (e.g. browser quirk on new deploy)
-  if(!onboarded){
-    var hasData=localStorage.getItem('pt_protocols_v1')||localStorage.getItem('pt_logs_v2')||localStorage.getItem('pt_pantry_v1');
-    if(hasData){
-      // Returning user whose onboarding flag was lost — restore it silently
-      localStorage.setItem('pt_onboarded','1');
-      localStorage.setItem('pt_tc_accepted',new Date().toISOString());
-      localStorage.setItem('pt_tour_done','1');
-      onboarded='1';
-    }
+  var hasProtocols=localStorage.getItem('pt_protocols_v1');
+  var hasLogs=localStorage.getItem('pt_logs_v2');
+  var hasPantry=localStorage.getItem('pt_pantry_v1');
+  var hasAnyData=hasProtocols||hasLogs||hasPantry;
+
+  if(!onboarded&&hasAnyData){
+    // Returning user whose onboarding flag was cleared — restore silently
+    localStorage.setItem('pt_onboarded','1');
+    localStorage.setItem('pt_tc_accepted',new Date().toISOString());
+    localStorage.setItem('pt_tour_done','1');
+    onboarded='1';
   }
-  if(!onboarded){
+
+  if(!onboarded&&!hasAnyData){
+    // Check sessionStorage for a wipe sentinel — if this was set this session,
+    // we already detected a wipe and should show recovery, not onboarding
+    var wipeSentinel=sessionStorage.getItem('pt_wipe_detected');
+    if(wipeSentinel){
+      // Storage was wiped this session — show recovery screen
+      initTheme();
+      showStorageWipeRecovery();
+      return;
+    }
+    // No data at all — could be new user or storage wipe
+    // Set a sentinel in sessionStorage (survives page reload but not app close)
+    sessionStorage.setItem('pt_wipe_sentinel_set', Date.now().toString());
     // Truly brand new user — show onboarding
     initTheme();
     var ob=document.getElementById('onboarding');
     if(ob) ob.classList.remove('hidden');
+    return;
+  }
+
+  if(onboarded&&!hasAnyData){
+    // STORAGE WIPE DETECTED: pt_onboarded exists but all data is gone
+    // This is the clearest signal of a silent iOS storage wipe
+    sessionStorage.setItem('pt_wipe_detected','1');
+    initTheme();
+    showStorageWipeRecovery();
     return;
   }
 
@@ -6055,7 +6312,7 @@ async function initApp(){
   researchUnlocked=localStorage.getItem('pt_research_unlocked')==='1';
 
   // Migrate and launch
-  if(!pantry||!pantry.length){pantry=[];await persist(KEYS.pantry,pantry);}
+  if(!pantry) pantry=[];  // Initialize in memory only — don't persist empty pantry
   // Migrate any new default compounds into existing pantry
   var newlyAdded=mergeDefaultPantry();
   // dp_ inactive migration removed — mergeDefaultPantry handles active:false on new items only
