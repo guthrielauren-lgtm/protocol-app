@@ -151,10 +151,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .proto-progress-fill{height:100%;background:var(--p1);border-radius:2px;transition:width .4s ease}
 .empty{text-align:center;padding:40px 20px;border:1px dashed var(--bd);border-radius:8px}
 .empty-big{font-family:var(--lora);font-size:18px;font-weight:500;color:var(--mid);display:block;margin-bottom:6px}
-.empty-state{text-align:center;padding:36px 24px;border:1px dashed var(--bd);border-radius:10px}
-.empty-icon{font-size:28px;color:var(--dim);margin-bottom:10px}
-.empty-title{font-family:var(--lora,var(--serif));font-size:17px;color:var(--mid);margin-bottom:6px}
-.empty-sub{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.6;max-width:260px;margin:0 auto}
+.empty-state{text-align:center;padding:18px 16px;border:1px dashed var(--bd);border-radius:10px}
+.empty-icon{font-size:20px;color:var(--dim);margin-bottom:6px}
+.empty-title{font-family:var(--lora,var(--serif));font-size:14px;color:var(--mid);margin-bottom:4px}
+.empty-sub{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.5;max-width:260px;margin:0 auto}
 .empty p{font-family:var(--mono);font-size:11px;color:var(--dim)}
 .toast{position:fixed;bottom:calc(var(--tab-h) + var(--safe-b) + 14px);right:18px;background:var(--p1);color:var(--bg);font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:11px 18px;border-radius:6px;transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:999;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
@@ -311,19 +311,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .sugg-info{flex:1;min-width:0}
 .sugg-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px}
 .sugg-detail{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.5}
-.sugg-right{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
-.sugg-select-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid var(--bd);background:none;color:var(--dim);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.sugg-right{display:flex;flex-direction:column;gap:5px;align-items:stretch;flex-shrink:0}
+.sugg-select-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid var(--bd);background:none;color:var(--dim);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;text-align:center}
 .sugg-card.selected .sugg-select-btn{background:var(--p1);border-color:var(--p1);color:var(--bg)}
-.sugg-add-pantry{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid var(--p2);color:var(--p2);background:var(--p2d);cursor:pointer;transition:all .15s;white-space:nowrap}
-.review-compound{background:var(--sf);border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden}
-.rc-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.rc-hdr.open{border-bottom:1px solid var(--bd)}
+.sugg-add-pantry{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid var(--p2);color:var(--p2);background:var(--p2d);cursor:pointer;transition:all .15s;white-space:nowrap;text-align:center}
+.review-compound{background:var(--sf);border:1.5px solid var(--bd2);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.rc-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:var(--bg2)}
+.rc-hdr.open{border-bottom:1.5px solid var(--bd2)}
 .rc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .rc-name{font-family:var(--lora);font-style:normal;font-size:15px;flex:1}
 .rc-summary{font-family:var(--mono);font-size:10px;color:var(--dim)}
 .rc-remove{font-family:var(--mono);font-size:9px;padding:4px 8px;border-radius:3px;border:1px solid var(--p5);color:var(--p5);background:none;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:all .15s}
 .rc-remove:hover{background:var(--p5);color:#fff}
-.rc-body{display:none;padding:14px}.rc-body.open{display:block}
+.rc-body{display:none;padding:14px 20px}.rc-body.open{display:block}
 .conflict-item{background:var(--p5d);border:1px solid var(--p5);border-radius:6px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px}
 .conflict-check{flex-shrink:0;margin-top:1px}
 .conflict-check input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--p1)}
@@ -381,6 +381,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .onboard-slide{display:none;flex-direction:column;height:100%;padding:28px 24px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .onboard-slide.on{display:flex}
 #ob2{overflow:hidden}
+.active-proto-dropdown{background:var(--sf);border:1px solid var(--bd);border-top:none;border-radius:0 0 10px 10px;padding:4px 14px 10px;margin-top:-2px;margin-bottom:8px}
+.apd-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.apd-row:last-child{border-bottom:none}
+.apd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.apd-info{flex:1;min-width:0}
+.apd-name{font-family:var(--serif);font-size:14px;color:var(--text)}
+.apd-week{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
+.apd-btn{font-family:var(--mono);font-size:9px;letter-spacing:.04em;padding:4px 10px;border:1px solid var(--bd2);border-radius:4px;background:none;color:var(--mid);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .onboard-progress{display:flex;gap:5px;margin-bottom:28px;padding-top:6px}
 .onboard-dot{flex:1;height:3px;border-radius:2px;background:var(--bd2);transition:background .3s}
 .onboard-dot.done{background:var(--p1)}
@@ -722,6 +730,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="proto-progress"><div class="proto-progress-fill" id="protoProgressFill" style="width:0%"></div></div>
   </div>
+  <div class="active-proto-dropdown" id="activeProtoDropdown" style="display:none"></div>
 
   <div class="bc-strip-outer">
     <div class="bc-strip-clickable" id="bcStripToggle" onclick="toggleBCEntry()" style="position:relative">
@@ -1065,19 +1074,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="build-step on" id="bstep-0">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Select your primary goals</div>
       <div class="goal-grid" id="goalGrid">
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Fat loss and visceral fat reduction">🔥 Fat Loss</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Lean mass and muscle preservation">💪 Muscle</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Longevity and anti-aging">⏳ Longevity</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Recovery and injury healing">🩹 Healing</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Post-training recovery and repair">🏋️ Recovery</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Strength and athletic performance">⚡ Performance</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Sleep quality and GH optimization">🌙 Sleep</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Immune support and resilience">🛡️ Immunity</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Mood, anxiety, and emotional resilience">🧘 Mood & Resilience</button>
-        <button class="goal-btn" onclick="toggleGoal(this)" data-goal="Cognitive focus and motivation">🧠 Cognitive Focus</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Fat loss and visceral fat reduction">🔥 Fat Loss</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Lean mass and muscle preservation">💪 Muscle</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Longevity and anti-aging">⏳ Longevity</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Recovery and injury healing">🩹 Healing</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Post-training recovery and repair">🏋️ Recovery</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Strength and athletic performance">⚡ Performance</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Sleep quality and GH optimization">🌙 Sleep</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Immune support and resilience">🛡️ Immunity</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Mood, anxiety, and emotional resilience">🧘 Mood & Resilience</button>
+        <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Cognitive focus and motivation">🧠 Cognitive Focus</button>
       </div>
       <div class="field" style="margin-bottom:14px"><label>Additional Context</label><textarea id="builderContext" placeholder="e.g. training 4x/week, prefer oral where possible, currently on tirzepatide, want 12-week cycle..." style="min-height:56px"></textarea></div>
       <div class="btn-row"><button class="btn" id="buildBtn" onclick="runBuildStep1()">Generate Suggestions →</button></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px;margin-bottom:2px">
+        <div style="flex:1;height:1px;background:var(--bd)"></div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em">or</div>
+        <div style="flex:1;height:1px;background:var(--bd)"></div>
+      </div>
+      <button class="btn ghost" onclick="startBuildFromScratch()" style="width:100%;justify-content:center;margin-top:8px">Start from scratch →</button>
+      <div id="buildLoading" style="display:none;text-align:center;padding:18px 0 4px">
+        <div class="spinner" style="margin:0 auto 10px"></div>
+        <div id="buildLoadingMsg" style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em">Analyzing your pantry…</div>
+      </div>
     </div>
     <!-- Step 2 -->
     <div class="build-step" id="bstep-1">
@@ -1510,7 +1529,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           <option value="preworkout">Pre-Workout</option>
           <option value="pm">PM</option>
           <option value="presleep">Pre-Sleep</option>
-          <option value="weekly">Weekly</option>
         </select>
       </div>
       <!-- SCHEDULE — pill toggle: Weekly | Every N days -->
@@ -1740,7 +1758,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 // ════════════ STORAGE ════════════
 const KEYS={logs:'pt_logs_v2',doseMem:'pt_dose_mem',bodyLogs:'pt_body_v1',
             checkins:'pt_checkins_v1',pantry:'pt_pantry_v1',
-            protocols:'pt_protocols_v1',activeProtoId:'pt_active_proto'};
+            protocols:'pt_protocols_v1',activeProtoId:'pt_active_proto',activeProtoIds:'pt_active_protos'};
 
 async function persist(key,val){
   // localStorage only — window.storage is Claude artifact storage, not available on GitHub Pages
@@ -1754,7 +1772,7 @@ async function load(key,fb=null){
 }
 
 // ════════════ STATE ════════════
-let logs=[],doseMem={},bodyLogs=[],checkins=[],pantry=[],protocols=[],activeProtoId=null;
+let logs=[],doseMem={},bodyLogs=[],checkins=[],pantry=[],protocols=[],activeProtoId=null,activeProtoIds=[];
 let chartPeriod={fat:0,wt:0}; // days to show; 0 = all
 let selectedGoals=[];
 let selectedTemplateId=null;
@@ -1906,7 +1924,13 @@ function getEffectiveDose(name){
   if(memIsToday) return mem.dose;
   return pantryDose||protoDose||'—';
 }
-function getActiveProtocol(){return protocols.find(p=>p.id===activeProtoId)||null;}
+function getActiveProtocol(){
+  var id=activeProtoIds.length?activeProtoIds[0]:activeProtoId;
+  return protocols.find(function(p){return p.id===id;})||null;
+}
+function getActiveProtocols(){
+  return protocols.filter(function(p){return activeProtoIds.indexOf(p.id)>-1;});
+}
 
 // ════════════ NAV ════════════
 
@@ -1934,17 +1958,21 @@ function nav(tab){
 
 // ════════════ PROTOCOL MANAGEMENT ════════════
 function activateProtocol(id){
-  activeProtoId=id;persist(KEYS.activeProtoId,id);
-  // Retroactively label baseline entry as Protocol Start for this protocol
-  // (only on first activation — if the baseline has no protocolStartId yet)
-  var baseline=bodyLogs.find(function(l){return l.isBaseline&&!l.protocolStartId;});
-  if(baseline){
-    baseline.phase='Protocol Start';
-    baseline.protocolStartId=id;
-    persist(KEYS.bodyLogs,bodyLogs);
+  var idx=activeProtoIds.indexOf(id);
+  if(idx>-1){
+    activeProtoIds.splice(idx,1);
+  } else {
+    activeProtoIds.push(id);
+    // Retroactively label baseline — one-time only
+    var baseline=bodyLogs.find(function(l){return l.isBaseline&&!l.protocolStartId;});
+    if(baseline){baseline.phase='Protocol Start';baseline.protocolStartId=id;persist(KEYS.bodyLogs,bodyLogs);}
   }
+  activeProtoId=activeProtoIds[0]||null;
+  persist(KEYS.activeProtoIds,activeProtoIds);
+  persist(KEYS.activeProtoId,activeProtoId);
   renderToday();renderBuild();updateMobHeader();
-  toast('Protocol activated ✓');closeModal('protoSwapModal');
+  toast(activeProtoIds.indexOf(id)>-1?'Protocol activated ✓':'Protocol deactivated');
+  closeModal('protoSwapModal');
 }
 
 function openProtoSwap(){
@@ -1960,15 +1988,18 @@ function openProtoSwap(){
         <div style="font-family:var(--serif);font-size:15px">${p.name}</div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.durationWeeks||'—'} weeks · ${(p.compounds||[]).length} compounds${p.startDate?' · Started '+fmtDate(p.startDate):''}</div>
       </div>
-      <button onclick="activateProtocol('${p.id}')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:${activeProtoId===p.id?'var(--p1)':'var(--p1d)'};border:1px solid var(--p1);border-radius:4px;color:${activeProtoId===p.id?'var(--bg)':'var(--p1)'};cursor:pointer">${activeProtoId===p.id?'✓ Active':'Activate'}</button>
+      <button onclick="activateProtocol('${p.id}')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:${activeProtoIds.indexOf(p.id)>-1?'var(--p1)':'var(--p1d)'};border:1px solid var(--p1);border-radius:4px;color:${activeProtoIds.indexOf(p.id)>-1?'var(--bg)':'var(--p1)'};cursor:pointer">${activeProtoIds.indexOf(p.id)>-1?'✓ Active':'Activate'}</button>
     </div>`).join('');
   openModal('protoSwapModal');
 }
 
 function updateMobHeader(){
-  const proto=getActiveProtocol();
-  const btn=document.getElementById('mobProtoBtn');
-  if(btn) btn.textContent=proto?proto.name:'No Protocol';
+  var btn=document.getElementById('mobProtoBtn');
+  var activeProtos=getActiveProtocols();
+  if(!btn) return;
+  if(!activeProtos.length) btn.textContent='No Protocol';
+  else if(activeProtos.length===1) btn.textContent=activeProtos[0].name;
+  else btn.textContent=activeProtos.length+' Protocols';
 }
 
 // ════════════ TODAY ════════════
@@ -2421,34 +2452,88 @@ function renderToday(){
 }
 
 function renderProtoHeader(){
-  const proto=getActiveProtocol();
-  const dot=document.getElementById('protoDot');
-  const nameEl=document.getElementById('protoName');
-  const metaEl=document.getElementById('protoMeta');
-  const weekEl=document.getElementById('protoWeek');
-  const fill=document.getElementById('protoProgressFill');
-  // Treat missing protocol OR protocol with no compounds as "no active protocol"
-  const hasCompounds=proto&&proto.compounds&&proto.compounds.length>0;
-  if(!proto||!hasCompounds){
-    if(dot) dot.style.background='var(--p2)';
-    if(nameEl){nameEl.textContent='No active protocol';nameEl.style.color='var(--p2)';}
+  var activeProtos=getActiveProtocols();
+  var dot=document.getElementById('protoDot');
+  var nameEl=document.getElementById('protoName');
+  var metaEl=document.getElementById('protoMeta');
+  var weekEl=document.getElementById('protoWeek');
+  var fill=document.getElementById('protoProgressFill');
+  var dropdown=document.getElementById('activeProtoDropdown');
+  var hasAny=activeProtos.length&&activeProtos.some(function(p){return p.compounds&&p.compounds.length;});
+
+  // ── No active protocols ──
+  if(!hasAny){
+    if(dot){dot.style.background='var(--p2)';dot.innerHTML='';}
+    if(nameEl){nameEl.textContent='No active protocol';nameEl.style.color='var(--p2)';nameEl.style.cursor='default';nameEl.onclick=null;}
     if(metaEl){metaEl.innerHTML='<span style="color:var(--p2)">⚠</span> Tap <strong style="cursor:pointer;color:var(--p1)" onclick="nav(\'build\')">Build</strong> to create and activate a protocol.';}
     if(weekEl) weekEl.textContent='';
     if(fill) fill.style.width='0%';
+    if(dropdown) dropdown.style.display='none';
     return;
   }
-  if(dot) dot.style.background=proto.color||'var(--p1)';
-  if(nameEl){nameEl.textContent=proto.name;nameEl.style.color='';}
-  const parts=[];
-  if(proto.durationWeeks) parts.push(proto.durationWeeks+' weeks');
-  if(proto.startDate) parts.push('Started '+fmtDate(proto.startDate));
-  if(metaEl) metaEl.textContent=parts.join(' · ');
-  if(proto.startDate){
-    const rawW=weeksBetween(proto.startDate,today())+1;
-    const w=Math.max(1,Math.min(rawW,proto.durationWeeks||999));
-    if(weekEl) weekEl.textContent='Week '+w+(proto.durationWeeks?' of '+proto.durationWeeks:'');
-    const pct=proto.durationWeeks?Math.min(100,((w-1)/proto.durationWeeks)*100):0;
-    if(fill) fill.style.width=pct+'%';
+
+  // ── Single active protocol ──
+  if(activeProtos.length===1){
+    var proto=activeProtos[0];
+    if(dot){dot.style.background=proto.color||'var(--p1)';dot.innerHTML='';}
+    if(nameEl){nameEl.textContent=proto.name;nameEl.style.color='';nameEl.style.cursor='default';nameEl.onclick=null;}
+    var parts=[];
+    if(proto.durationWeeks) parts.push(proto.durationWeeks+' weeks');
+    if(proto.startDate) parts.push('Started '+fmtDate(proto.startDate));
+    if(metaEl) metaEl.textContent=parts.join(' · ');
+    if(proto.startDate){
+      var rawW=weeksBetween(proto.startDate,today())+1;
+      var w=Math.max(1,Math.min(rawW,proto.durationWeeks||999));
+      if(weekEl) weekEl.textContent='Week '+w+(proto.durationWeeks?' of '+proto.durationWeeks:'');
+      var pct=proto.durationWeeks?Math.min(100,((w-1)/proto.durationWeeks)*100):0;
+      if(fill) fill.style.width=pct+'%';
+    } else {
+      if(weekEl) weekEl.textContent='';
+      if(fill) fill.style.width='0%';
+    }
+    if(dropdown) dropdown.style.display='none';
+    return;
+  }
+
+  // ── Multiple active protocols ──
+  var count=activeProtos.length;
+  if(dot){
+    dot.style.background='transparent';
+    dot.innerHTML=activeProtos.slice(0,3).map(function(p){
+      return '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(p.color||'var(--p1)')+';margin-right:2px"></span>';
+    }).join('');
+  }
+  if(nameEl){
+    nameEl.innerHTML=count+' active protocols <span style="font-size:10px">&#9662;</span>';
+    nameEl.style.color='';nameEl.style.cursor='pointer';
+    nameEl.onclick=toggleActiveProtoDropdown;
+  }
+  if(metaEl) metaEl.textContent='';
+  if(weekEl) weekEl.textContent='';
+  if(fill) fill.style.width='0%';
+  // Populate dropdown
+  if(dropdown){
+    dropdown.innerHTML=activeProtos.map(function(p){
+      var weekStr='';
+      if(p.startDate){
+        var rawW2=weeksBetween(p.startDate,today())+1;
+        var w2=Math.max(1,Math.min(rawW2,p.durationWeeks||999));
+        weekStr='Week '+w2+(p.durationWeeks?' of '+p.durationWeeks:'');
+      }
+      return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+p.name+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +'<button class="apd-btn" onclick="activateProtocol(\''+p.id+'\')" style="border-color:var(--bd2);color:var(--mid)">Deactivate</button>'        +'</div>';
+    }).join('');
+  }
+}
+
+function toggleActiveProtoDropdown(){
+  var dropdown=document.getElementById('activeProtoDropdown');
+  if(!dropdown) return;
+  var isOpen=dropdown.style.display!=='none'&&dropdown.style.display!=='';
+  dropdown.style.display=isOpen?'none':'block';
+  var nameEl=document.getElementById('protoName');
+  if(nameEl){
+    var cnt=getActiveProtocols().length;
+    nameEl.innerHTML=cnt+' active protocols <span style="font-size:10px">'+(isOpen?'&#9662;':'&#9652;')+'</span>';
   }
 }
 
@@ -2607,61 +2692,81 @@ function isLoggedToday(name){
 }
 
 function renderChecklist(){
-  const proto=getActiveProtocol();
-  const wrap=document.getElementById('checklistWrap');
+  var activeProtos=getActiveProtocols();
+  var wrap=document.getElementById('checklistWrap');
   if(!wrap) return;
-  // Render conflict banners (non-blocking, soft warning)
-  renderConflictBanners(proto);
-  if(!proto||!proto.compounds||!proto.compounds.length){
-    wrap.innerHTML=''; return; // No active protocol or blank — warning shown in header card
-  }
-  const due=proto.compounds.filter(function(c){
-    // Must be scheduled for today's DOW
-    if(!isCompoundDueToday(c)) return false;
-    // Compound must be in active protocol to appear on Today checklist
-    // (pItem.active is no longer used — status is computed from protocol membership)
-    return true;
+  renderConflictBanners(activeProtos[0]||null);
+  var hasAny=activeProtos.some(function(p){return p.compounds&&p.compounds.length;});
+  if(!activeProtos.length||!hasAny){wrap.innerHTML='';return;}
+
+  // Build deduped compound map across all active protocols
+  var twOrder=['am','preworkout','weekly','pm','other'];
+  var compMap={};
+  activeProtos.forEach(function(proto){
+    if(!proto.compounds) return;
+    proto.compounds.forEach(function(c){
+      if(!isCompoundDueToday(c)) return;
+      var key=c.name.toLowerCase();
+      if(!compMap[key]){
+        compMap[key]={c:Object.assign({},c),dose:c.dose,tw:c.timingWindow||'other',protos:[proto.name],doseConflict:false};
+      } else {
+        var entry=compMap[key];
+        entry.protos.push(proto.name);
+        var existMg=parseDoseMg(entry.dose);
+        var newMg=parseDoseMg(c.dose);
+        if(existMg!==newMg) entry.doseConflict=true;
+        if(newMg>existMg) entry.dose=c.dose;
+        var eidx=twOrder.indexOf(entry.tw);
+        var nidx=twOrder.indexOf(c.timingWindow||'other');
+        if(nidx<eidx) entry.tw=c.timingWindow||'other';
+      }
+    });
   });
-  if(!due.length){
+
+  var dueKeys=Object.keys(compMap);
+  if(!dueKeys.length){
     wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:16px;text-align:center">No compounds scheduled for today.</div>';
     return;
   }
-  let html='';
+
+  var html='';
   TIMING_WINDOWS.forEach(function(tw){
-    const group=due.filter(c=>(c.timingWindow||'other')===tw.key);
+    var group=dueKeys.filter(function(k){return compMap[k].tw===tw.key;});
     if(!group.length) return;
     html+='<div class="timing-group"><div class="timing-group-hdr">'+tw.icon+' '+tw.label+'</div>';
-    group.forEach(function(c,i){
-      const uid=tw.key+'-'+i;
-      const logged=isLoggedToday(c.name);
-      const color=getPColor(c.name);
-      const dose=getEffectiveDose(c.name)||c.dose;
-      const pItem=pantry.find(p=>p.name===c.name);
-      const daysLeft=calcDaysLeft(pItem,c);
-      const low=daysLeft!==null&&daysLeft<(pItem?pItem.reorderDays||14:14);
-      const sites=['Abdomen','Thigh','Glute','N/A'];
-      const sitePills=sites.map(function(s){return'<button class="chip'+(c.site===s?' on':'')+'" onclick="chipOneRow(this)">'+s+'</button>';}).join('');
+    group.forEach(function(k,i){
+      var entry=compMap[k];
+      var c=entry.c;
+      var uid=tw.key+'-'+i;
+      var logged=isLoggedToday(c.name);
+      var color=getPColor(c.name);
+      var dose=getEffectiveDose(c.name)||entry.dose;
+      var pItem=pantry.find(function(p){return p.name===c.name;});
+      var daysLeft=calcDaysLeft(pItem,c);
+      var low=daysLeft!==null&&daysLeft<(pItem?pItem.reorderDays||14:14);
+      var conflictNote=entry.protos.length>1?(entry.protos.length+' protocols'+(entry.doseConflict?' \u00b7 highest dose shown':'')):'';
+      var sites=['Abdomen','Thigh','Glute','N/A'];
+      var sitePills=sites.map(function(s){return'<button class="chip'+(c.site===s?' on':'')+'" onclick="chipOneRow(this)">'+s+'</button>';}).join('');
       html+='<div class="cr'+(logged?' logged':'')+(low?' low-stock':'')+'" id="cr-'+uid+'">'
         +'<div class="cr-main" onclick="toggleCR(\''+uid+'\')"><div class="cr-dot" style="background:'+color+'"></div>'
         +'<div class="cr-info"><div class="cr-name">'+c.name+'</div>'
         +'<div class="cr-meta">'+dose
-        +(displayPrefs.showRoute!==false&&c.route?' · '+c.route:'')
-        +(displayPrefs.showFasted!==false&&c.fasting?' · Fasted':'')
+        +(displayPrefs.showRoute!==false&&c.route?' \u00b7 '+c.route:'')
+        +(displayPrefs.showFasted!==false&&c.fasting?' \u00b7 Fasted':'')
+        +(conflictNote?' \u00b7 <span style="color:var(--p2)">'+conflictNote+'</span>':'')
         +'</div></div>'
-        +'<div class="cr-right">'+(low?'<span title="'+(daysLeft===0?'Out of stock':daysLeft+' days left')+'" style="font-size:13px">⚠️</span>':'')
-        +'<div class="cr-check">'+(logged?'✓':'○')+'</div></div></div>'
+        +'<div class="cr-right">'+(low?'<span title="'+(daysLeft===0?'Out of stock':daysLeft+' days left')+'" style="font-size:13px">\u26a0\ufe0f</span>':'')
+        +'<div class="cr-check">'+(logged?'\u2713':'\u25cb')+'</div></div></div>'
         +'<div class="cr-expand" id="cre-'+uid+'">'
         +(function(){
-          // Physical unit hint from pantry calculator
           var hint='';
           if(pItem&&pItem.form==='oral'&&pItem.capDose){
             var doseMgVal=parseDoseMg(dose);
             var caps=doseMgVal>0?Math.round(doseMgVal/pItem.capDose):null;
             if(caps) hint='<div style="font-family:var(--mono);font-size:11px;color:var(--p3);margin:10px 0 2px;padding:6px 10px;background:var(--p3d);border-radius:5px;display:inline-block">'
-              +dose+' · <strong>'+caps+' capsule'+(caps>1?'s':'')+'</strong>'
+              +dose+' \u00b7 <strong>'+caps+' capsule'+(caps>1?'s':'')+'</strong>'
               +(pItem.capDose?' @ '+pItem.capDose+'mg ea':'')+'</div>';
           } else if(pItem&&(pItem.form==='vial'||pItem.form==='prefilled')){
-            // Compute units live from vialMg + reconVol + dose
             var computedUnits=null;
             if(pItem.vialMg&&pItem.reconVol){
               var doseMgCalc=parseDoseMg(dose);
@@ -2673,7 +2778,7 @@ function renderChecklist(){
             var unitsToShow=computedUnits!==null?computedUnits:pItem.syringeUnits;
             if(unitsToShow){
               hint='<div style="font-family:var(--mono);font-size:11px;color:var(--p3);margin:10px 0 2px;padding:6px 10px;background:var(--p3d);border-radius:5px;display:inline-block">'
-                +dose+' · <strong>'+unitsToShow+' units</strong>'
+                +dose+' \u00b7 <strong>'+unitsToShow+' units</strong>'
                 +(pItem.vialMg&&pItem.reconVol?' @ '+(pItem.vialMg/pItem.reconVol).toFixed(2)+'mg/mL':pItem.syringeConc?' @ '+pItem.syringeConc+'mg/mL':'')
                 +'</div>';
             }
@@ -2690,7 +2795,7 @@ function renderChecklist(){
         +'<button class="cr-log-btn" onclick="logCompound(\''+c.name+'\',\''+uid+'\')">'+(logged?'Log Again':'Log')+'</button>'
         +'</div>'
         +'<div class="cr-site-row">'+sitePills+'</div>'
-        +(low&&pItem?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:8px">⚠ '+(daysLeft===0?'Out of stock':'~'+daysLeft+' days remaining')+' · <button onclick="openRestock(\''+pItem.id+'\')" style="background:none;border:none;color:var(--warn);font-family:var(--mono);font-size:10px;cursor:pointer;text-decoration:underline">Restock</button></div>':'')
+        +(low&&pItem?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:8px">\u26a0 '+(daysLeft===0?'Out of stock':'~'+daysLeft+' days remaining')+' \u00b7 <button onclick="openRestock(\''+pItem.id+'\')" style="background:none;border:none;color:var(--warn);font-family:var(--mono);font-size:10px;cursor:pointer;text-decoration:underline">Restock</button></div>':'')
         +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--bd);text-align:right">'
         +'<button onclick="removeFromProtocol(\''+c.name+'\',\''+tw.key+'\')" style="background:none;border:none;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;text-decoration:underline;padding:0">Remove from protocol</button>'
         +'</div>'
@@ -2700,10 +2805,11 @@ function renderChecklist(){
   });
   wrap.innerHTML=html;
   // Ad-hoc compounds logged today (outside protocol)
-  const todayAdHoc=logs.filter(function(l){return l.date===today()&&l.adHoc===true;});
-  const protoNames=new Set(due.map(function(c){return c.name;}));
-  const adHocUnique=[];
-  const seen=new Set();
+  var todayAdHoc=logs.filter(function(l){return l.date===today()&&l.adHoc===true;});
+  var protoNamesSet=new Set(dueKeys.map(function(k){return compMap[k].c.name;}));
+  var protoNames=protoNamesSet;
+  var adHocUnique=[];
+  var seen=new Set();
   todayAdHoc.forEach(function(l){
     if(!seen.has(l.compound)&&!protoNames.has(l.compound)){seen.add(l.compound);adHocUnique.push(l);}
   });
@@ -2715,11 +2821,11 @@ function renderChecklist(){
         +'<div class="cr-dot" style="background:'+getPColor(l.compound)+'"></div>'
         +'<div class="cr-info">'
         +'<div class="cr-name">'+l.compound+'</div>'
-        +'<div class="cr-meta">'+l.dose+' · '+l.time+'</div>'
+        +'<div class="cr-meta">'+l.dose+' \u00b7 '+l.time+'</div>'
         +'</div>'
         +'<div class="cr-right">'
         +'<span style="font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--p2);color:var(--p2)">+ outside protocol</span>'
-        +'<div class="cr-check" style="background:var(--p2);border-color:var(--p2);color:var(--bg)">✓</div>'
+        +'<div class="cr-check" style="background:var(--p2);border-color:var(--p2);color:var(--bg)">\u2713</div>'
         +'</div></div></div>';
     });
     wrap.innerHTML+=adHocHtml;
@@ -2898,8 +3004,10 @@ function addCompoundToProtocol(){
     form:pItem.form||'vial',fasting:pItem.fasting||false,site:pItem.site||'Abdomen',
     timing:'Upon Waking',timingWindow:'am',frequency:'daily',
     daysOfWeek:[0,1,2,3,4,5,6],rationale:''});
-  protocols.push(newProto);activeProtoId=newProto.id;
-  persist(KEYS.protocols,protocols);persist(KEYS.activeProtoId,activeProtoId);
+  protocols.push(newProto);
+  if(activeProtoIds.indexOf(newProto.id)===-1) activeProtoIds.push(newProto.id);
+  activeProtoId=activeProtoIds[0]||newProto.id;
+  persist(KEYS.protocols,protocols);persist(KEYS.activeProtoIds,activeProtoIds);persist(KEYS.activeProtoId,activeProtoId);
   addCompoundTodayOnly();
   closeModal('addTodayModal');
   toast(name+' added to protocol & logged ✓');
@@ -4530,12 +4638,12 @@ function renderBuild(){
       saved.innerHTML='<div class="empty-state"><div class="empty-icon">◑</div><div class="empty-title">No protocols yet</div><div class="empty-sub">Build your first protocol below — choose your compounds, set your doses, and activate it to start logging.</div></div>';
     } else {
       saved.innerHTML=protocols.map(function(p){
-        return'<div class="spc'+(activeProtoId===p.id?' active':'')+'">'
+        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?' active':'')+'">'
           +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
           +'<div class="spc-info"><div class="spc-name">'+p.name+'</div>'
-          +'<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+(activeProtoId===p.id?' · ✓ Active':'')+'</div></div>'
+          +'<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+(activeProtoIds.indexOf(p.id)>-1?' · ✓ Active':'')+'</div></div>'
           +'<div class="spc-actions">'
-          +'<button class="spc-btn activate-btn'+(activeProtoId===p.id?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoId===p.id?'Active':'Activate')+'</button>'
+          +'<button class="spc-btn activate-btn'+(activeProtoIds.indexOf(p.id)>-1?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Deactivate':'Activate')+'</button>'
           +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">Edit</button>'
           +'<button class="spc-btn dup-btn" onclick="dupProtocol(\''+p.id+'\')">Dup</button>'
           +'<button class="spc-btn del-btn" onclick="deleteProtocol(\''+p.id+'\')">Del</button>'
@@ -4562,17 +4670,48 @@ function updateStepIndicators(){
     ind.classList.toggle('done',i<currentBuildStep);
   }
 }
-function toggleGoal(el){
-  el.classList.toggle('on');
-  const goal=el.dataset.goal;
-  if(el.classList.contains('on')){if(selectedGoals.indexOf(goal)===-1)selectedGoals.push(goal);}
-  else selectedGoals=selectedGoals.filter(function(g){return g!==goal;});
+function startBuildFromScratch(){
+  buildCompounds=[];
+  selectedGoals=[];
+  document.querySelectorAll('#goalGrid .goal-btn').forEach(function(btn){btn.classList.remove('on');});
+  document.querySelectorAll('.build-step').forEach(function(el,i){el.classList.toggle('on',i===2);});
+  currentBuildStep=2;
+  updateStepIndicators();
+  var nameInput=document.getElementById('newProtoName');
+  if(nameInput) nameInput.value='My Protocol';
+  var startInput=document.getElementById('newProtoStart');
+  if(startInput&&!startInput.value) startInput.value=today();
+  var durInput=document.getElementById('newProtoDuration');
+  if(durInput&&!durInput.value) durInput.value='12';
+  renderCustomizeCompounds([]);
+  var mainEl=document.getElementById('mainEl');if(mainEl) mainEl.scrollTop=0;
+}
+
+function toggleBuildGoal(el){
+  var goal=el.dataset.goal;
+  var alreadyOn=el.classList.contains('on');
+  // Single-select: clear all first
+  document.querySelectorAll('#goalGrid .goal-btn').forEach(function(btn){btn.classList.remove('on');});
+  selectedGoals=[];
+  if(!alreadyOn){
+    el.classList.add('on');
+    selectedGoals=[goal];
+  }
 }
 
 async function runBuildStep1(){
   if(!selectedGoals.length){toast('Select at least one goal ✗','var(--p5)');return;}
-  const btn=document.getElementById('buildBtn');
+  var btn=document.getElementById('buildBtn');
+  var loadingEl=document.getElementById('buildLoading');
+  var loadingMsg=document.getElementById('buildLoadingMsg');
   btn.textContent='Generating…';btn.disabled=true;
+  if(loadingEl) loadingEl.style.display='block';
+  var loadingPhrases=['Analyzing your pantry…','Matching to your goals…','Building your stack…','Almost there…'];
+  var phraseIdx=0;
+  var phraseTimer=setInterval(function(){
+    phraseIdx=(phraseIdx+1)%loadingPhrases.length;
+    if(loadingMsg) loadingMsg.textContent=loadingPhrases[phraseIdx];
+  },2200);
   try{
     const activePantryList=pantry.filter(function(p){return p.active;})
       .map(function(p){return p.name+'('+((doseMem[p.name]&&doseMem[p.name].dose)||p.dose)+','+p.route+','+p.form+')';}).join(', ');
@@ -4587,23 +4726,39 @@ async function runBuildStep1(){
     const raw=(data.content&&data.content.find(function(b){return b.type==='text';})||{}).text||'';
     const s=raw.indexOf('['),e=raw.lastIndexOf(']');
     if(s===-1) throw new Error('No data');
-    buildCompounds=JSON.parse(raw.substring(s,e+1)).map(function(c){return Object.assign({},c,{selected:c.inPantry});});
+    buildCompounds=JSON.parse(raw.substring(s,e+1)).filter(function(c){
+      var n=c.name||'';
+      return !/blend/i.test(n);
+    }).map(function(c){
+      var actuallyInPantry=pantry.some(function(p){
+        return p.name.toLowerCase()===(c.name||'').toLowerCase()&&isInStock(p);
+      });
+      return Object.assign({},c,{inPantry:actuallyInPantry,selected:false});
+    });
   }catch(err){
-    buildCompounds=buildStaticSuggestions(selectedGoals,pantry.filter(function(p){return p.active;}));
+    buildCompounds=buildStaticSuggestions(selectedGoals,pantry);
   }
+  clearInterval(phraseTimer);
+  if(loadingEl) loadingEl.style.display='none';
   renderSuggestions();goToStep(1);
   btn.textContent='Generate Suggestions →';btn.disabled=false;
 }
 
 function renderSuggestions(){
-  const pantryEl=document.getElementById('suggPantry');
-  const otherEl=document.getElementById('suggOther');
-  const pantryItems=buildCompounds.filter(function(c){return c.inPantry;});
-  const otherItems=buildCompounds.filter(function(c){return !c.inPantry;});
-  pantryEl.innerHTML=pantryItems.length?pantryItems.map(function(c,i){return suggCard(c,i,false);}).join('')
-    :'<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:10px 0">No pantry compounds matched these goals.</div>';
-  otherEl.innerHTML=otherItems.length?otherItems.map(function(c,i){return suggCard(c,pantryItems.length+i,true);}).join('')
-    :'<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:10px 0">No additional suggestions.</div>';
+  var pantryEl=document.getElementById('suggPantry');
+  var otherEl=document.getElementById('suggOther');
+  // Preserve original buildCompounds index so toggleSuggestion targets the right item
+  var pantryItems=[], otherItems=[];
+  buildCompounds.forEach(function(c,idx){
+    if(c.inPantry) pantryItems.push({c:c,idx:idx});
+    else otherItems.push({c:c,idx:idx});
+  });
+  pantryEl.innerHTML=pantryItems.length
+    ? pantryItems.map(function(x){return suggCard(x.c,x.idx,false);}).join('')
+    : '<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:10px 0">No pantry compounds matched these goals.</div>';
+  otherEl.innerHTML=otherItems.length
+    ? otherItems.map(function(x){return suggCard(x.c,x.idx,true);}).join('')
+    : '<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:10px 0">No additional suggestions.</div>';
 }
 
 function suggCard(c,i,notInPantry){
@@ -4614,7 +4769,7 @@ function suggCard(c,i,notInPantry){
     +'<div class="sugg-detail">'+(c.dose||'—')+' · '+(c.timing||'—')+' · '+(c.frequency||'daily')+'<br>'+(c.rationale||'')+'</div></div>'
     +'<div class="sugg-right">'
     +'<button class="sugg-select-btn" onclick="toggleSuggestion('+i+')">'+(c.selected?'✓ Selected':'Select')+'</button>'
-    +(notInPantry?'<button class="sugg-add-pantry" onclick="addSuggToPantry(\''+c.name+'\')">+ Pantry</button>':'')
+    +(notInPantry?'<button class="sugg-add-pantry" onclick="addSuggToPantry(\''+c.name+'\')">Add to Pantry</button>':'')
     +'</div></div>';
 }
 
@@ -4653,35 +4808,68 @@ function buildCustomizeStep(){
 }
 
 function renderCustomizeCompounds(compounds){
-  const wrap=document.getElementById('customizeCompounds');if(!wrap) return;
+  var wrap=document.getElementById('customizeCompounds');if(!wrap) return;
+  if(!compounds.length){
+    wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:10px 0">No compounds selected. Use \"Add compound from pantry\" below.</div>';
+    return;
+  }
   wrap.innerHTML=compounds.map(function(c,i){
-    const freqOptions=['daily','5 on/2 off','3x/week','2x/week','weekly','every other day','custom']
+    var freqOptions=['daily','5 on/2 off','3x/week','2x/week','weekly','every other day','custom']
       .map(function(f){return'<option'+(c.frequency===f?' selected':'')+'>'+f+'</option>';}).join('');
-    const twOptions=TIMING_WINDOWS
+    var twOptions=TIMING_WINDOWS.filter(function(tw){return tw.key!=='weekly';})
       .map(function(tw){return'<option value="'+tw.key+'"'+((c.timingWindow||'am')===tw.key?' selected':'')+'>'+tw.label+'</option>';}).join('');
-    const routeOptions=['Subcutaneous','Oral','Intramuscular','Sublingual','Intranasal','Topical']
+    var routeOptions=['Subcutaneous','Oral','Intramuscular','Sublingual','Intranasal','Topical']
       .map(function(r){return'<option'+(c.route===r?' selected':'')+'>'+r+'</option>';}).join('');
-    const dowPills=DAYS.map(function(d,j){return'<button class="dow-pill'+((c.daysOfWeek||[0,1,2,3,4,5,6]).indexOf(j)!==-1?' on':'')+'" onclick="toggleDow('+i+','+j+',this)">'+d+'</button>';}).join('');
-    return'<div class="review-compound"><div class="rc-hdr" onclick="toggleRC(this)">'
-      +'<div class="rc-dot" style="background:'+(getPColor(c.name)||'var(--mid)')+'"></div>'
-      +'<div class="rc-name">'+c.name+'</div>'
-      +'<div class="rc-summary">'+(c.dose||'—')+' · '+(c.timing||'—')+'</div>'
-      +'<button class="rc-remove" onclick="event.stopPropagation();removeCustomizeCompound('+i+')">✕</button>'
-      +'</div><div class="rc-body">'
-      +'<div class="g2"><div class="field"><label>Dose</label>'
-      +makeDoseField('bdose-'+i,'bunit-'+i,c.dose||'','updateBC('+i+",'dose',getDoseValue('bdose-'+i,'bunit-'+i))")+'</div>'
-      +'<div class="field"><label>Route</label><select onchange="updateBC('+i+',\'route\',this.value)">'+routeOptions+'</select></div></div>'
-      +'<div class="field"><label>Route</label><select onchange="updateBC('+i+',\'route\',this.value)">'+routeOptions+'</select></div></div>'
-      +'<div class="g2"><div class="field"><label>Timing</label><select onchange="updateBC('+i+',\'timingWindow\',this.value)">'+twOptions+'</select></div>'
-      +'<div class="field"><label>Frequency</label><select onchange="updateBCFreq('+i+',this.value)">'+freqOptions+'</select></div></div>'
-      +'<div class="g2"><div class="field"><label>Site</label><select onchange="updateBC('+i+',\'site\',this.value)">'
-      +['Abdomen','Thigh','Glute','Deltoid','N/A'].map(function(s){return'<option'+(c.site===s?' selected':'')+'>'+s+'</option>';}).join('')
-      +'</select></div><div class="field"><label>Fasting</label><select onchange="updateBC('+i+',\'fasting\',this.value===\'true\')">'
-      +'<option value="true"'+(c.fasting?' selected':'')+'>Yes — fasted</option>'
-      +'<option value="false"'+(!c.fasting?' selected':'')+'>No</option></select></div></div>'
-      +'<div class="field"><label>Days of Week</label><div class="dow-pills" id="dow-'+i+'">'+dowPills+'</div></div>'
-      +'<div class="field"><label>Rationale</label><input type="text" value="'+(c.rationale||'')+'" oninput="updateBC('+i+',\'rationale\',this.value)"></div>'
-      +'</div></div>';
+    var siteOptions=['Abdomen','Thigh','Glute','Deltoid','N/A']
+      .map(function(s){return'<option'+(c.site===s?' selected':'')+'>'+s+'</option>';}).join('');
+    var dowPills=DAYS.map(function(d,j){
+      return'<button class="dow-pill'+((c.daysOfWeek||[0,1,2,3,4,5,6]).indexOf(j)!==-1?' on':'')+'" onclick="toggleDow('+i+','+j+',this)">'+d+'</button>';
+    }).join('');
+    return (
+      '<div class="review-compound" style="border-left:3px solid '+(getPColor(c.name)||'var(--p1)') + '">'
+      +'<div class="rc-hdr open" onclick="toggleRC(this)">'
+        +'<div class="rc-dot" style="background:'+(getPColor(c.name)||'var(--mid)')+'"></div>'
+        +'<div class="rc-name">'+c.name+'</div>'
+        +'<div class="rc-summary">'+(c.dose||'—')+' · '+(c.timing||'—')+'</div>'
+        +'<button class="rc-remove" onclick="event.stopPropagation();removeCustomizeCompound('+i+')">✕</button>'
+      +'</div>'
+      +'<div class="rc-body open">'
+        +'<div class="g2">'
+          +'<div class="field"><label>Dose</label>'
+          +makeDoseField('bdose-'+i,'bunit-'+i,c.dose||'','updateBC('+i+',\'dose\',getDoseValue(\'bdose-'+i+'\',\'bunit-'+i+'\'))')
+          +'</div>'
+          +'<div class="field"><label>Timing</label>'
+          +'<select onchange="updateBC('+i+',\'timingWindow\',this.value)">'+twOptions+'</select>'
+          +'</div>'
+        +'</div>'
+        +'<div class="g2">'
+          +'<div class="field"><label>Route</label>'
+          +'<select onchange="updateBC('+i+',\'route\',this.value)">'+routeOptions+'</select>'
+          +'</div>'
+          +'<div class="field"><label>Site</label>'
+          +'<select onchange="updateBC('+i+',\'site\',this.value)">'+siteOptions+'</select>'
+          +'</div>'
+        +'</div>'
+        +'<div class="g2">'
+          +'<div class="field"><label>Frequency</label>'
+          +'<select onchange="updateBCFreq('+i+',this.value)">'+freqOptions+'</select>'
+          +'</div>'
+          +'<div class="field"><label>Fasting</label>'
+          +'<select onchange="updateBC('+i+',\'fasting\',this.value===\'true\')">'
+          +'<option value="true"'+(c.fasting?' selected':'')+'>Yes — fasted</option>'
+          +'<option value="false"'+(!c.fasting?' selected':'')+'>No</option>'
+          +'</select>'
+          +'</div>'
+        +'</div>'
+        +'<div class="field"><label>Days of Week</label>'
+          +'<div class="dow-pills" id="dow-'+i+'">'+dowPills+'</div>'
+        +'</div>'
+        +'<div class="field"><label>Rationale</label>'
+          +'<input type="text" value="'+(c.rationale||'')+'" oninput="updateBC('+i+',\'rationale\',this.value)">'
+        +'</div>'
+      +'</div>'
+      +'</div>'
+    );
   }).join('');
 }
 
@@ -4838,8 +5026,10 @@ function finalSaveProtocol(){
   });
   const proto={id:'proto_'+Date.now(),name:name,color:color,startDate:start,
     durationWeeks:dur,notes:notes,compounds:compounds};
-  protocols.push(proto);activeProtoId=proto.id;
-  persist(KEYS.protocols,protocols);persist(KEYS.activeProtoId,activeProtoId);
+  protocols.push(proto);
+  if(activeProtoIds.indexOf(proto.id)===-1) activeProtoIds.push(proto.id);
+  activeProtoId=activeProtoIds[0]||proto.id;
+  persist(KEYS.protocols,protocols);persist(KEYS.activeProtoIds,activeProtoIds);persist(KEYS.activeProtoId,activeProtoId);
   // Check for conflicts in the saved protocol and warn (non-blocking)
   var savedProto=getActiveProtocol();
   if(savedProto){
@@ -4933,7 +5123,7 @@ function renderEditorEditView(proto){
   return proto.compounds.map(function(c,i){
     const freqOptions=['daily','5 on/2 off','3x/week','2x/week','weekly','every other day','custom']
       .map(function(f){return'<option'+(c.frequency===f?' selected':'')+'>'+f+'</option>';}).join('');
-    const twOptions=TIMING_WINDOWS
+    const twOptions=TIMING_WINDOWS.filter(function(tw){return tw.key!=='weekly';})
       .map(function(tw){return'<option value="'+tw.key+'"'+((c.timingWindow||'am')===tw.key?' selected':'')+'>'+tw.label+'</option>';}).join('');
     const dowPills=DAYS.map(function(d,j){return'<button class="dow-pill'+((c.daysOfWeek||[0,1,2,3,4,5,6]).indexOf(j)!==-1?' on':'')+'" onclick="toggleEditorDow(\''+proto.id+'\','+i+','+j+',this)">'+d+'</button>';}).join('');
     return'<div class="review-compound"><div class="rc-hdr" onclick="toggleRC(this)">'
@@ -4941,7 +5131,7 @@ function renderEditorEditView(proto){
       +'<div class="rc-name">'+c.name+'</div>'
       +'<div class="rc-summary">'+c.dose+' · '+c.frequency+'</div>'
       +'<button class="rc-remove" onclick="event.stopPropagation();removeEditorCompound(\''+proto.id+'\','+i+')">✕</button>'
-      +'</div><div class="rc-body">'
+      +'</div><div class="rc-body open">'
       +'<div class="g2"><div class="field"><label>Dose</label>'
       +makeDoseField('edose-'+proto.id+'-'+i,'eunit-'+proto.id+'-'+i,c.dose||'','updateEditorCompound(\''+proto.id+'\','+i+',\'dose\',getDoseValue(\'edose-'+proto.id+'-'+i+'\',\'eunit-'+proto.id+'-'+i+'\'))')+'</div>'
       +'<div class="field"><label>Route</label><select onchange="updateEditorCompound(\''+proto.id+'\','+i+',\'route\',this.value)">'
@@ -5057,43 +5247,90 @@ function showConfirm(message, sub, btnLabel, onOk){
 function deleteProtocol(id){
   showConfirm('Delete this protocol?','All compound settings will be removed. Logged data is preserved.','Delete',function(){
     protocols=protocols.filter(function(p){return p.id!==id;});
-    if(activeProtoId===id){
-      activeProtoId=protocols[0]?protocols[0].id:null;
-      persist(KEYS.activeProtoId,activeProtoId);
-    }
+    var aidx=activeProtoIds.indexOf(id);
+    if(aidx>-1){activeProtoIds.splice(aidx,1);}
+    activeProtoId=activeProtoIds[0]||null;
+    persist(KEYS.activeProtoIds,activeProtoIds);
+    persist(KEYS.activeProtoId,activeProtoId);
     persist(KEYS.protocols,protocols);
     toast('Protocol deleted');renderBuild();renderToday();updateMobHeader();
   });
 }
 
 // ════════════ STATIC SUGGESTIONS FALLBACK ════════════
-function buildStaticSuggestions(goals,activePantry){
-  const pantryNames=new Set(activePantry.map(function(p){return p.name;}));
-  const wantsFat=goals.some(function(g){return/fat|appetite|weight/i.test(g);});
-  const wantsLean=goals.some(function(g){return/lean|muscle/i.test(g);});
-  const wantsSleep=goals.some(function(g){return/sleep|gh/i.test(g);});
-  const wantsHeal=goals.some(function(g){return/recovery|heal/i.test(g);});
-  const wantsLong=goals.some(function(g){return/longevity|aging/i.test(g);});
-  const wantsMetab=goals.some(function(g){return/metaboli|energy/i.test(g);});
-  const wantsImmune=goals.some(function(g){return/immune/i.test(g);});
-  return COMPOUND_DB.filter(function(c){
+function buildStaticSuggestions(goals,allPantry){
+  var twLabel={am:'Upon Waking',preworkout:'Pre-Workout',weekly:'Weekly',pm:'Pre-Sleep',other:'Other'};
+
+  function isBlendItem(name,rationale){
+    return /blend/i.test(name||'')||/blend/i.test(rationale||'');
+  }
+
+  // Goal flags
+  var wantsFat=goals.some(function(g){return/fat|appetite|weight/i.test(g);});
+  var wantsLean=goals.some(function(g){return/lean|muscle/i.test(g);});
+  var wantsSleep=goals.some(function(g){return/sleep|gh/i.test(g);});
+  var wantsHeal=goals.some(function(g){return/recovery|heal/i.test(g);});
+  var wantsLong=goals.some(function(g){return/longevity|aging/i.test(g);});
+  var wantsMetab=goals.some(function(g){return/metaboli|energy/i.test(g);});
+  var wantsImmune=goals.some(function(g){return/immune/i.test(g);});
+  var wantsPerf=goals.some(function(g){return/performance|strength/i.test(g);});
+  var wantsMood=goals.some(function(g){return/mood|anxiety|resilience|cognitive/i.test(g);});
+
+  var result=[];
+  var seen=new Set();
+
+  // 1. Always include all stocked pantry items (priority — regardless of goal match)
+  allPantry.filter(function(p){return isInStock(p);}).forEach(function(p){
+    var key=p.name.toLowerCase();
+    if(seen.has(key)||isBlendItem(p.name,p.notes)) return;
+    seen.add(key);
+    var db=COMPOUND_DB.find(function(c){return c.name.toLowerCase()===key;});
+    result.push({
+      name:p.name,inPantry:true,selected:false,
+      dose:p.dose||(db&&db.dose)||'—',
+      route:p.route||(db&&db.route)||'Subcutaneous',
+      form:p.form||(db&&db.form)||'vial',
+      fasting:p.fasting||!!(db&&db.fasting),
+      site:p.site||(db&&db.site)||'Abdomen',
+      timing:db?twLabel[db.timingWindow]||'Upon Waking':'Upon Waking',
+      timingWindow:db?db.timingWindow||'am':'am',
+      frequency:p.frequency||(db&&db.frequency)||'daily',
+      daysOfWeek:(db&&db.daysOfWeek)||[0,1,2,3,4,5,6],
+      rationale:(db&&db.rationale)||p.notes||'',
+      priority:1
+    });
+  });
+
+  // 2. Goal-matched compounds from COMPOUND_DB not already in stocked pantry
+  COMPOUND_DB.filter(function(c){
+    if(isBlendItem(c.name,c.rationale)) return false;
     if(wantsFat&&c.goals.some(function(g){return/fat|appetite/i.test(g);})) return true;
-    if(wantsLean&&c.goals.some(function(g){return/lean/i.test(g);})) return true;
+    if(wantsLean&&c.goals.some(function(g){return/lean|muscle/i.test(g);})) return true;
     if(wantsSleep&&c.goals.some(function(g){return/sleep/i.test(g);})) return true;
     if(wantsHeal&&c.goals.some(function(g){return/recovery/i.test(g);})) return true;
     if(wantsLong&&c.goals.some(function(g){return/longevity/i.test(g);})) return true;
     if(wantsMetab&&c.goals.some(function(g){return/metabolic/i.test(g);})) return true;
     if(wantsImmune&&c.goals.some(function(g){return/immune/i.test(g);})) return true;
+    if(wantsPerf&&c.goals.some(function(g){return/performance|strength/i.test(g);})) return true;
+    if(wantsMood&&c.goals.some(function(g){return/mood|cognitive/i.test(g);})) return true;
     return false;
-  }).map(function(c){
-    const twLabel={am:'Upon Waking',preworkout:'Pre-Workout',weekly:'Weekly',pm:'Pre-Sleep',other:'Other'};
-    return{name:c.name,inPantry:pantryNames.has(c.name),selected:pantryNames.has(c.name),
+  }).forEach(function(c){
+    var key=c.name.toLowerCase();
+    if(seen.has(key)) return;
+    seen.add(key);
+    result.push({
+      name:c.name,inPantry:false,selected:false,
       dose:c.dose,route:c.route,form:c.form,fasting:c.fasting,site:c.site,
       timing:twLabel[c.timingWindow]||'Upon Waking',
-      timingWindow:c.timingWindow||'am',frequency:c.frequency||'daily',
-      daysOfWeek:c.daysOfWeek||[0,1,2,3,4,5,6],rationale:c.rationale,
-      priority:pantryNames.has(c.name)?1:2};
-  }).sort(function(a,b){return a.priority-b.priority;});
+      timingWindow:c.timingWindow||'am',
+      frequency:c.frequency||'daily',
+      daysOfWeek:c.daysOfWeek||[0,1,2,3,4,5,6],
+      rationale:c.rationale,
+      priority:2
+    });
+  });
+
+  return result.sort(function(a,b){return a.priority-b.priority;});
 }
 
 // ════════════ EXPORT / IMPORT ════════════
@@ -5114,6 +5351,8 @@ function importData(input){
       if(b.pantry){pantry=b.pantry;await persist(KEYS.pantry,pantry);}
       if(b.protocols){protocols=b.protocols;await persist(KEYS.protocols,protocols);}
       if(b.activeProtoId!==undefined){activeProtoId=b.activeProtoId;await persist(KEYS.activeProtoId,activeProtoId);}
+      if(b.activeProtoIds!==undefined){activeProtoIds=b.activeProtoIds;await persist(KEYS.activeProtoIds,activeProtoIds);}
+      else if(activeProtoId){activeProtoIds=[activeProtoId];await persist(KEYS.activeProtoIds,activeProtoIds);}
       toast('Restored: '+logs.length+' entries ✓');nav('today');
     }catch(err){toast('Import failed — invalid backup file ✗','var(--p5)');}
   };
@@ -5135,15 +5374,9 @@ async function seedDefaults(){
   // Commercial version — no hardcoded personal data
   // User starts fresh; data built through logging and imports
   if(!pantry) pantry=[];  // Initialize in memory only — don't persist empty pantry
-  if(!protocols.length){
-    const starter={id:'proto_'+Date.now(),name:'My First Protocol',durationWeeks:12,
-      startDate:today(),compounds:[],color:'var(--p1)'};
-    protocols=[starter];activeProtoId=starter.id;
-    await persist(KEYS.protocols,protocols);
-    await persist(KEYS.activeProtoId,activeProtoId);
-  }
-  if(!activeProtoId&&protocols.length){
-    activeProtoId=protocols[0].id;
+  if(!activeProtoIds.length&&protocols.length){
+    activeProtoIds=[protocols[0].id];activeProtoId=protocols[0].id;
+    await persist(KEYS.activeProtoIds,activeProtoIds);
     await persist(KEYS.activeProtoId,activeProtoId);
   }
   finishInit();
@@ -5151,6 +5384,22 @@ async function seedDefaults(){
 
 
 function finishInit(){
+  // Migrate: remove legacy blank placeholder protocols (0 compounds, default name)
+  var blankNames=['My Protocol','My First Protocol'];
+  var before=protocols.length;
+  protocols=protocols.filter(function(p){
+    var isBlank=blankNames.indexOf(p.name)>-1&&(!p.compounds||!p.compounds.length);
+    return !isBlank;
+  });
+  if(protocols.length!==before){
+    activeProtoIds=activeProtoIds.filter(function(id){
+      return protocols.some(function(p){return p.id===id;});
+    });
+    activeProtoId=activeProtoIds[0]||null;
+    persist(KEYS.protocols,protocols);
+    persist(KEYS.activeProtoIds,activeProtoIds);
+    persist(KEYS.activeProtoId,activeProtoId);
+  }
   // Load user profile
   loadProfile();
   // One-time cleanup of any tour_ keys from old versions
@@ -5399,7 +5648,7 @@ function takeAutoSnapshot(){
   var snap={date:todayStr,ts:Date.now(),
     logCount:logs.length,bodyCount:bodyLogs.length,
     data:{logs:logs,bodyLogs:bodyLogs,pantry:pantry,protocols:protocols,
-          activeProtoId:activeProtoId,checkins:checkins,doseMem:doseMem}};
+          activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,checkins:checkins,doseMem:doseMem}};
   // Rotate — keep last 7 snapshots
   var snaps=[];
   try{var s=localStorage.getItem('pt_snapshots');if(s)snaps=JSON.parse(s);}catch(e){}
@@ -5448,6 +5697,7 @@ function restoreSnapshot(idx){
       var d=snap.data;
       logs=d.logs||[];bodyLogs=d.bodyLogs||[];pantry=d.pantry||[];
       protocols=d.protocols||[];activeProtoId=d.activeProtoId||null;
+      activeProtoIds=d.activeProtoIds||(activeProtoId?[activeProtoId]:[]);
       checkins=d.checkins||[];
       // Restore doseMem but strip any without a dose value — don't carry stale memory
       var rawMem=d.doseMem||{};
@@ -6302,7 +6552,7 @@ async function finishOnboarding(){
       }
     }
     if(!proto) proto={id:'proto_'+Date.now(),name:'My Protocol',durationWeeks:12,startDate:today(),compounds:[],color:'var(--p1)'};
-    protocols=[proto];activeProtoId=proto.id;
+    protocols=[proto];activeProtoIds=[proto.id];activeProtoId=proto.id;
 
     // Save profile
     saveProfile({goals:selectedGoals});
@@ -6330,6 +6580,7 @@ async function finishOnboarding(){
     localStorage.setItem('pt_tc_accepted',new Date().toISOString());
     localStorage.setItem('pt_goals',JSON.stringify(selectedGoals));
     await persist(KEYS.protocols,protocols);
+    await persist(KEYS.activeProtoIds,activeProtoIds);
     await persist(KEYS.activeProtoId,activeProtoId);
     await persist(KEYS.pantry,pantry);
 
@@ -6510,7 +6761,7 @@ function exportToFiles(){
   localStorage.setItem('pt_last_files_save', Date.now().toString());
   var backup={version:10,exported:new Date().toISOString(),
     logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
-    pantry:pantry,protocols:protocols,activeProtoId:activeProtoId};
+    pantry:pantry,protocols:protocols,activeProtoId:activeProtoId,activeProtoIds:activeProtoIds};
   var jsonStr=JSON.stringify(backup,null,2);
   var filename='protocol-backup-'+today()+'.json';
   // iOS PWA: use Web Share API to trigger Files picker
@@ -6564,13 +6815,14 @@ function attemptRecoveryFromSnapshot(){
     var d=snap.data;
     logs=d.logs||[];bodyLogs=d.bodyLogs||[];pantry=d.pantry||[];
     protocols=d.protocols||[];activeProtoId=d.activeProtoId||null;
+    activeProtoIds=d.activeProtoIds||(activeProtoId?[activeProtoId]:[]);
     checkins=d.checkins||[];doseMem=d.doseMem||{};
     localStorage.setItem('pt_onboarded','1');
     localStorage.setItem('pt_tc_accepted',new Date().toISOString());
     localStorage.setItem('pt_tour_done','1');
     persist(KEYS.logs,logs);persist(KEYS.bodyLogs,bodyLogs);
     persist(KEYS.pantry,pantry);persist(KEYS.protocols,protocols);
-    persist(KEYS.activeProtoId,activeProtoId);persist(KEYS.doseMem,doseMem);
+    persist(KEYS.activeProtoId,activeProtoId);persist(KEYS.activeProtoIds,activeProtoIds);persist(KEYS.doseMem,doseMem);
     sessionStorage.removeItem('pt_wipe_detected');
     var rec=document.getElementById('storageRecoveryScreen');
     if(rec) rec.style.display='none';
@@ -6593,13 +6845,14 @@ function importRecoveryJSON(){
         if(!d.protocols&&!d.logs){toast('Invalid backup file ✗','var(--p5)');return;}
         logs=d.logs||[];bodyLogs=d.bodyLogs||[];pantry=d.pantry||[];
         protocols=d.protocols||[];activeProtoId=d.activeProtoId||null;
+        activeProtoIds=d.activeProtoIds||(activeProtoId?[activeProtoId]:[]);
         checkins=d.checkins||[];doseMem=d.doseMem||{};
         localStorage.setItem('pt_onboarded','1');
         localStorage.setItem('pt_tc_accepted',new Date().toISOString());
         localStorage.setItem('pt_tour_done','1');
         persist(KEYS.logs,logs);persist(KEYS.bodyLogs,bodyLogs);
         persist(KEYS.pantry,pantry);persist(KEYS.protocols,protocols);
-        persist(KEYS.activeProtoId,activeProtoId);persist(KEYS.doseMem,doseMem);
+        persist(KEYS.activeProtoId,activeProtoId);persist(KEYS.activeProtoIds,activeProtoIds);persist(KEYS.doseMem,doseMem);
         sessionStorage.removeItem('pt_wipe_detected');
         var rec=document.getElementById('storageRecoveryScreen');
         if(rec) rec.style.display='none';
@@ -6672,9 +6925,13 @@ async function initApp(){
     load(KEYS.logs,[]),load(KEYS.doseMem,{}),load(KEYS.bodyLogs,[]),
     load(KEYS.checkins,[]),load(KEYS.pantry,[]),
     load(KEYS.protocols,[]),load(KEYS.activeProtoId,null),
+    load(KEYS.activeProtoIds,[]),
   ]);
   logs=results[0];doseMem=results[1];bodyLogs=results[2];
   checkins=results[3];pantry=results[4];protocols=results[5];activeProtoId=results[6];
+  activeProtoIds=results[7]||[];
+  // Migrate: if activeProtoIds empty but activeProtoId exists, seed from legacy
+  if(!activeProtoIds.length&&activeProtoId) activeProtoIds=[activeProtoId];
   researchUnlocked=localStorage.getItem('pt_research_unlocked')==='1';
 
   // Migrate and launch
@@ -6708,11 +6965,11 @@ async function initApp(){
     return Object.assign({vialMg:null,vials:0,capsRemaining:null,capDose:null,
       expiry:'',reorderDays:14,stockLog:[],site:'Abdomen',fasting:false},p);
   });
-  if(!protocols.length){
-    var starter={id:'proto_'+Date.now(),name:'My Protocol',durationWeeks:12,startDate:today(),compounds:[],color:'var(--p1)'};
-    protocols=[starter];await persist(KEYS.protocols,protocols);
+  if(!activeProtoIds.length&&protocols.length){
+    activeProtoIds=[protocols[0].id];activeProtoId=protocols[0].id;
+    await persist(KEYS.activeProtoIds,activeProtoIds);
+    await persist(KEYS.activeProtoId,activeProtoId);
   }
-  if(!activeProtoId){activeProtoId=protocols[0].id;await persist(KEYS.activeProtoId,activeProtoId);}
   finishInit();
 }
 
