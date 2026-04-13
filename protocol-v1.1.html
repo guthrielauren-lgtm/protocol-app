@@ -218,6 +218,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .add-compound-btn:hover{border-color:var(--p1)}
 .add-compound-btn span{font-family:var(--mono);font-size:11px;color:var(--dim)}
 /* HISTORY */
+.month-group{margin-bottom:14px}.month-group-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:6px}.month-group-hdr.open{border-radius:8px 8px 0 0;margin-bottom:0;border-bottom:none}.month-group-title{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);letter-spacing:.04em}.month-group-meta{font-family:var(--mono);font-size:10px;color:var(--dim)}.month-group-body{display:none;border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px;padding:8px;margin-bottom:6px}.month-group-body.open{display:block}
 .day-card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;overflow:hidden}
 .day-card:hover{border-color:var(--bd2)}
 .day-card-hdr{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -714,6 +715,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- TODAY -->
 <div class="panel on" id="panel-today">
   <div style="font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding:4px 16px 4px;display:block;border-bottom:1px solid var(--bd);margin-bottom:0" id="phdr-today">TODAY</div>
+  <div id="todayGreeting" style="display:none;padding:10px 16px 0;font-family:var(--serif);font-size:17px;color:var(--text)"></div>
   
   <div class="proto-header" id="protoHeader">
     <div class="proto-header-top">
@@ -1169,6 +1171,51 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   
 
   
+
+  <!-- USER PROFILE -->
+  <div class="sec-lbl">Your Profile</div>
+  <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:4px">
+    <div class="g2" style="margin-bottom:12px">
+      <div class="field"><label>First name</label>
+        <input type="text" id="profFirstName" placeholder="First name" oninput="saveProfileField('firstName',this.value)">
+      </div>
+      <div class="field"><label>Last initial</label>
+        <input type="text" id="profLastInitial" placeholder="A" maxlength="1" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase();saveProfileField('lastInitial',this.value)">
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="field"><label>Date of birth</label>
+        <input type="date" id="profDob" onchange="saveProfileField('dob',this.value)" style="min-height:42px">
+      </div>
+      <div class="field"><label>Biological sex</label>
+        <select id="profSex" onchange="saveProfileField('sex',this.value)">
+          <option value="">Prefer not to say</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="field"><label>Target weight (lbs)</label>
+        <input type="number" id="profTargetWt" placeholder="e.g. 160" step="0.5" oninput="saveProfileField('targetWeight',parseFloat(this.value)||null)">
+      </div>
+      <div class="field"><label>Target body fat %</label>
+        <input type="number" id="profTargetFat" placeholder="e.g. 18" step="0.5" oninput="saveProfileField('targetBodyFat',parseFloat(this.value)||null)">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Goal timeline</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+        <button type="button" class="ob-timeline-btn" data-weeks="8" onclick="selectSettingsTimeline(this)">8 weeks</button>
+        <button type="button" class="ob-timeline-btn" data-weeks="12" onclick="selectSettingsTimeline(this)">12 weeks</button>
+        <button type="button" class="ob-timeline-btn" data-weeks="24" onclick="selectSettingsTimeline(this)">6 months</button>
+        <button type="button" class="ob-timeline-btn" data-weeks="0" onclick="selectSettingsTimeline(this)">Custom</button>
+      </div>
+      <input type="number" id="profCustomWeeks" placeholder="Enter weeks" min="1" max="104"
+        style="display:none;margin-top:8px;font-size:14px"
+        oninput="saveProfileField('timelineWeeks',parseInt(this.value)||null)">
+    </div>
+  </div>
 
   <!-- PRO LICENSE -->
   <div class="sec-lbl">Protocol Pro</div>
@@ -2101,7 +2148,7 @@ function buildInsightsHTML(proto,period){
     +'</div></div>'
     // Chart area — real canvas or empty state
     +(hasWeight
-      ?'<div style="position:relative;height:140px;margin-bottom:8px"><canvas id="insightsChart"></canvas></div>'
+      ?'<div style="position:relative;height:140px;margin-bottom:8px"><canvas id="insightsChart"></canvas><svg id="insightsOverlaySvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible"></svg></div>'
       :'<div style="height:140px;margin-bottom:8px;border:1px dashed var(--bd);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">'
         +'<div style="font-size:20px">⚖</div>'
         +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center">Log your weight in Today<br>to see your trend chart</div>'
@@ -2111,6 +2158,8 @@ function buildInsightsHTML(proto,period){
     +'<div style="display:flex;gap:14px;margin-bottom:10px">'
     +'<span style="font-family:var(--mono);font-size:9px;color:var(--mid);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:2px;background:#f5a623;border-radius:1px"></span>Weight (lbs)</span>'
     +'<span style="font-family:var(--mono);font-size:9px;color:var(--mid);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:2px;background:#3dd68c;border-radius:1px"></span>Compliance %</span>'
+    +'<span id="legendGoalWt" style="font-family:var(--mono);font-size:9px;color:var(--mid);display:none;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:0;border-top:2px dashed #a78bfa"></span>Goal wt</span>'
+    +'<span id="legendGoalFat" style="font-family:var(--mono);font-size:9px;color:var(--mid);display:none;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:0;border-top:2px dashed #f472b6"></span>Goal fat%</span>'
     +'</div>'
     // Metric chips — always show
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'
@@ -2229,8 +2278,21 @@ function buildReviewCard(proto,milestone){
         +'<div style="width:16px;height:16px;border-radius:50%;background:var(--p1);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg)">✓</div>'
         +'</div>'
         +(isPro
-          ?'<button id="reviewBtn'+Math.round(m.pct*100)+'" onclick="runProtocolReview(\''+key+'\')" style="font-family:var(--mono);font-size:10px;padding:6px 12px;background:var(--p1);color:var(--bg);border:none;border-radius:4px;cursor:pointer;width:100%">View AI Analysis →</button>'
-          +'<div id="reviewDetail'+Math.round(m.pct*100)+'" style="display:none;margin-top:8px"></div>'
+          ?(function(){
+            var checkinsOk=(checkins||[]).length>=10;
+            var logsOk=logs.length>=10;
+            var dataOk=checkinsOk&&logsOk;
+            var btnId='reviewBtn'+Math.round(m.pct*100);
+            var detId='reviewDetail'+Math.round(m.pct*100);
+            if(!dataOk){
+              return '<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 0;line-height:1.6">'
+                +'Needs '+(!checkinsOk?((10-(checkins||[]).length)+' more check-in'+(10-(checkins||[]).length)===1?'':'s'):'')+((!checkinsOk&&!logsOk)?' and ':'')+((!logsOk)?(10-logs.length)+' more dose log'+(10-logs.length===1?'':'s'):'')+' to unlock.</div>'
+                +'<div style="width:100%;height:4px;background:var(--bd);border-radius:2px;margin-top:4px">'
+                +'<div style="height:4px;background:var(--p1);border-radius:2px;width:'+Math.min(100,Math.round(((checkins||[]).length+logs.length)/20*100))+'%"></div></div>';
+            }
+            return '<button id="'+btnId+'" onclick="runProtocolReview(\''+key+'\',\''+detId+'\',\''+btnId+'\')" style="font-family:var(--mono);font-size:10px;padding:6px 12px;background:var(--p1);color:var(--bg);border:none;border-radius:4px;cursor:pointer;width:100%">View AI Analysis →</button>'
+              +'<div id="'+detId+'" style="display:none;margin-top:8px"></div>';
+          }())
           :'<div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.5">AI protocol reviews are a Pro feature. <span style="color:var(--p1);cursor:pointer;text-decoration:underline" onclick="goToProUpgrade()">Upgrade to unlock →</span></div>'
         )
         +'</div>';
@@ -2358,6 +2420,7 @@ function initInsightsChart(proto,period){
   var isDark=document.documentElement.classList.contains('dark')||document.body.classList.contains('dark')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);
   var gridColor=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
   var tickColor=isDark?'#4a6080':'#9ca3af';
+  setTimeout(function(){drawInsightsOverlay(proto,weightData);},120);
   insightsChartInstance=new Chart(canvas,{
     type:'line',
     data:{labels:labels,datasets:datasets},
@@ -2388,6 +2451,93 @@ function initInsightsChart(proto,period){
       }
     }
   });
+}
+
+function drawInsightsOverlay(proto,weightData){
+  var svg=document.getElementById('insightsOverlaySvg');
+  if(!svg||!insightsChartInstance||!weightData||!weightData.length){if(svg)svg.innerHTML='';return;}
+  svg.innerHTML='';
+  var chart=insightsChartInstance;
+
+  function xForDate(dateStr){
+    var idx=weightData.findIndex(function(d){return d.date>=dateStr;});
+    if(idx<0) idx=weightData.length-1;
+    try{
+      var meta=chart.getDatasetMeta(0);
+      if(meta&&meta.data&&meta.data[idx]) return meta.data[idx].x;
+    }catch(e){}
+    return null;
+  }
+
+  function vLine(x,color,label){
+    if(x===null||isNaN(x)) return;
+    var ca=chart.chartArea;
+    var line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x);line.setAttribute('x2',x);
+    line.setAttribute('y1',ca.top);line.setAttribute('y2',ca.bottom);
+    line.setAttribute('stroke',color);line.setAttribute('stroke-width','1.5');
+    line.setAttribute('opacity','0.85');
+    svg.appendChild(line);
+    if(label){
+      var txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',x+3);txt.setAttribute('y',ca.top+10);
+      txt.setAttribute('font-family','IBM Plex Mono,monospace');txt.setAttribute('font-size','8');
+      txt.setAttribute('fill',color);txt.setAttribute('opacity','0.9');
+      txt.textContent=label;
+      svg.appendChild(txt);
+    }
+  }
+
+  function hLine(y,color,label){
+    if(y===null||isNaN(y)) return;
+    var ca=chart.chartArea;
+    var line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',ca.left);line.setAttribute('x2',ca.right);
+    line.setAttribute('y1',y);line.setAttribute('y2',y);
+    line.setAttribute('stroke',color);line.setAttribute('stroke-width','1.5');
+    line.setAttribute('stroke-dasharray','6,3');line.setAttribute('opacity','0.7');
+    svg.appendChild(line);
+    if(label){
+      var txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',ca.right-2);txt.setAttribute('y',y-3);
+      txt.setAttribute('text-anchor','end');
+      txt.setAttribute('font-family','IBM Plex Mono,monospace');txt.setAttribute('font-size','8');
+      txt.setAttribute('fill',color);txt.setAttribute('opacity','0.9');
+      txt.textContent=label;
+      svg.appendChild(txt);
+    }
+  }
+
+  // Protocol start/end vertical lines
+  var colorMap={'var(--p1)':'#3dd68c','var(--p2)':'#f5a623','var(--p3)':'#2ec4b6','var(--p4)':'#9b72cf','var(--p5)':'#f25c54'};
+  getActiveProtocols().forEach(function(p){
+    if(!p.startDate) return;
+    var c=colorMap[p.color]||p.color||'#3dd68c';
+    vLine(xForDate(p.startDate),c,'Start');
+    if(p.durationWeeks){
+      var endDate=new Date(p.startDate);
+      endDate.setDate(endDate.getDate()+p.durationWeeks*7);
+      var endStr=endDate.toISOString().split('T')[0];
+      if(endStr<=today()) vLine(xForDate(endStr),c,'End');
+    }
+  });
+
+  // Horizontal goal lines
+  var profile=userProfile||{};
+  var targetWt=profile.targetWeight?parseFloat(profile.targetWeight):null;
+  var targetFat=profile.targetBodyFat?parseFloat(profile.targetBodyFat):null;
+  var lgWt=document.getElementById('legendGoalWt');
+  var lgFat=document.getElementById('legendGoalFat');
+  try{
+    var yScale=chart.scales['y'];
+    if(yScale&&targetWt){
+      var yPx=yScale.getPixelForValue(targetWt);
+      hLine(yPx,'#a78bfa','Goal '+(isMetric()?(targetWt*0.453592).toFixed(1)+'kg':targetWt+'lbs'));
+      if(lgWt) lgWt.style.display='flex';
+    } else {if(lgWt) lgWt.style.display='none';}
+  }catch(e){if(lgWt) lgWt.style.display='none';}
+  // Body fat goal would need a separate y-axis — show in legend only for now
+  if(lgFat) lgFat.style.display=targetFat?'flex':'none';
 }
 
 function buildComplianceSeries(proto,dates){
@@ -2507,6 +2657,19 @@ function renderInsightsSample(){
 
 
 function renderToday(){
+  // Time-aware greeting
+  var gEl=document.getElementById('todayGreeting');
+  if(gEl){
+    var name=(userProfile&&userProfile.firstName)?userProfile.firstName:'';
+    if(name){
+      var h=new Date().getHours();
+      var greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+      gEl.textContent=greet+', '+name+'.';
+      gEl.style.display='block';
+    } else {
+      gEl.style.display='none';
+    }
+  }
   renderProtoHeader();renderBodyStrip();renderChecklist();renderCheckinState();
 }
 
@@ -3100,7 +3263,15 @@ function toggleCheckin(){
 function renderCheckinState(){
   const done=checkins.some(function(c){return c.date===today();});
   const badge=document.getElementById('checkinBadge');
-  if(badge) badge.textContent=done?'✓ Done':'';
+  if(badge){
+    if(done){
+      badge.innerHTML='✓';
+      badge.style.cssText='width:30px;height:30px;border-radius:50%;background:var(--p1);border:1.5px solid var(--p1);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0';
+    } else {
+      badge.innerHTML='○';
+      badge.style.cssText='width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1.5px solid var(--bd);color:var(--dim);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0';
+    }
+  }
   // Apply open state
   const body=document.getElementById('checkinBody');
   const hdr=document.getElementById('checkinHdr');
@@ -3320,71 +3491,123 @@ function setHistFilter(f){
 }
 
 function renderHistory(){
-  const feed=document.getElementById('histFeed');
+  var feed=document.getElementById('histFeed');
   if(!feed) return;
-  const showDoses=histFilter==='all'||histFilter==='doses';
-  const showBody=histFilter==='all'||histFilter==='body';
-  const hasContent=(showDoses&&logs.length)||(showBody&&bodyLogs.length);
+  var showDoses=histFilter==='all'||histFilter==='doses';
+  var showBody=histFilter==='all'||histFilter==='body';
+  var hasContent=(showDoses&&logs.length)||(showBody&&bodyLogs.length)||(checkins&&checkins.length);
   if(!hasContent){
-    feed.innerHTML='<div class="empty-state"><div class="empty-icon">'+
-      (histFilter==='body'?'◎':'≡')+'</div>'+
+    feed.innerHTML='<div class="empty-state"><div class="empty-icon">'+(histFilter==='body'?'◎':'≡')+'</div>'+
       '<div class="empty-title">'+(histFilter==='body'?'No measurements yet':'No entries yet')+'</div>'+
       '<div class="empty-sub">'+(histFilter==='body'?'Log body composition from the Body tab to start tracking your baseline.':'Log compounds from the Today tab to build your history.')+'</div>'+
       '<button class="btn sm" onclick="nav(\''+(histFilter==='body'?'body':'today')+'\')" style="margin-top:12px">'+
       (histFilter==='body'?'Go to Body Tab':'Go to Today')+'</button></div>';
     return;
   }
+
   // Build unified date set
-  const allDates=new Set();
+  var allDates=new Set();
   if(showDoses) logs.forEach(function(l){allDates.add(l.date);});
   if(showBody) bodyLogs.forEach(function(b){allDates.add(b.date);});
-  const dates=[...allDates].sort(function(a,b){return b>a?1:-1;});
-  const byDate={};
+  // Always include checkin dates so standalone check-ins appear
+  (checkins||[]).forEach(function(c){allDates.add(c.date);});
+  var dates=[...allDates].sort(function(a,b){return b>a?1:-1;});
+
+  var byDate={};
   logs.forEach(function(l){if(!byDate[l.date])byDate[l.date]={doses:[],body:[]};byDate[l.date].doses.push(l);});
   bodyLogs.forEach(function(b){if(!byDate[b.date])byDate[b.date]={doses:[],body:[]};byDate[b.date].body.push(b);});
-  feed.innerHTML=dates.map(function(date){
-    const d=byDate[date]||{doses:[],body:[]};
-    const ci=(checkins||[]).find(function(c){return c.date===date;});
-    // Dose entry rows
+
+  // Group dates by year-month
+  var monthMap={};
+  var monthOrder=[];
+  dates.forEach(function(date){
+    var ym=date.substring(0,7); // "2026-04"
+    if(!monthMap[ym]){monthMap[ym]=[];monthOrder.push(ym);}
+    monthMap[ym].push(date);
+  });
+
+  var currentYM=today().substring(0,7);
+
+  // Build day card HTML
+  function buildDayCard(date){
+    var d=byDate[date]||{doses:[],body:[]};
+    var ci=(checkins||[]).find(function(c){return c.date===date;});
     var entryRows='';
     if(showDoses&&d.doses.length){
-      const dots=d.doses.map(function(l){return'<div class="day-dot" style="background:'+getPColor(l.compound)+'" title="'+l.compound+'"></div>';}).join('');
       entryRows+=d.doses.map(function(l){
-        return'<div class="day-entry"><div class="day-entry-dot" style="background:'+getPColor(l.compound)+'"></div>'
-          +'<div class="day-entry-info"><div class="day-entry-name">'+l.compound+'</div>'
-          +'<div class="day-entry-meta">'+l.dose+' · '+(l.fedState||'')+' · '+(l.site||'')+' · '+(l.time||'')+'</div></div>'
-          +'<div class="day-entry-actions">'
-          +'<button class="day-entry-btn" onclick="openEditLog('+l.id+')">Edit</button>'
-          +'<button class="day-entry-btn del" onclick="deleteLogById('+l.id+')">Del</button>'
-          +'</div></div>';
+        return'<div class="day-entry"><div class="day-entry-dot" style="background:'+getPColor(l.compound)+'"></div>'+
+          '<div class="day-entry-info"><div class="day-entry-name">'+l.compound+'</div>'+
+          '<div class="day-entry-meta">'+l.dose+' \u00b7 '+(l.fedState||'')+' \u00b7 '+(l.site||'')+' \u00b7 '+(l.time||'')+'</div></div>'+
+          '<div class="day-entry-actions">'+
+          '<button class="day-entry-btn" onclick="openEditLog('+l.id+')">Edit</button>'+
+          '<button class="day-entry-btn del" onclick="deleteLogById('+l.id+')">Del</button>'+
+          '</div></div>';
       }).join('');
     }
-    // Body comp rows
     if(showBody&&d.body.length){
       entryRows+=d.body.map(function(b){
-        const srcColor=b.source==='dexa'?'var(--p3)':'var(--p1)';
-        const vals=b.source==='dexa'
-          ?'Fat '+b.fatPct+'% · Lean '+b.muscle+'lbs'
-          :'M:'+b.muscle+' F:'+b.fat+' B:'+b.bone;
-        return'<div class="day-entry"><div class="day-entry-dot" style="background:'+srcColor+'"></div>'
-          +'<div class="day-entry-info"><div class="day-entry-name" style="color:'+srcColor+'">'+
-          (b.source==='dexa'?'DEXA Scan':'Withings')+'</div>'
-          +'<div class="day-entry-meta">'+vals+(b.phase?' · '+b.phase:'')+'</div></div>'
-          +'<div class="day-entry-actions">'
-          +'<button class="day-entry-btn" onclick="openEditBody('+b.id+')">Edit</button>'
-          +'<button class="day-entry-btn del" onclick="deleteBodyLog('+b.id+')">Del</button>'
-          +'</div></div>';
+        var srcColor=b.source==='dexa'?'var(--p3)':'var(--p1)';
+        var vals=b.source==='dexa'?'Fat '+b.fatPct+'% \u00b7 Lean '+b.muscle+'lbs':'M:'+b.muscle+' F:'+b.fat+' B:'+b.bone;
+        return'<div class="day-entry"><div class="day-entry-dot" style="background:'+srcColor+'"></div>'+
+          '<div class="day-entry-info"><div class="day-entry-name" style="color:'+srcColor+'">'+
+          (b.source==='dexa'?'DEXA Scan <span style="font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);vertical-align:middle;margin-left:4px">DEXA</span>':'Withings')+'</div>'+
+          '<div class="day-entry-meta">'+vals+(b.phase?' \u00b7 '+b.phase:'')+'</div></div>'+
+          '<div class="day-entry-actions">'+
+          '<button class="day-entry-btn" onclick="openEditBody('+b.id+')">Edit</button>'+
+          '<button class="day-entry-btn del" onclick="deleteBodyLog('+b.id+')">Del</button>'+
+          '</div></div>';
       }).join('');
     }
-    const scoreHtml=ci?'<div class="day-score" style="color:var(--p3)">Zzz '+ci.sleep+'</div><div class="day-score" style="color:var(--p1)">E '+ci.energy+'</div><div class="day-score" style="color:var(--p2)">H '+ci.hunger+'</div><div class="day-score" style="color:var(--p4)">R '+ci.recovery+'</div>':'';
-    const ciRow=ci?'<div style="padding:8px 0;border-top:1px solid var(--bd);margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--dim)">Check-in · Sleep:'+ci.sleep+' Energy:'+ci.energy+' Hunger:'+ci.hunger+' Recovery:'+ci.recovery+(ci.sideEffects&&ci.sideEffects!=='None'?' · '+ci.sideEffects:'')+'</div>':'';
-    const allDots=(showDoses?d.doses.map(function(l){return'<div class="day-dot" style="background:'+getPColor(l.compound)+'" title="'+l.compound+'"></div>';}).join(''):'')
-      +(showBody&&d.body.length?'<div class="day-dot" style="background:var(--p3)" title="Body"></div>':'');
-    return'<div class="day-card"><div class="day-card-hdr" onclick="toggleDayCard(this)">'
-      +'<div class="day-date">'+fmtDate(date)+'</div><div class="day-dots">'+allDots+'</div>'
-      +'<div class="day-scores">'+scoreHtml+'</div><span style="font-size:11px;color:var(--dim);margin-left:6px">v</span>'
-      +'</div><div class="day-expand">'+entryRows+ciRow+'</div></div>';
+    var scoreHtml=ci?'<div class="day-score" style="color:var(--p3)">Zzz '+ci.sleep+'</div><div class="day-score" style="color:var(--p1)">E '+ci.energy+'</div><div class="day-score" style="color:var(--p2)">H '+ci.hunger+'</div><div class="day-score" style="color:var(--p4)">R '+ci.recovery+'</div>':'';
+    var ciRow=ci?'<div style="padding:8px 0;border-top:1px solid var(--bd);margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--dim)">Check-in \u00b7 Sleep:'+ci.sleep+' Energy:'+ci.energy+' Hunger:'+ci.hunger+' Recovery:'+ci.recovery+(ci.sideEffects&&ci.sideEffects!=='None'?' \u00b7 '+ci.sideEffects:'')+'</div>':'';
+    var allDots=(showDoses?d.doses.map(function(l){return'<div class="day-dot" style="background:'+getPColor(l.compound)+'" title="'+l.compound+'"></div>';}).join(''):'')+
+      (showBody&&d.body.length?'<div class="day-dot" style="background:var(--p3)" title="Body"></div>':'');
+    // Current month days start open; past months start closed
+    var isCurrentMonth=date.substring(0,7)===currentYM;
+    return'<div class="day-card"><div class="day-card-hdr'+(isCurrentMonth?' open':'')+'" onclick="toggleDayCard(this)">'+
+      '<div class="day-date">'+fmtDate(date)+'</div><div class="day-dots">'+allDots+'</div>'+
+      '<div class="day-scores">'+scoreHtml+'</div><span style="font-size:11px;color:var(--dim);margin-left:6px">'+(isCurrentMonth?'\u25b4':'\u25be')+'</span>'+
+      '</div><div class="day-expand'+(isCurrentMonth?' open':'')+'">'+entryRows+ciRow+'</div></div>';
+  }
+
+  feed.innerHTML=monthOrder.map(function(ym){
+    var monthDates=monthMap[ym];
+    var isCurrentMonth=ym===currentYM;
+    // Month label
+    var parts=ym.split('-');
+    var monthLabel=MONTHS[+parts[1]-1]+' '+parts[0];
+    // Count total entries for collapsed label
+    var totalEntries=0;
+    monthDates.forEach(function(date){
+      var d=byDate[date]||{doses:[],body:[]};
+      if(showDoses) totalEntries+=d.doses.length;
+      if(showBody) totalEntries+=d.body.length;
+    });
+    var dayCards=monthDates.map(buildDayCard).join('');
+    if(isCurrentMonth){
+      // Current month: always expanded, no collapse header
+      return'<div class="month-group">'+
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">'+monthLabel+'</div>'+
+        dayCards+'</div>';
+    } else {
+      // Past months: collapsed row with entry count, tap to expand
+      return'<div class="month-group">'+
+        '<div class="month-group-hdr" onclick="toggleMonthGroup(this)">'+
+        '<span class="month-group-title">'+monthLabel+'</span>'+
+        '<span class="month-group-meta">'+totalEntries+' entr'+(totalEntries===1?'y':'ies')+' \u25be</span>'+
+        '</div>'+
+        '<div class="month-group-body">'+dayCards+'</div>'+
+        '</div>';
+    }
   }).join('');
+}
+
+function toggleMonthGroup(hdr){
+  var body=hdr.nextElementSibling;
+  var open=body.classList.toggle('open');
+  hdr.classList.toggle('open',open);
+  var chev=hdr.querySelector('.month-group-meta');
+  if(chev) chev.textContent=chev.textContent.replace(open?'\u25be':'\u25b4',open?'\u25b4':'\u25be');
 }
 
 function toggleDayCard(hdr){
@@ -6249,6 +6472,26 @@ function setUnitsPreference(units){
 
 function renderSettings(){
   loadDisplayPrefs();
+  // Populate profile fields
+  var p=userProfile||{};
+  var pf=document.getElementById('profFirstName');if(pf)pf.value=p.firstName||'';
+  var pl=document.getElementById('profLastInitial');if(pl)pl.value=p.lastInitial||'';
+  var pd=document.getElementById('profDob');if(pd)pd.value=p.dob||'';
+  var ps=document.getElementById('profSex');if(ps)ps.value=p.sex||'';
+  var ptw=document.getElementById('profTargetWt');if(ptw)ptw.value=p.targetWeight||'';
+  var ptf=document.getElementById('profTargetFat');if(ptf)ptf.value=p.targetBodyFat||'';
+  // Timeline buttons
+  var tl=p.timelineWeeks||0;
+  document.querySelectorAll('.ob-timeline-btn').forEach(function(b){
+    var bw=parseInt(b.dataset.weeks)||0;
+    var isOn=tl>0&&bw===tl||(bw===0&&tl>0&&![8,12,24].includes(tl));
+    b.classList.toggle('on',isOn);
+    b.style.background=isOn?'var(--p1)':'';
+    b.style.color=isOn?'var(--bg)':'';
+    b.style.borderColor=isOn?'var(--p1)':'';
+  });
+  var cw=document.getElementById('profCustomWeeks');
+  if(cw){cw.style.display=tl>0&&![8,12,24].includes(tl)?'block':'none';if(tl)cw.value=![8,12,24].includes(tl)?tl:'';}
   // Reflect units preference in buttons
   var imp = document.getElementById('unitsImperialBtn');
   var met = document.getElementById('unitsMetricBtn');
@@ -6388,9 +6631,9 @@ function goToProUpgrade(){
   },300);
 }
 
-async function runProtocolReview(key){
-  var btn=document.getElementById('reviewExpandBtn');
-  var detail=document.getElementById('reviewDetail');
+async function runProtocolReview(key,detailId,btnId){
+  var btn=document.getElementById(btnId||'reviewExpandBtn');
+  var detail=document.getElementById(detailId||'reviewDetail');
   if(!btn||!detail) return;
   btn.textContent='Analyzing…';btn.disabled=true;
   try{
@@ -6502,7 +6745,7 @@ function renderProtocolReview(){
     +'<button onclick="dismissReview(\''+milestone.key+'\')" style="font-family:var(--mono);font-size:10px;background:none;border:none;color:var(--dim);cursor:pointer;padding:4px">✕</button>'
     +'</div>'
     +(isPro
-      ?'<div style="display:flex;gap:8px;margin-top:10px"><button id="reviewExpandBtn" onclick="runProtocolReview(\''+milestone.key+'\')" class="btn sm" style="flex:1;justify-content:center">Full Analysis →</button></div>'
+      ?'<div style="display:flex;gap:8px;margin-top:10px"><button id="reviewExpandBtnCard" onclick="runProtocolReview(\''+milestone.key+'\',\'reviewDetailCard\',\'reviewExpandBtnCard\')" class="btn sm" style="flex:1;justify-content:center">Full Analysis →</button></div><div id="reviewDetailCard" style="display:none;margin-top:8px"></div>'
       :'<div style="font-family:var(--mono);font-size:10px;color:var(--mid);margin-top:8px;line-height:1.6">AI protocol reviews are a Pro feature. <span style="color:var(--p1);cursor:pointer;text-decoration:underline" onclick="goToProUpgrade()">Upgrade to unlock →</span></div>'
     )
     +'<div id="reviewDetail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--p3)"></div>'
@@ -6640,6 +6883,24 @@ function loadProfile(){
   } catch(e) {}
 }
 
+function selectSettingsTimeline(btn){
+  var weeks=parseInt(btn.dataset.weeks)||0;
+  document.querySelectorAll('.ob-timeline-btn').forEach(function(b){
+    b.classList.toggle('on', b===btn);
+    b.style.background=b===btn?'var(--p1)':'';
+    b.style.color=b===btn?'var(--bg)':'';
+    b.style.borderColor=b===btn?'var(--p1)':'';
+  });
+  var custom=document.getElementById('profCustomWeeks');
+  if(custom) custom.style.display=weeks===0?'block':'none';
+  if(weeks>0) saveProfileField('timelineWeeks',weeks);
+}
+
+function saveProfileField(field,value){
+  var update={};
+  update[field]=value;
+  saveProfile(update);
+}
 function getUnits(){ return userProfile.units || 'imperial'; }
 function isMetric(){ return getUnits() === 'metric'; }
 
