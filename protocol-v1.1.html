@@ -3555,7 +3555,7 @@ function renderHistory(){
   // Build day card HTML
   function buildDayCard(date){
     var d=byDate[date]||{doses:[],body:[]};
-    var ci=(checkins||[]).find(function(c){return c.date===date;});
+    var ci=(checkins||[]).find(function(c){return (c.date||'').substring(0,10)===date;});
     var entryRows='';
     if(showDoses&&d.doses.length){
       entryRows+=d.doses.map(function(l){
@@ -3583,9 +3583,19 @@ function renderHistory(){
       }).join('');
     }
     var scoreHtml=ci?'<div class="day-score" style="color:var(--p3)">Zzz '+ci.sleep+'</div><div class="day-score" style="color:var(--p1)">E '+ci.energy+'</div><div class="day-score" style="color:var(--p2)">H '+ci.hunger+'</div><div class="day-score" style="color:var(--p4)">R '+ci.recovery+'</div>':'';
-    var ciRow=ci?'<div style="padding:8px 0;border-top:1px solid var(--bd);margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--dim)">Check-in \u00b7 Sleep:'+ci.sleep+' Energy:'+ci.energy+' Hunger:'+ci.hunger+' Recovery:'+ci.recovery+(ci.sideEffects&&ci.sideEffects!=='None'?' \u00b7 '+ci.sideEffects:'')+'</div>':'';
+    var ciRow=ci?'<div class="day-entry">'
+      +'<div class="day-entry-dot" style="background:var(--p4)"></div>'
+      +'<div class="day-entry-info">'
+        +'<div class="day-entry-name" style="color:var(--p4)">Daily Check-in</div>'
+        +'<div class="day-entry-meta">'
+          +'Zzz '+ci.sleep+' \u00b7 E '+ci.energy+' \u00b7 H '+ci.hunger+' \u00b7 R '+ci.recovery
+          +(ci.sideEffects&&ci.sideEffects!=='None'?' \u00b7 '+ci.sideEffects:'')+(ci.notes?' \u00b7 '+ci.notes:'')
+        +'</div>'
+      +'</div>'
+      +'</div>':'';
     var allDots=(showDoses?d.doses.map(function(l){return'<div class="day-dot" style="background:'+getPColor(l.compound)+'" title="'+l.compound+'"></div>';}).join(''):'')+
-      (showBody&&d.body.length?'<div class="day-dot" style="background:var(--p3)" title="Body"></div>':'');
+      (showBody&&d.body.length?'<div class="day-dot" style="background:var(--p3)" title="Body"></div>':'')+
+      (ci?'<div class="day-dot" style="background:var(--p4);border-radius:2px" title="Check-in"></div>':'');
     // All day cards start collapsed
     return'<div class="day-card"><div class="day-card-hdr" onclick="toggleDayCard(this)">'
       +'<div class="day-date">'+fmtDate(date)+'</div><div class="day-dots">'+allDots+'</div>'
