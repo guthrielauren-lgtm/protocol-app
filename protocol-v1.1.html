@@ -441,6 +441,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <body>
 
 <!-- HOME SCREEN INSTALL BANNER -->
+<div id="backupReminderBanner" style="display:none;position:fixed;bottom:calc(var(--tab-h, 60px) + var(--safe-b, 0px) + 8px);left:12px;right:12px;background:var(--sf);border:1px solid var(--p1);border-radius:10px;padding:12px 14px;display:none;align-items:center;gap:10px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.25)">
+  <span style="font-size:20px;flex-shrink:0">💾</span>
+  <div style="flex:1;min-width:0">
+    <div style="font-family:var(--sans);font-size:13px;font-weight:500;color:var(--text);margin-bottom:1px">Back up your data</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Save a copy to Files to protect your history</div>
+  </div>
+  <button onclick="exportToFiles();dismissBackupBanner()" style="font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:7px 12px;background:var(--p1);color:var(--bg);border:none;border-radius:5px;cursor:pointer;flex-shrink:0">Save</button>
+  <button onclick="dismissBackupBanner()" style="background:none;border:none;font-family:var(--mono);font-size:14px;color:var(--dim);cursor:pointer;padding:0 2px;flex-shrink:0">✕</button>
+</div>
+
 <div id="installBanner" class="install-banner" style="display:none">
   <svg class="install-banner-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
     <rect width="512" height="512" rx="114" fill="#0a1628"/>
@@ -3010,13 +3020,23 @@ function renderChecklist(){
           }
           return hint?'<div style="margin-bottom:2px">'+hint+'</div>':'';
         }())
-        +'<div class="cr-dose-row">'
-        +'<div class="dose-wrap" style="flex:1">'
-        +'<input class="cr-dose-input" id="dose-'+uid+'" value="'+numPart(dose)+'" type="text" inputmode="decimal" placeholder="'+numPart(dose)+'">'
-        +'<div class="unit-toggle" id="doseunit-'+uid+'">'
-        +'<button'+(unitPart(dose)==='mcg'?' class="on"':'')+' data-unit="mcg" onclick="toggleDoseUnit(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\')">mcg</button>'
-        +'<button'+(unitPart(dose)==='mg'?' class="on"':'')+' data-unit="mg" onclick="toggleDoseUnit(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\')">mg</button>'
-        +'</div></div>'
+        +(function(){
+          var canConvert=!!(pItem&&pItem.vialMg&&pItem.reconVol);
+          var concentration=canConvert?(pItem.vialMg/pItem.reconVol):null; // mg/mL
+          var unitsBtnStyle=canConvert
+            ?'data-unit="units" onclick="toggleCRDoseMode(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')"'
+            :'data-unit="units" disabled title="Add vial details in Pantry to enable" style="opacity:.4;cursor:not-allowed"';
+          return '<div class="cr-dose-row">'
+            +'<div class="dose-wrap" style="flex:1">'
+            +'<input class="cr-dose-input" id="dose-'+uid+'" value="'+numPart(dose)+'" type="text" inputmode="decimal" placeholder="'+numPart(dose)+'" oninput="syncCRDose(\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')">'
+            +'<div class="unit-toggle" id="doseunit-'+uid+'">'
+            +'<button'+(unitPart(dose)==='mcg'?' class="on"':'')+' data-unit="mcg" onclick="toggleCRDoseMode(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')"  >mcg</button>'
+            +'<button'+(unitPart(dose)==='mg'?' class="on"':'')+' data-unit="mg" onclick="toggleCRDoseMode(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')">mg</button>'
+            +'<button '+unitsBtnStyle+'>u</button>'
+            +'</div>'
+            +'<div id="crconvert-'+uid+'" style="font-family:var(--mono);font-size:9px;color:var(--p1);margin-top:3px;min-height:13px"></div>'
+            +'</div>';
+        }())
         +'<button class="cr-log-btn" onclick="logCompound(\''+c.name+'\',\''+uid+'\')">'+(logged?'Log Again':'Log')+'</button>'
         +'</div>'
         +'<div class="cr-site-row">'+sitePills+'</div>'
@@ -3143,7 +3163,9 @@ function updateManualStreak(name, dose, route, form, site, timingWindow){
 
 
 function logCompound(name,uid){
-  const dose=getDoseValue('dose-'+uid,'doseunit-'+uid)||getEffectiveDose(name)||'—';
+  var _pItem=pantry.find(function(p){return p.name===name;});
+  var _conc=(_pItem&&_pItem.vialMg&&_pItem.reconVol)?(_pItem.vialMg/_pItem.reconVol):0;
+  const dose=getCRDoseValue('dose-'+uid,'doseunit-'+uid,_conc)||getDoseValue('dose-'+uid,'doseunit-'+uid)||getEffectiveDose(name)||'—';
   const siteEl=document.querySelector('#cre-'+uid+' .chip.on');
   const site=siteEl?siteEl.textContent:'Abdomen';
   const proto=getActiveProtocol();
@@ -3262,6 +3284,7 @@ function toggleCheckin(){
 }
 function renderCheckinState(){
   const done=checkins.some(function(c){return c.date===today();});
+  if(done) checkinOpen=false;
   const badge=document.getElementById('checkinBadge');
   if(badge){
     if(done){
@@ -3272,11 +3295,12 @@ function renderCheckinState(){
       badge.style.cssText='width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1.5px solid var(--bd);color:var(--dim);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0';
     }
   }
-  // Apply open state
   const body=document.getElementById('checkinBody');
   const hdr=document.getElementById('checkinHdr');
+  const chev=document.getElementById('checkinChev');
   if(body) body.classList.toggle('open',checkinOpen);
   if(hdr) hdr.classList.toggle('open',checkinOpen);
+  if(chev) chev.textContent=checkinOpen?'▴':'▾';
 }
 function saveCheckin(){
   const t=today();
@@ -3562,12 +3586,11 @@ function renderHistory(){
     var ciRow=ci?'<div style="padding:8px 0;border-top:1px solid var(--bd);margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--dim)">Check-in \u00b7 Sleep:'+ci.sleep+' Energy:'+ci.energy+' Hunger:'+ci.hunger+' Recovery:'+ci.recovery+(ci.sideEffects&&ci.sideEffects!=='None'?' \u00b7 '+ci.sideEffects:'')+'</div>':'';
     var allDots=(showDoses?d.doses.map(function(l){return'<div class="day-dot" style="background:'+getPColor(l.compound)+'" title="'+l.compound+'"></div>';}).join(''):'')+
       (showBody&&d.body.length?'<div class="day-dot" style="background:var(--p3)" title="Body"></div>':'');
-    // Current month days start open; past months start closed
-    var isCurrentMonth=date.substring(0,7)===currentYM;
-    return'<div class="day-card"><div class="day-card-hdr'+(isCurrentMonth?' open':'')+'" onclick="toggleDayCard(this)">'+
-      '<div class="day-date">'+fmtDate(date)+'</div><div class="day-dots">'+allDots+'</div>'+
-      '<div class="day-scores">'+scoreHtml+'</div><span style="font-size:11px;color:var(--dim);margin-left:6px">'+(isCurrentMonth?'\u25b4':'\u25be')+'</span>'+
-      '</div><div class="day-expand'+(isCurrentMonth?' open':'')+'">'+entryRows+ciRow+'</div></div>';
+    // All day cards start collapsed
+    return'<div class="day-card"><div class="day-card-hdr" onclick="toggleDayCard(this)">'
+      +'<div class="day-date">'+fmtDate(date)+'</div><div class="day-dots">'+allDots+'</div>'
+      +'<div class="day-scores">'+scoreHtml+'</div><span style="font-size:11px;color:var(--dim);margin-left:6px">▾</span>'
+      +'</div><div class="day-expand">'+entryRows+ciRow+'</div></div>';
   }
 
   feed.innerHTML=monthOrder.map(function(ym){
@@ -4058,6 +4081,80 @@ function makeDoseField(inputId,toggleId,val,onchangeExpr){
     +'<button'+mcgOn+' data-unit="mcg" onclick="toggleDoseUnit(this,\''+inputId+'\',\''+toggleId+'\');">mcg</button>'
     +'<button'+mgOn+' data-unit="mg" onclick="toggleDoseUnit(this,\''+inputId+'\',\''+toggleId+'\');">mg</button>'
     +'</div></div>';
+}
+
+// Conversion helpers for Today compound cards
+// concentration in mg/mL; 1 mL = 100 units (insulin syringe)
+function unitsToMcg(units, concMgMl){ return units * concMgMl * 10; } // u * mg/mL / 100 * 1000
+function mcgToUnits(mcg, concMgMl){ return mcg / concMgMl / 10; }
+function mgToUnits(mg, concMgMl){ return mg / concMgMl * 100; }
+
+function toggleCRDoseMode(btn,inputId,toggleId,convertId,conc){
+  var toggle=document.getElementById(toggleId);
+  if(!toggle) return;
+  // Get current value + old unit before switching
+  var inp=document.getElementById(inputId);
+  var oldBtn=toggle.querySelector('button.on');
+  var oldUnit=oldBtn?oldBtn.dataset.unit:'mcg';
+  var oldVal=parseFloat(inp?inp.value:0)||0;
+  var newUnit=btn.dataset.unit;
+  // Convert value to new unit
+  var newVal=oldVal;
+  if(conc>0&&oldVal>0){
+    // First convert old unit to mcg
+    var mcg=oldUnit==='mcg'?oldVal:oldUnit==='mg'?oldVal*1000:unitsToMcg(oldVal,conc);
+    // Then convert mcg to new unit
+    if(newUnit==='mcg') newVal=Math.round(mcg*10)/10;
+    else if(newUnit==='mg') newVal=Math.round(mcg/10)/100;
+    else newVal=Math.round(mcgToUnits(mcg,conc)*10)/10;
+  }
+  // Update toggle state
+  toggle.querySelectorAll('button').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  if(inp){inp.value=newVal||'';inp.dispatchEvent(new Event('input',{bubbles:true}));}
+  updateCRConvertHint(inputId,toggleId,convertId,conc);
+}
+
+function syncCRDose(inputId,toggleId,convertId,conc){
+  updateCRConvertHint(inputId,toggleId,convertId,conc);
+}
+
+function updateCRConvertHint(inputId,toggleId,convertId,conc){
+  var convertEl=document.getElementById(convertId);
+  if(!convertEl) return;
+  if(!conc||conc<=0){convertEl.textContent='';return;}
+  var inp=document.getElementById(inputId);
+  var toggle=document.getElementById(toggleId);
+  var val=parseFloat(inp?inp.value:0)||0;
+  var btn=toggle?toggle.querySelector('button.on'):null;
+  var unit=btn?btn.dataset.unit:'mcg';
+  if(!val){convertEl.textContent='';return;}
+  // Show equivalent in the other units
+  var mcg=unit==='mcg'?val:unit==='mg'?val*1000:unitsToMcg(val,conc);
+  var u=Math.round(mcgToUnits(mcg,conc)*10)/10;
+  var mg=Math.round(mcg/10)/100;
+  if(unit==='units'){
+    convertEl.textContent='≈ '+Math.round(mcg)+'mcg / '+mg+'mg';
+  } else {
+    convertEl.textContent='≈ '+u+'u';
+  }
+}
+
+// getDoseValue updated to handle 'units' — converts back to mcg for logging
+function getCRDoseValue(inputId,toggleId,conc){
+  var inp=document.getElementById(inputId);
+  if(!inp) return '';
+  var num=parseFloat(inp.value)||0;
+  if(!num) return '';
+  var toggle=document.getElementById(toggleId);
+  var btn=toggle?toggle.querySelector('button.on'):null;
+  var unit=btn?btn.dataset.unit:'mcg';
+  if(unit==='units'&&conc>0){
+    // Convert units → mcg for canonical storage
+    var mcg=unitsToMcg(num,conc);
+    return Math.round(mcg)+'mcg';
+  }
+  return num+unit;
 }
 
 function toggleDoseUnit(btn,inputId,toggleId){
@@ -7535,21 +7632,23 @@ function showFilesBackupReminder(){
   var now=Date.now();
   var threeDays=3*24*3600*1000;
   if(lastSave&&(now-parseInt(lastSave))<threeDays) return;
-  // Show gentle toast nudge
-  var t=document.getElementById('toast');
-  if(!t) return;
-  t.innerHTML='💾 Tap to <span style="text-decoration:underline;cursor:pointer" onclick="exportToFiles();document.getElementById(\'toast\').classList.remove(\'show\')">save backup to Files</span> · <span style="cursor:pointer;opacity:.7" onclick="document.getElementById(\'toast\').classList.remove(\'show\')">✕</span>';
-  t.style.background='var(--sf2)';
-  t.style.color='var(--text)';
-  t.style.border='1px solid var(--p1)';
-  t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');t.innerHTML='';t.style.background='';t.style.color='';t.style.border='';},10000);
+  // Show tappable banner instead of non-interactive toast
+  var banner=document.getElementById('backupReminderBanner');
+  if(!banner) return;
+  banner.style.display='flex';
 }
 
 // ════════════ iCLOUD / FILES EXPORT ════════════
 // On iOS PWA, Web Share API is the only way to trigger the Files picker
 // This lets users save directly to iCloud Drive, Google Drive, Dropbox etc.
 // Desktop falls back to standard download
+function dismissBackupBanner(){
+  var banner=document.getElementById('backupReminderBanner');
+  if(banner) banner.style.display='none';
+  // Snooze for 3 days
+  localStorage.setItem('pt_last_files_save', Date.now().toString());
+}
+
 function exportToFiles(){
   localStorage.setItem('pt_last_files_save', Date.now().toString());
   var backup={version:10,exported:new Date().toISOString(),
