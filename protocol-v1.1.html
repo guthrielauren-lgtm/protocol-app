@@ -1887,56 +1887,56 @@ const CAT_COLORS={gh:'var(--p1)',metabolic:'var(--p2)',healing:'#60a5fa',longevi
 
 const DEFAULT_PANTRY=[
   // ── GH AXIS ──
-  {id:'dp_tesa',   name:'Tesamorelin',         form:'vial',     cat:'gh',       dose:'1mg',    route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p5)',notes:'GHRH analogue. Start 1mg; titrate to 2mg. Strongest clinical evidence for visceral fat reduction.',vialMg:2,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_ipa',    name:'Ipamorelin',           form:'vial',     cat:'gh',       dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p1)',notes:'GH secretagogue. Start 100mcg pre-sleep; titrate to 250mcg. Pulsatile GH release.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_cjc',    name:'CJC-1295',             form:'vial',     cat:'gh',       dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p1)',notes:'GHRH. Stack with Ipamorelin, not Tesamorelin. Start 100mcg.',vialMg:2,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_serm',   name:'Sermorelin',           form:'vial',     cat:'gh',       dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p1)',notes:'GHRH analogue. Start 100mcg pre-sleep. Gentler GH stimulation than CJC.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_tesa',   name:'Tesamorelin',         form:'vial',     cat:'gh',       dose:'1mg',    route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p5)',notes:'GHRH analogue. Start 1mg; titrate to 2mg. Strongest clinical evidence for visceral fat reduction.',vialMg:2,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_ipa',    name:'Ipamorelin',           form:'vial',     cat:'gh',       dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p1)',notes:'GH secretagogue. Start 100mcg pre-sleep; titrate to 250mcg. Pulsatile GH release.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_cjc',    name:'CJC-1295',             form:'vial',     cat:'gh',       dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p1)',notes:'GHRH. Stack with Ipamorelin, not Tesamorelin. Start 100mcg.',vialMg:2,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_serm',   name:'Sermorelin',           form:'vial',     cat:'gh',       dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p1)',notes:'GHRH analogue. Start 100mcg pre-sleep. Gentler GH stimulation than CJC.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── METABOLIC ──
-  {id:'dp_tirz',   name:'Tirzepatide',          form:'prefilled',cat:'metabolic',dose:'2.5mg',  route:'Subcutaneous', site:'Thigh',  fasting:false,color:'var(--p2)',notes:'GLP-1/GIP dual agonist. Start 2.5mg weekly; titrate every 4 weeks.',vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_sema',   name:'Semaglutide',          form:'prefilled',cat:'metabolic',dose:'0.25mg', route:'Subcutaneous', site:'Thigh',  fasting:false,color:'#fbbf24',notes:'GLP-1 agonist. Start 0.25mg weekly; titrate every 4 weeks.',vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_sema_o', name:'Semaglutide (Oral)',   form:'oral',     cat:'metabolic',dose:'3mg',    route:'Oral',         site:'N/A',    fasting:true, color:'#fbbf24',notes:'Oral GLP-1 (Rybelsus). Start 3mg daily x 30 days fasted. Titrate to 7mg then 14mg.',capsRemaining:null,capDose:3,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_retrat', name:'Retatrutide',          form:'prefilled',cat:'metabolic',dose:'0.5mg',  route:'Subcutaneous', site:'Thigh',  fasting:false,color:'#fb923c',notes:'Triple GLP-1/GIP/glucagon agonist. Start 0.5mg weekly; titrate slowly.',vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_cagri',  name:'Cagrilintide',         form:'prefilled',cat:'metabolic',dose:'0.3mg',  route:'Subcutaneous', site:'Thigh',  fasting:false,color:'#f87171',notes:'Amylin analogue. Start 0.3mg weekly. Synergistic with GLP-1 class.',vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_amino',  name:'5-Amino-1MQ',          form:'vial',     cat:'metabolic',dose:'300mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p3)',notes:'NNMT inhibitor. AM fasted. Raises NAD+, boosts BMR.',vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_slu',    name:'SLU-PP-332',           form:'oral',     cat:'metabolic',dose:'750mcg', route:'Oral',         site:'N/A',    fasting:false,color:'var(--p4)',notes:'ERR agonist. Pre-workout. 250mcg/cap x 3 caps. Exercise mimetic.',capsRemaining:null,capDose:0.25,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_aod',    name:'AOD-9604',             form:'vial',     cat:'metabolic',dose:'300mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'#fbbf24',notes:'HGH fragment. AM fasted. Targeted fat oxidation.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_motsc',  name:'MOTS-c',              form:'vial',     cat:'metabolic',dose:'5mg',    route:'Subcutaneous', site:'Abdomen',fasting:true, color:'#2dd4bf',notes:'Mitochondria-derived peptide. 3x/week AM. Metabolic flexibility.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_bcrn',   name:'Berberine',            form:'oral',     cat:'metabolic',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'var(--p2)',notes:'AMPK activator. Start 500mg once daily with meals. Titrate to 500mg 2-3x daily.',capsRemaining:null,capDose:500,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_lcar',   name:'L-Carnitine',          form:'oral',     cat:'metabolic',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#fb923c',notes:'Mitochondrial fat transport. 500mg AM with food.',capsRemaining:null,capDose:500,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_tirz',   name:'Tirzepatide',          form:'prefilled',cat:'metabolic',dose:'2.5mg',  route:'Subcutaneous', site:'Thigh',  fasting:false,color:'var(--p2)',notes:'GLP-1/GIP dual agonist. Start 2.5mg weekly; titrate every 4 weeks.',vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_sema',   name:'Semaglutide',          form:'prefilled',cat:'metabolic',dose:'0.25mg', route:'Subcutaneous', site:'Thigh',  fasting:false,color:'#fbbf24',notes:'GLP-1 agonist. Start 0.25mg weekly; titrate every 4 weeks.',vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_sema_o', name:'Semaglutide (Oral)',   form:'oral',     cat:'metabolic',dose:'3mg',    route:'Oral',         site:'N/A',    fasting:true, color:'#fbbf24',notes:'Oral GLP-1 (Rybelsus). Start 3mg daily x 30 days fasted. Titrate to 7mg then 14mg.',capsRemaining:null,capDose:3,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_retrat', name:'Retatrutide',          form:'prefilled',cat:'metabolic',dose:'0.5mg',  route:'Subcutaneous', site:'Thigh',  fasting:false,color:'#fb923c',notes:'Triple GLP-1/GIP/glucagon agonist. Start 0.5mg weekly; titrate slowly.',vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_cagri',  name:'Cagrilintide',         form:'prefilled',cat:'metabolic',dose:'0.3mg',  route:'Subcutaneous', site:'Thigh',  fasting:false,color:'#f87171',notes:'Amylin analogue. Start 0.3mg weekly. Synergistic with GLP-1 class.',vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_amino',  name:'5-Amino-1MQ',          form:'vial',     cat:'metabolic',dose:'300mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'var(--p3)',notes:'NNMT inhibitor. AM fasted. Raises NAD+, boosts BMR.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_slu',    name:'SLU-PP-332',           form:'oral',     cat:'metabolic',dose:'750mcg', route:'Oral',         site:'N/A',    fasting:false,color:'var(--p4)',notes:'ERR agonist. Pre-workout. 250mcg/cap x 3 caps. Exercise mimetic.',capsRemaining:null,capDose:0.25,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_aod',    name:'AOD-9604',             form:'vial',     cat:'metabolic',dose:'300mcg', route:'Subcutaneous', site:'Abdomen',fasting:true, color:'#fbbf24',notes:'HGH fragment. AM fasted. Targeted fat oxidation.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_motsc',  name:'MOTS-c',              form:'vial',     cat:'metabolic',dose:'5mg',    route:'Subcutaneous', site:'Abdomen',fasting:true, color:'#2dd4bf',notes:'Mitochondria-derived peptide. 3x/week AM. Metabolic flexibility.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_bcrn',   name:'Berberine',            form:'oral',     cat:'metabolic',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'var(--p2)',notes:'AMPK activator. Start 500mg once daily with meals. Titrate to 500mg 2-3x daily.',capsRemaining:null,capDose:500,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_lcar',   name:'L-Carnitine',          form:'oral',     cat:'metabolic',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#fb923c',notes:'Mitochondrial fat transport. 500mg AM with food.',capsRemaining:null,capDose:500,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── HEALING ──
-  {id:'dp_bpc',    name:'BPC-157',              form:'vial',     cat:'healing',  dose:'250mcg', route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#60a5fa',notes:'Body protection compound. Systemic healing, gut health, tendon repair.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_tb500',  name:'TB-500',               form:'vial',     cat:'healing',  dose:'2mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#34d399',notes:'Systemic healing. Tissue remodeling. 2x/week.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_klow',   name:'KLOW',                 form:'vial',     cat:'healing',  dose:'2mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#4ade80',notes:'Blend: GHK-Cu + TB-500 + BPC-157 + KPV. Comprehensive repair.',vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_bpc',    name:'BPC-157',              form:'vial',     cat:'healing',  dose:'250mcg', route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#60a5fa',notes:'Body protection compound. Systemic healing, gut health, tendon repair.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_tb500',  name:'TB-500',               form:'vial',     cat:'healing',  dose:'2mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#34d399',notes:'Systemic healing. Tissue remodeling. 2x/week.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_klow',   name:'KLOW',                 form:'vial',     cat:'healing',  dose:'2mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#4ade80',notes:'Blend: GHK-Cu + TB-500 + BPC-157 + KPV. Comprehensive repair.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── LONGEVITY ──
-  {id:'dp_ss31',   name:'SS-31',                form:'vial',     cat:'longevity',dose:'5mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'var(--p4)',notes:'Mitochondrial membrane protector. Reduces oxidative stress.',vialMg:10,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_ghkcu',  name:'GHK-Cu',               form:'vial',     cat:'longevity',dose:'2mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#f472b6',notes:'Copper peptide. Collagen synthesis, tissue repair.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_epith',  name:'Epithalon',            form:'vial',     cat:'longevity',dose:'10mg',   route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#818cf8',notes:'Telomerase activator. 10-day cycles quarterly. Pre-sleep.',vialMg:10,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_nad',    name:'NAD+',                 form:'oral',     cat:'longevity',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#38bdf8',notes:'Cellular energy. Daily AM.',capsRemaining:null,capDose:500,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_nad_lp', name:'Liposomal NAD+',       form:'oral',     cat:'longevity',dose:'250mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#38bdf8',notes:'Liposomal form improves bioavailability. 250mg AM.',capsRemaining:null,capDose:250,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_nad_sq', name:'NAD+ (Subcutaneous)',  form:'vial',     cat:'longevity',dose:'50mg',   route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#38bdf8',notes:'Injectable NAD+. Start 50mg; titrate slowly due to flush response.',vialMg:100,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_nmn',    name:'NMN',                  form:'oral',     cat:'longevity',dose:'250mg',  route:'Oral',         site:'N/A',    fasting:true, color:'#38bdf8',notes:'NAD+ precursor. 250mg AM fasted. Clinical trials at 250mg/day.',capsRemaining:null,capDose:250,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_resv',   name:'Resveratrol',          form:'oral',     cat:'longevity',dose:'250mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#c084fc',notes:'Sirtuin activator. 250mg AM with fat for absorption.',capsRemaining:null,capDose:250,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_coq',    name:'CoQ10',                form:'oral',     cat:'longevity',dose:'100mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#f97316',notes:'Mitochondrial energy. 100mg AM with fat. Ubiquinol form preferred.',capsRemaining:null,capDose:100,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_ss31',   name:'SS-31',                form:'vial',     cat:'longevity',dose:'5mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'var(--p4)',notes:'Mitochondrial membrane protector. Reduces oxidative stress.',vialMg:10,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_ghkcu',  name:'GHK-Cu',               form:'vial',     cat:'longevity',dose:'2mg',    route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#f472b6',notes:'Copper peptide. Collagen synthesis, tissue repair.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_epith',  name:'Epithalon',            form:'vial',     cat:'longevity',dose:'10mg',   route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#818cf8',notes:'Telomerase activator. 10-day cycles quarterly. Pre-sleep.',vialMg:10,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nad',    name:'NAD+',                 form:'oral',     cat:'longevity',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#38bdf8',notes:'Cellular energy. Daily AM.',capsRemaining:null,capDose:500,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nad_lp', name:'Liposomal NAD+',       form:'oral',     cat:'longevity',dose:'250mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#38bdf8',notes:'Liposomal form improves bioavailability. 250mg AM.',capsRemaining:null,capDose:250,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nad_sq', name:'NAD+ (Subcutaneous)',  form:'vial',     cat:'longevity',dose:'50mg',   route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#38bdf8',notes:'Injectable NAD+. Start 50mg; titrate slowly due to flush response.',vialMg:100,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nmn',    name:'NMN',                  form:'oral',     cat:'longevity',dose:'250mg',  route:'Oral',         site:'N/A',    fasting:true, color:'#38bdf8',notes:'NAD+ precursor. 250mg AM fasted. Clinical trials at 250mg/day.',capsRemaining:null,capDose:250,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_resv',   name:'Resveratrol',          form:'oral',     cat:'longevity',dose:'250mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#c084fc',notes:'Sirtuin activator. 250mg AM with fat for absorption.',capsRemaining:null,capDose:250,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_coq',    name:'CoQ10',                form:'oral',     cat:'longevity',dose:'100mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#f97316',notes:'Mitochondrial energy. 100mg AM with fat. Ubiquinol form preferred.',capsRemaining:null,capDose:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── IMMUNE ──
-  {id:'dp_ta1',    name:'Thymosin Alpha-1',     form:'vial',     cat:'immune',   dose:'0.5mg',  route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#34d399',notes:'Thymic peptide. Immune modulation. Start 0.5mg; clinical Rx 1.6mg. 2x/week.',vialMg:5,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_ta1',    name:'Thymosin Alpha-1',     form:'vial',     cat:'immune',   dose:'0.5mg',  route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#34d399',notes:'Thymic peptide. Immune modulation. Start 0.5mg; clinical Rx 1.6mg. 2x/week.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── COGNITIVE ──
-  {id:'dp_selank', name:'Selank',               form:'vial',     cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Anxiolytic peptide. 100mcg intranasal AM. Stress reduction, immune modulation.',vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_nasel',  name:'N-Acetyl Selank Amidate',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Acetylated Selank. ~2-3x potency vs standard. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_semax',  name:'Semax',                form:'vial',     cat:'cognitive',dose:'200mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'ACTH analogue. Cognitive enhancement. 200mcg intranasal AM.',vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_nasemax',name:'N-Acetyl Semax Amidate',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'Acetylated Semax. ~2-3x potency. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_lthe',   name:'L-Theanine',           form:'oral',     cat:'cognitive',dose:'100mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#86efac',notes:'Calm focus. 100-400mg. Often stacked with caffeine.',capsRemaining:null,capDose:100,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_lion',   name:"Lion's Mane",          form:'oral',     cat:'cognitive',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#fcd34d',notes:"NGF support. Start 500mg AM. Clinical range 1,000-3,000mg. Fruiting body extract preferred.",capsRemaining:null,capDose:500,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_selank', name:'Selank',               form:'vial',     cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Anxiolytic peptide. 100mcg intranasal AM. Stress reduction, immune modulation.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nasel',  name:'N-Acetyl Selank Amidate',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Acetylated Selank. ~2-3x potency vs standard. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_semax',  name:'Semax',                form:'vial',     cat:'cognitive',dose:'200mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'ACTH analogue. Cognitive enhancement. 200mcg intranasal AM.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nasemax',name:'N-Acetyl Semax Amidate',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'Acetylated Semax. ~2-3x potency. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_lthe',   name:'L-Theanine',           form:'oral',     cat:'cognitive',dose:'100mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#86efac',notes:'Calm focus. 100-400mg. Often stacked with caffeine.',capsRemaining:null,capDose:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_lion',   name:"Lion's Mane",          form:'oral',     cat:'cognitive',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#fcd34d',notes:"NGF support. Start 500mg AM. Clinical range 1,000-3,000mg. Fruiting body extract preferred.",capsRemaining:null,capDose:500,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── SLEEP ──
-  {id:'dp_dsip',   name:'DSIP',                 form:'vial',     cat:'sleep',    dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#818cf8',notes:'Delta sleep-inducing peptide. 100mcg pre-sleep. Improves deep slow-wave sleep.',vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_mag',    name:'Magnesium Glycinate',  form:'oral',     cat:'sleep',    dose:'200mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#a5b4fc',notes:'Sleep and recovery. 200mg PM. Elemental Mg. Start low to assess GI tolerance.',capsRemaining:null,capDose:200,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_dsip',   name:'DSIP',                 form:'vial',     cat:'sleep',    dose:'100mcg', route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#818cf8',notes:'Delta sleep-inducing peptide. 100mcg pre-sleep. Improves deep slow-wave sleep.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_mag',    name:'Magnesium Glycinate',  form:'oral',     cat:'sleep',    dose:'200mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#a5b4fc',notes:'Sleep and recovery. 200mg PM. Elemental Mg. Start low to assess GI tolerance.',capsRemaining:null,capDose:200,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── OTHER ──
-  {id:'dp_omg3',   name:'Omega-3 (EPA/DHA)',    form:'oral',     cat:'other',    dose:'1g',     route:'Oral',         site:'N/A',    fasting:false,color:'#38bdf8',notes:'Cardiovascular + cognitive. 1g AM with food. Fish or algae-based.',capsRemaining:null,capDose:1000,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_vitd',   name:'Vitamin D3',           form:'oral',     cat:'other',    dose:'2000 IU',route:'Oral',         site:'N/A',    fasting:false,color:'#fde68a',notes:'Conservative start. Many clinicians use 5,000 IU. AM with fat.',capsRemaining:null,capDose:2000,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_quer',   name:'Quercetin',            form:'oral',     cat:'other',    dose:'250mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#86efac',notes:'Senolytic / anti-inflammatory. 250mg AM. Bioavailability improved with fat.',capsRemaining:null,capDose:250,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_creat',  name:'Creatine Monohydrate', form:'oral',     cat:'performance',dose:'3g',   route:'Oral',         site:'N/A',    fasting:false,color:'var(--p1)',notes:'Start 3g daily. Loading phase (5g x 5-7d) optional. Any time.',capsRemaining:null,capDose:3000,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_glut',   name:'Glutathione',          form:'vial',     cat:'other',    dose:'200mg',  route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#fde68a',notes:'Master antioxidant. Start 200mg; range 200-600mg. AM.',vialMg:600,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_vip',    name:'VIP',                  form:'nasal',    cat:'immune',   dose:'50mcg',  route:'Intranasal',   site:'N/A',    fasting:false,color:'#34d399',notes:'Vasoactive intestinal peptide. 50mcg per nostril. AM. Used in CIRS protocol.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:50,expiry:'',reorderDays:14,stockLog:[],tags:[]},
-  {id:'dp_b12',    name:'Vitamin B12 (Injectable)',form:'vial',  cat:'other',    dose:'500mcg', route:'Intramuscular', site:'Thigh', fasting:false,color:'#f472b6',notes:'Cyanocobalamin or methylcobalamin. 500mcg IM weekly.',vialMg:1,vials:0,expiry:'',reorderDays:14,stockLog:[],tags:[]},
+  {id:'dp_omg3',   name:'Omega-3 (EPA/DHA)',    form:'oral',     cat:'other',    dose:'1g',     route:'Oral',         site:'N/A',    fasting:false,color:'#38bdf8',notes:'Cardiovascular + cognitive. 1g AM with food. Fish or algae-based.',capsRemaining:null,capDose:1000,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_vitd',   name:'Vitamin D3',           form:'oral',     cat:'other',    dose:'2000 IU',route:'Oral',         site:'N/A',    fasting:false,color:'#fde68a',notes:'Conservative start. Many clinicians use 5,000 IU. AM with fat.',capsRemaining:null,capDose:2000,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_quer',   name:'Quercetin',            form:'oral',     cat:'other',    dose:'250mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#86efac',notes:'Senolytic / anti-inflammatory. 250mg AM. Bioavailability improved with fat.',capsRemaining:null,capDose:250,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_creat',  name:'Creatine Monohydrate', form:'oral',     cat:'performance',dose:'3g',   route:'Oral',         site:'N/A',    fasting:false,color:'var(--p1)',notes:'Start 3g daily. Loading phase (5g x 5-7d) optional. Any time.',capsRemaining:null,capDose:3000,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_glut',   name:'Glutathione',          form:'vial',     cat:'other',    dose:'200mg',  route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#fde68a',notes:'Master antioxidant. Start 200mg; range 200-600mg. AM.',vialMg:600,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_vip',    name:'VIP',                  form:'nasal',    cat:'immune',   dose:'50mcg',  route:'Intranasal',   site:'N/A',    fasting:false,color:'#34d399',notes:'Vasoactive intestinal peptide. 50mcg per nostril. AM. Used in CIRS protocol.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:50,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_b12',    name:'Vitamin B12 (Injectable)',form:'vial',  cat:'other',    dose:'500mcg', route:'Intramuscular', site:'Thigh', fasting:false,color:'#f472b6',notes:'Cyanocobalamin or methylcobalamin. 500mcg IM weekly.',vialMg:1,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
 ];
 
 const DEFAULT_PROTOCOL={
@@ -2975,7 +2975,7 @@ function renderChecklist(){
       var dose=getEffectiveDose(c.name)||entry.dose;
       var pItem=getActivePantryItem(c.name)||pantry.find(function(p){return p.name===c.name;});
       var daysLeft=calcDaysLeft(pItem,c);
-      var low=daysLeft!==null&&daysLeft<(pItem?pItem.reorderDays||14:14);
+      var low=daysLeft!==null&&daysLeft<(pItem?pItem.reorderDays||10:14);
       var conflictNote=entry.protos.length>1?(entry.protos.length+' protocols'+(entry.doseConflict?' · highest dose shown':'')):'';
       var _si=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
       var notStocked=!_si||!isInStock(_si);
@@ -2990,7 +2990,7 @@ function renderChecklist(){
         +(conflictNote?' · <span style="color:var(--p2)">'+conflictNote+'</span>':'')
         +(notStocked?' · <span style="color:var(--p2)">⚠ not in stock</span>':'')
         +'</div></div>'
-        +'<div class="cr-right">'+(low?'<span title="'+(daysLeft===0?'Out of stock':daysLeft+' days left')+'" style="font-size:13px">\u26a0\ufe0f</span>':'')
+        +'<div class="cr-right">'+(low?'<span style="font-family:var(--mono);font-size:10px;color:var(--warn);display:flex;align-items:center;gap:4px;white-space:nowrap">\u26a0 '+(daysLeft===0?'Out of stock':'~'+daysLeft+'d left')+'</span>':'')
         +'<div class="cr-check">'+(logged?'\u2713':'\u25cb')+'</div></div></div>'
         +'<div class="cr-expand" id="cre-'+uid+'">'
         +(function(){
@@ -3022,23 +3022,25 @@ function renderChecklist(){
         }())
         +(function(){
           var canConvert=!!(pItem&&pItem.vialMg&&pItem.reconVol);
-          var concentration=canConvert?(pItem.vialMg/pItem.reconVol):null; // mg/mL
+          var concentration=canConvert?(pItem.vialMg/pItem.reconVol):0; // mg/mL — use 0 not null so JSON.stringify works
           var unitsBtnStyle=canConvert
             ?'data-unit="units" onclick="toggleCRDoseMode(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')"'
             :'data-unit="units" disabled title="Add vial details in Pantry to enable" style="opacity:.4;cursor:not-allowed"';
+          var initUnits=canConvert&&numPart(dose)?(Math.round(mcgToUnits(
+            unitPart(dose)==='mcg'?parseFloat(numPart(dose)):parseFloat(numPart(dose))*1000,
+            concentration)*10)/10)||'':'';
+          var concNum=concentration||0;
           return '<div class="cr-dose-row">'
-            +'<div class="dose-wrap" style="flex:1">'
-            +'<input class="cr-dose-input" id="dose-'+uid+'" value="'+numPart(dose)+'" type="text" inputmode="decimal" placeholder="'+numPart(dose)+'" oninput="syncCRDose(\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')">'
+            +'<div class="dose-wrap">'
+            +'<input class="cr-dose-input" id="dose-'+uid+'" value="'+numPart(dose)+'" type="text" inputmode="decimal" placeholder="dose">'
             +'<div class="unit-toggle" id="doseunit-'+uid+'">'
-            +'<button'+(unitPart(dose)==='mcg'?' class="on"':'')+' data-unit="mcg" onclick="toggleCRDoseMode(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')"  >mcg</button>'
-            +'<button'+(unitPart(dose)==='mg'?' class="on"':'')+' data-unit="mg" onclick="toggleCRDoseMode(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\',\'crconvert-'+uid+'\','+JSON.stringify(concentration||0)+')">mg</button>'
-            +'<button '+unitsBtnStyle+'>u</button>'
+            +'<button'+(unitPart(dose)==='mcg'?' class="on"':'')+' data-unit="mcg" onclick="toggleDoseUnit(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\')" >mcg</button>'
+            +'<button'+(unitPart(dose)==='mg'?' class="on"':'')+' data-unit="mg" onclick="toggleDoseUnit(this,\'dose-'+uid+'\',\'doseunit-'+uid+'\')" >mg</button>'
             +'</div>'
-            +'<div id="crconvert-'+uid+'" style="font-family:var(--mono);font-size:9px;color:var(--p1);margin-top:3px;min-height:13px"></div>'
+            +'</div>'
+            +'<button class="cr-log-btn" onclick="logCompound(\''+c.name+'\',\''+uid+'\')">'+(logged?'Log Again':'Log')+'</button>'
             +'</div>';
         }())
-        +'<button class="cr-log-btn" onclick="logCompound(\''+c.name+'\',\''+uid+'\')">'+(logged?'Log Again':'Log')+'</button>'
-        +'</div>'
         +'<div class="cr-site-row">'+sitePills+'</div>'
         +(low&&pItem?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:8px">\u26a0 '+(daysLeft===0?'Out of stock':'~'+daysLeft+' days remaining')+' \u00b7 <button onclick="openRestock(\''+pItem.id+'\')" style="background:none;border:none;color:var(--warn);font-family:var(--mono);font-size:10px;cursor:pointer;text-decoration:underline">Restock</button></div>':'')
         +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--bd);text-align:right">'
@@ -3164,8 +3166,7 @@ function updateManualStreak(name, dose, route, form, site, timingWindow){
 
 function logCompound(name,uid){
   var _pItem=pantry.find(function(p){return p.name===name;});
-  var _conc=(_pItem&&_pItem.vialMg&&_pItem.reconVol)?(_pItem.vialMg/_pItem.reconVol):0;
-  const dose=getCRDoseValue('dose-'+uid,'doseunit-'+uid,_conc)||getDoseValue('dose-'+uid,'doseunit-'+uid)||getEffectiveDose(name)||'—';
+  const dose=getDoseValue('dose-'+uid,'doseunit-'+uid)||getEffectiveDose(name)||'—';
   const siteEl=document.querySelector('#cre-'+uid+' .chip.on');
   const site=siteEl?siteEl.textContent:'Abdomen';
   const proto=getActiveProtocol();
@@ -3571,7 +3572,17 @@ function renderHistory(){
     if(showBody&&d.body.length){
       entryRows+=d.body.map(function(b){
         var srcColor=b.source==='dexa'?'var(--p3)':'var(--p1)';
-        var vals=b.source==='dexa'?'Fat '+b.fatPct+'% \u00b7 Lean '+b.muscle+'lbs':'M:'+b.muscle+' F:'+b.fat+' B:'+b.bone;
+        var _bParts=[];
+        if(b.source==='dexa'){
+          if(b.fatPct!=null) _bParts.push('Fat '+b.fatPct+'%');
+          if(b.muscle!=null) _bParts.push('Lean '+b.muscle+'lbs');
+        } else {
+          if(b.weight!=null) _bParts.push(b.weight+'lbs');
+          if(b.muscle!=null) _bParts.push('M:'+b.muscle);
+          if(b.fat!=null)    _bParts.push('F:'+b.fat);
+          if(b.bone!=null)   _bParts.push('B:'+b.bone);
+        }
+        var vals=_bParts.join(' \u00b7 ');
         return'<div class="day-entry"><div class="day-entry-dot" style="background:'+srcColor+'"></div>'+
           '<div class="day-entry-info"><div class="day-entry-name" style="color:'+srcColor+'">'+
           (b.source==='dexa'?'DEXA Scan <span style="font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);vertical-align:middle;margin-left:4px">DEXA</span>':'Withings')+'</div>'+
@@ -3683,9 +3694,15 @@ function deleteLogEntry(){
   deleteLogById(id);closeModal('editLogModal');
 }
 function deleteLogById(id){
-  if(!confirm('Delete this entry?')) return;
-  logs=logs.filter(function(l){return l.id!==id;});
-  persist(KEYS.logs,logs);toast('Deleted');renderHistory();
+  showConfirm(
+    'Delete this entry?',
+    'This cannot be undone.',
+    'Delete',
+    function(){
+      logs=logs.filter(function(l){return l.id!==id;});
+      persist(KEYS.logs,logs);toast('Deleted ✓');renderHistory();
+    }
+  );
 }
 
 // ════════════ BODY COMP ════════════
@@ -4003,7 +4020,7 @@ function deleteBodyEntry(){
   deleteBodyLog(id);closeModal('editBodyModal');
 }
 function deleteBodyLog(id){
-  if(!confirm('Delete this measurement?')) return;
+  // confirm() blocked in PWA — handled via showConfirm() caller
   bodyLogs=bodyLogs.filter(function(l){return l.id!==id;});
   persist(KEYS.bodyLogs,bodyLogs);toast('Deleted');renderBodyComp();renderBodyStrip();
 }
@@ -4099,6 +4116,116 @@ function unitsToMcg(units, concMgMl){ return units * concMgMl * 10; } // u * mg/
 function mcgToUnits(mcg, concMgMl){ return mcg / concMgMl / 10; }
 function mgToUnits(mg, concMgMl){ return mg / concMgMl * 100; }
 
+// Shared helper — builds the dose+units paired input HTML for any context
+// doseId: id for dose input, unitsId: id for units input, name: compound name for pantry lookup
+function buildDoseUnitsRow(doseId,unitsId,doseVal,name){
+  var pItem=name?pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();}):null;
+  var conc=(pItem&&pItem.vialMg&&pItem.reconVol)?(pItem.vialMg/pItem.reconVol):0;
+  var numVal=numPart(doseVal||'');
+  var unitVal=unitPart(doseVal||'');
+  var initUnits='';
+  if(conc>0&&numVal){
+    var mcg=unitVal==='mcg'?parseFloat(numVal):parseFloat(numVal)*1000;
+    initUnits=Math.round(mcgToUnits(mcg,conc)*10)/10||'';
+  }
+  var doseHtml=
+    '<div style="display:flex;align-items:flex-end;gap:8px">'
+    +'<div style="flex:1;min-width:0">'
+    +'<input type="text" inputmode="decimal" id="'+doseId+'" value="'+numVal+'" placeholder="dose"'
+    +' style="width:100%" oninput="onModalDoseInput(\''+doseId+'\',\''+unitsId+'\',\''+doseId+'unit\','+conc+',false)">'
+    +'<div class="unit-toggle" id="'+doseId+'unit" style="margin-top:4px">'
+    +'<button'+(unitVal==='mcg'?' class="on"':'')+' data-unit="mcg" onclick="toggleDoseUnit(this,\''+doseId+'\',\''+doseId+'unit\');onModalDoseInput(\''+doseId+'\',\''+unitsId+'\',\''+doseId+'unit\','+conc+',false)">mcg</button>'
+    +'<button'+(unitVal==='mg'?' class="on"':'')+' data-unit="mg" onclick="toggleDoseUnit(this,\''+doseId+'\',\''+doseId+'unit\');onModalDoseInput(\''+doseId+'\',\''+unitsId+'\',\''+doseId+'unit\','+conc+',false)">mg</button>'
+    +'</div>'
+    +'</div>'
+    +(conc>0
+      ?'<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">'
+        +'<div style="font-family:var(--mono);font-size:9px;color:var(--p1);font-weight:500">units</div>'
+        +'<input type="text" inputmode="decimal" id="'+unitsId+'" value="'+initUnits+'" placeholder="0"'
+        +' style="width:100%;font-family:var(--mono);font-size:14px;padding:10px 8px;border:1px solid var(--p1);border-radius:6px;background:var(--p1d);color:var(--text);text-align:center"'
+        +' oninput="onModalDoseInput(\''+doseId+'\',\''+unitsId+'\',\''+doseId+'unit\','+conc+',true)">'
+        +'<div style="font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;margin-top:2px">@'+Math.round(conc*100)/100+'mg/mL</div>'
+        +'</div>'
+      :'<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">'
+        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">units</div>'
+        +'<input type="text" disabled placeholder="—" style="width:100%;font-family:var(--mono);font-size:14px;padding:10px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);color:var(--dim);text-align:center;cursor:not-allowed;opacity:.5">'
+        +'<div style="font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;line-height:1.3;margin-top:2px">set vial details<br>in Pantry</div>'
+        +'</div>'
+    )
+    +'</div>';
+  return doseHtml;
+}
+
+function onModalDoseInput(doseId,unitsId,toggleId,conc,fromUnits){
+  if(!conc||conc<=0) return;
+  var doseInp=document.getElementById(doseId);
+  var unitsInp=document.getElementById(unitsId);
+  var toggle=document.getElementById(toggleId);
+  var unitBtn=toggle?toggle.querySelector('button.on'):null;
+  var unit=unitBtn?unitBtn.dataset.unit:'mcg';
+  if(fromUnits){
+    var u=parseFloat(unitsInp?unitsInp.value:0)||0;
+    if(!u){if(doseInp)doseInp.value='';return;}
+    var mcg=unitsToMcg(u,conc);
+    doseInp.value=unit==='mcg'?Math.round(mcg*10)/10:Math.round(mcg/100)/10;
+  } else {
+    var doseVal=parseFloat(doseInp?doseInp.value:0)||0;
+    if(!doseVal){if(unitsInp)unitsInp.value='';return;}
+    var mcg2=unit==='mcg'?doseVal:doseVal*1000;
+    if(unitsInp) unitsInp.value=Math.round(mcgToUnits(mcg2,conc)*10)/10||'';
+  }
+}
+
+function getModalDoseValue(doseId,toggleId){
+  var inp=document.getElementById(doseId);
+  if(!inp) return '';
+  var num=parseFloat(inp.value)||0;
+  if(!num) return '';
+  var toggle=document.getElementById(toggleId);
+  var btn=toggle?toggle.querySelector('button.on'):null;
+  var unit=btn?btn.dataset.unit:'mcg';
+  return num+unit;
+}
+
+function updateUnitsHint(uid,conc){
+  if(!conc||conc<=0) return;
+  var inp=document.getElementById('dose-'+uid);
+  var toggle=document.getElementById('doseunit-'+uid);
+  var hint=document.getElementById('unitshint-'+uid);
+  if(!inp||!hint) return;
+  var val=parseFloat(inp.value)||0;
+  var btn=toggle?toggle.querySelector('button.on'):null;
+  var unit=btn?btn.dataset.unit:'mcg';
+  if(!val){hint.innerHTML='';return;}
+  var mcg=unit==='mcg'?val:val*1000;
+  var u=Math.round(mcgToUnits(mcg,conc)*10)/10;
+  hint.innerHTML=u?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px">≈ '+u+' units</div>':'';
+}
+
+function onCRDoseInput(uid,conc,fromUnits){
+  if(!conc||conc<=0) return;
+  var doseInp=document.getElementById('dose-'+uid);
+  var unitsInp=document.getElementById('units-'+uid);
+  var toggle=document.getElementById('doseunit-'+uid);
+  var unitBtn=toggle?toggle.querySelector('button.on'):null;
+  var unit=unitBtn?unitBtn.dataset.unit:'mcg';
+  if(fromUnits){
+    // Units input changed — sync dose input
+    var u=parseFloat(unitsInp?unitsInp.value:0)||0;
+    if(!u){if(doseInp)doseInp.value='';return;}
+    var mcg=unitsToMcg(u,conc);
+    if(unit==='mcg') doseInp.value=Math.round(mcg*10)/10;
+    else doseInp.value=Math.round(mcg/100)/10;
+  } else {
+    // Dose input changed — sync units input
+    var doseVal=parseFloat(doseInp?doseInp.value:0)||0;
+    if(!doseVal){if(unitsInp)unitsInp.value='';return;}
+    var mcg2=unit==='mcg'?doseVal:doseVal*1000;
+    var u2=Math.round(mcgToUnits(mcg2,conc)*10)/10;
+    if(unitsInp) unitsInp.value=u2||'';
+  }
+}
+
 function toggleCRDoseMode(btn,inputId,toggleId,convertId,conc){
   var toggle=document.getElementById(toggleId);
   if(!toggle) return;
@@ -4152,6 +4279,7 @@ function updateCRConvertHint(inputId,toggleId,convertId,conc){
 
 // getDoseValue updated to handle 'units' — converts back to mcg for logging
 function getCRDoseValue(inputId,toggleId,conc){
+  // Prefer dose input value — it's always the canonical source
   var inp=document.getElementById(inputId);
   if(!inp) return '';
   var num=parseFloat(inp.value)||0;
@@ -4159,11 +4287,6 @@ function getCRDoseValue(inputId,toggleId,conc){
   var toggle=document.getElementById(toggleId);
   var btn=toggle?toggle.querySelector('button.on'):null;
   var unit=btn?btn.dataset.unit:'mcg';
-  if(unit==='units'&&conc>0){
-    // Convert units → mcg for canonical storage
-    var mcg=unitsToMcg(num,conc);
-    return Math.round(mcg)+'mcg';
-  }
   return num+unit;
 }
 
@@ -4369,7 +4492,7 @@ function renderRestockSection(){
     if(!hasStock) return false;
     const pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
     const dl=calcDaysLeft(c,pcmp);
-    return dl!==null&&dl<=(c.reorderDays||14);
+    return dl!==null&&dl<=(c.reorderDays||10);
   }).sort(function(a,b){
     // Out first, then by days ascending, then protocol items first
     const da=calcDaysLeft(a,null)||999,db=calcDaysLeft(b,null)||999;
@@ -4711,7 +4834,7 @@ function renderPantry(){
     var displayFreq=(pcmp&&pcmp.frequency)||c.frequency||'daily';
     var displayFasting=(pcmp!=null)?pcmp.fasting:c.fasting;
     var daysLeft=calcDaysLeft(c,pcmp);
-    var low=daysLeft!==null&&daysLeft<(c.reorderDays||14);
+    var low=daysLeft!==null&&daysLeft<(c.reorderDays||10);
     var out=daysLeft===0;
     var formLabel={vial:'Vial',oral:'Oral',oral_powder:'Oral powder',prefilled:'Pre-filled pen',nasal:'Nasal spray',cream:'Topical'}[c.form]||c.form;
     var doseDisplay=(doseMem[c.name]&&doseMem[c.name].dose&&doseMem[c.name].date===today()&&doseMem[c.name].dose!=='—')?doseMem[c.name].dose:(c.dose||'—');
@@ -4867,7 +4990,7 @@ function addCompound(){
     site:'Abdomen',fasting:false,
     notes:document.getElementById('newNotes').value,
     active:true,color:CAT_COLORS[cat]||'var(--mid)',
-    vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[]};
+    vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[]};
   pantry.push(item);persist(KEYS.pantry,pantry);
   ['newName','newDose','newNotes'].forEach(function(id){const el=document.getElementById(id);if(el)el.value='';});
   toast(name+' added ✓');renderPantry();togglePantryAddForm();
@@ -5416,7 +5539,7 @@ function addFromLibrary(name){
     id:'usr_'+Date.now(),
     vialMg:null,vials:0,capsRemaining:null,capDose:null,
     reconVol:null,openVialMg:null,
-    reorderDays:14,stockLog:[],
+    reorderDays:10,stockLog:[],
     active:false,
     notes:dbItem.rationale||''
   });
@@ -5453,7 +5576,7 @@ function addSuggToPantry(name){
     site:(dbItem&&dbItem.site)||'Abdomen',fasting:(dbItem&&dbItem.fasting)||false,
     notes:(dbItem&&dbItem.rationale)||'',active:true,
     color:(dbItem&&dbItem.color)||CAT_COLORS[(dbItem&&dbItem.cat)]||'var(--mid)',
-    vialMg:null,vials:0,expiry:'',reorderDays:14,stockLog:[]});
+    vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[]});
   persist(KEYS.pantry,pantry);
   const bc=buildCompounds.find(function(c){return c.name===name;});
   if(bc){bc.inPantry=true;bc.selected=true;}
@@ -5640,7 +5763,7 @@ function addLibCompoundToProto(name,ctx){
         id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
         vialMg:null,vials:0,reconVol:null,openVialMg:null,
         capsRemaining:null,capDose:null,pensRemaining:null,spraysRemaining:null,
-        reorderDays:14,stockLog:[],active:false,notes:db.rationale||''
+        reorderDays:10,stockLog:[],active:false,notes:db.rationale||''
       }));
       persist(KEYS.pantry,pantry);
     }
@@ -7448,7 +7571,7 @@ async function finishOnboarding(){
           vialMg:null,vials:0,reconVol:null,openVialMg:null,
           capsRemaining:null,capDose:null,pensRemaining:null,
           spraysRemaining:null,remainingG:null,
-          reorderDays:14,stockLog:[]
+          reorderDays:10,stockLog:[]
         });
       }
     });
@@ -7840,7 +7963,7 @@ async function initApp(){
   if(!pantry) pantry=[];
   pantry=pantry.map(function(p){
     return Object.assign({vialMg:null,vials:0,capsRemaining:null,capDose:null,
-      expiry:'',reorderDays:14,stockLog:[],site:'Abdomen',fasting:false},p);
+      expiry:'',reorderDays:10,stockLog:[],site:'Abdomen',fasting:false},p);
   });
   if(!activeProtoIds.length&&protocols.length){
     activeProtoIds=[protocols[0].id];activeProtoId=protocols[0].id;
