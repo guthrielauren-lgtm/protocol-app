@@ -726,6 +726,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <div class="panel on" id="panel-today">
   <div style="font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding:4px 16px 4px;display:block;border-bottom:1px solid var(--bd);margin-bottom:0" id="phdr-today">TODAY</div>
   <div id="todayGreeting" style="display:none;padding:10px 16px 0;font-family:var(--serif);font-size:17px;color:var(--text)"></div>
+  <div id="tomorrowSection" style="display:none;padding:12px 16px 0"></div>
   
   <div class="proto-header" id="protoHeader">
     <div class="proto-header-top">
@@ -1881,6 +1882,11 @@ const COMPOUND_DB=[
   {name:'Thymosin Alpha-1',cat:'immune',color:'#34d399',dose:'1.5mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Immune'],rationale:'Thymic peptide — immune system modulation and T-cell activation.',conflicts:[],timingWindow:'am',frequency:'2x/week',daysOfWeek:[1,4]},
   {name:'Selank',cat:'neuro',color:'#f472b6',dose:'250mcg',route:'Intranasal',form:'vial',fasting:false,site:'N/A',goals:['Immune','Recovery'],rationale:'Anxiolytic peptide — stress reduction, immune modulation.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'Semax',cat:'neuro',color:'#c084fc',dose:'200mcg',route:'Intranasal',form:'vial',fasting:false,site:'N/A',goals:['Metabolic','Recovery'],rationale:'ACTH analogue — cognitive enhancement, neuroprotection.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'DSIP Nasal',cat:'sleep',color:'#818cf8',dose:'100mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Sleep / GH'],rationale:'Delta sleep-inducing peptide — 2 sprays (50mcg each) before bed. Promotes deep slow-wave sleep.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'Oxytocin Nasal',cat:'mood',color:'#f472b6',dose:'40mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Bonding peptide — 2 sprays (20mcg each) as needed. Supports mood, trust, and social connection.',conflicts:[],timingWindow:'as-needed',frequency:'as needed',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'VIP Nasal',cat:'immune',color:'#34d399',dose:'200mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Immune','Recovery'],rationale:'Vasoactive intestinal peptide — 4 sprays (50mcg each) in the morning. Immune modulation, used in CIRS protocols.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'N-Acetyl Selank Amidate',cat:'mood',color:'#f472b6',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Acetylated Selank — 3 sprays (100mcg each) in early evening or before bed. Anxiolytic, stress and immune support.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'N-Acetyl Semax Amidate',cat:'cognitive',color:'#c084fc',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Metabolic','Recovery'],rationale:'Acetylated Semax — 3 sprays (100mcg each) in the morning or pre-focus. Cognitive enhancement, BDNF support.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
 ];
 
 const CAT_COLORS={gh:'var(--p1)',metabolic:'var(--p2)',healing:'#60a5fa',longevity:'var(--p4)',immune:'#34d399',cognitive:'#f472b6',performance:'var(--p3)',sleep:'var(--p4)',mood:'#f472b6',other:'var(--mid)'};
@@ -2680,7 +2686,38 @@ function renderToday(){
       gEl.style.display='none';
     }
   }
-  renderProtoHeader();renderBodyStrip();renderChecklist();renderCheckinState();
+  renderProtoHeader();renderBodyStrip();renderChecklist();renderCheckinState();renderTomorrow();
+}
+
+function renderTomorrow(){
+  var wrap=document.getElementById('tomorrowSection');
+  if(!wrap) return;
+  var activeProtos=getActiveProtocols();
+  if(!activeProtos.length){wrap.style.display='none';return;}
+  // Get tomorrow's DOW (0=Sun)
+  var tmrDate=new Date();tmrDate.setDate(tmrDate.getDate()+1);
+  var tmrDOW=tmrDate.getDay();
+  // Collect compounds due tomorrow
+  var tmrMap={};
+  activeProtos.forEach(function(proto){
+    if(!proto.compounds) return;
+    proto.compounds.forEach(function(c){
+      var dow=c.daysOfWeek||[0,1,2,3,4,5,6];
+      if(dow.indexOf(tmrDOW)===-1) return;
+      var key=c.name.toLowerCase();
+      if(!tmrMap[key]) tmrMap[key]={c:c,protos:[proto.name]};
+      else tmrMap[key].protos.push(proto.name);
+    });
+  });
+  var compounds=Object.values(tmrMap);
+  if(!compounds.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  wrap.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Tomorrow</div>'    +compounds.map(function(entry){
+      var c=entry.c;
+      var pItem=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+      var inStock=pItem?isInStock(pItem):false;
+      return'<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;margin-bottom:5px;opacity:.75">'        +'<div style="width:7px;height:7px;border-radius:50%;background:'+getPColor(c.name)+';flex-shrink:0"></div>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+c.name+'</div>'          +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:1px">'+c.dose          +(c.timingWindow&&c.timingWindow!=='other'?' · '+c.timingWindow:'')          +(!inStock?' · <span style="color:var(--p2)">⚠ no stock</span>':'')          +'</div>'        +'</div>'        +'</div>';
+    }).join('');
 }
 
 function renderProtoHeader(){
@@ -3215,6 +3252,7 @@ function openAddCompoundToday(){
   const proto=getActiveProtocol();
   const protoNames=new Set((proto&&proto.compounds?proto.compounds:[]).map(function(c){return c.name;}));
   var pantryForToday=pantry.filter(function(p){return p.name&&p.name.trim();});
+  pantryForToday=pantryForToday.slice().sort(function(a,b){return a.name.localeCompare(b.name);});
   if(!pantryForToday.length){
     sel.innerHTML='<option value="">No compounds in pantry yet</option>';
   } else {
@@ -7212,16 +7250,7 @@ function cleanupTourData(){
   if(!hasRealFLS && checkins && checkins.length){
     // Tour checkins were seeded for yesterday, 2 days ago, 3 days ago
     // Real check-ins added by user will persist
-    var cisBefore = checkins.length;
-    checkins = checkins.filter(function(c){
-      // Keep check-ins that were explicitly saved by user (not seeded)
-      // Tour seeds had sideEffects:'None' and were 3 consecutive days
-      // If all checkins have sideEffects:'None' and are from the last 3 days, they're tour data
-      return false; // if no real FLS protocol, all checkins are suspect - reset
-    });
-    // Actually be more conservative - only remove if count was exactly 3 (tour seed count)
-    if(cisBefore <= 3){ changed = true; persist(KEYS.checkins, checkins); }
-    else { checkins = checkins; } // restore if more than 3 (user added real ones)
+    // Migration: do not wipe checkins — data belongs to user regardless of protocol
   }
 
   if(changed){ renderToday(); }
