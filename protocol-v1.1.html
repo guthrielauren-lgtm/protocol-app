@@ -263,9 +263,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .pantry-add-toggle span{font-family:var(--mono);font-size:11px;color:var(--dim)}
 .pantry-add-form{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:12px;display:none}
 .pantry-add-form.open{display:block}
-.pc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;margin-bottom:6px;transition:border-color .15s}
+.pc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;transition:border-color .15s;overflow:hidden}.pc-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}.pc-hdr.open{border-bottom:1px solid var(--bd)}.pc-body{display:none;padding:12px 14px 14px}.pc-body.open{display:block}
 .pc:hover{border-color:var(--bd2)}.pc.low-stock{border-color:var(--warn)}.pc.inactive{opacity:.45}
-.pc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pc-top{display:flex;align-items:center;gap:10px}
 .pc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .pc-name-wrap{flex:1;min-width:0}
 .pc-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:1px}
@@ -275,7 +275,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .pc-toggle.on{border-color:var(--p1);color:var(--p1);background:var(--p1d)}
 .pc-edit-btn{font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:3px;border:1px solid var(--bd);background:none;color:var(--dim);cursor:pointer;transition:all .15s}
 .pc-edit-btn:hover{border-color:var(--bd2);color:var(--text)}
-.pc-stock{display:flex;flex-direction:column;gap:8px}
+.pc-stock{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .pc-stock-fields{display:grid;gap:6px;align-items:end}
 .pc-stock-fields.g2{grid-template-columns:1fr 1fr}
 .pc-stock-fields.g3{grid-template-columns:1fr 1fr 1fr}
@@ -4992,19 +4992,35 @@ function renderPantry(){
     daysRowHtml+='<button class="restock-btn" onclick="openRestock(\''+id+'\')" style="margin-top:0">+ Restock</button>';
     daysRowHtml+='</div>';
     var lowWarnHtml=low?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);padding-top:6px;border-top:1px solid var(--bd)">&#9888; '+(out?'Out of stock':'Low stock')+' \u2014 reorder soon.</div>':'';
+    // Concentration subtitle for header
+    var concStr='';
+    if(c.form==='vial'&&c.vialMg) concStr=c.vialMg+'mg/vial';
+    else if(c.form==='nasal'&&c.nasalVialMg&&c.nasalReconVol){
+      var _cs=Math.round(c.nasalVialMg*1000/c.nasalReconVol/10*100)/100;
+      concStr=_cs+'mcg/spray';
+    } else if(c.form==='oral'&&c.capStrength) concStr=c.capStrength+(c.capStrength<10?'mcg':'mg')+'/cap';
+
     return '<div class="pc'+(low?' low-stock':'')+'" id="pc-'+id+'">'
-      +'<div class="pc-top">'
+      +'<div class="pc-hdr" onclick="togglePantryCard(\''+id+'\')" id="pchdr-'+id+'">'
       +'<div class="pc-dot" style="background:'+(c.color||'var(--mid)')+'"></div>'
-      +'<div class="pc-name-wrap">'
-      +'<div class="pc-name">'+c.name+'</div>'
-      +'<div class="pc-form">'+formLabel+' \u00b7 '+c.route+' \u00b7 '+doseDisplay+physHint+'</div>'
-      +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">'+renderTagPills(c)+badges+'</div>'
+      +'<div class="pc-name-wrap" style="flex:1;min-width:0">'
+      +'<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">'
+      +'<span class="pc-name">'+c.name+'</span>'
+      +(concStr?'<span style="font-family:var(--mono);font-size:10px;color:var(--p1)">'+concStr+'</span>':'')
       +'</div>'
-      +'<div class="pc-actions">'
-      +'<button class="pc-edit-btn" onclick="openPantryEdit(\''+id+'\')">Edit</button>'
+      +'<div class="pc-form">'+formLabel+' · '+doseDisplay+physHint+'</div>'
+      +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+renderTagPills(c)+badges+'</div>'
       +'</div>'
+      +'<span style="font-family:var(--mono);font-size:11px;color:var(--dim);flex-shrink:0">▾</span>'
       +'</div>'
+      +'<div class="pc-body" id="pcbody-'+id+'">'
+      +'<div class="pc-top">'
+      +'<div class="pc-actions" style="width:100%;justify-content:flex-start">'
+      +'<button class="pc-edit-btn" onclick="openPantryEdit(\''+id+'\')" >Edit</button>'
+      +'<button class="pc-edit-btn" onclick="deletePantryItem(\''+id+'\')" style="color:var(--p5);border-color:var(--p5)">Delete</button>'
+      +'</div></div>'
       +'<div class="pc-stock">'+sf+daysRowHtml+lowWarnHtml+'</div>'
+      +'</div>'
       +'</div>';
   }
 
@@ -5038,11 +5054,21 @@ function togglePantry(id){
   const item=pantry.find(function(p){return p.id===id;});if(!item) return;
   item.active=!item.active;persist(KEYS.pantry,pantry);renderPantry();
 }
+function togglePantryCard(id){
+  var hdr=document.getElementById('pchdr-'+id);
+  var body=document.getElementById('pcbody-'+id);
+  if(!hdr||!body) return;
+  var open=body.classList.toggle('open');
+  hdr.classList.toggle('open',open);
+  var chev=hdr.querySelector('span[style*="25be"]')||hdr.lastElementChild;
+  if(chev) chev.textContent=open?'▴':'▾';
+}
+
 function deletePantryItem(id){
   var item=pantry.find(function(p){return p.id===id;});if(!item) return;
   showConfirm(
     'Delete '+item.name+' from pantry?',
-    'This removes it from your pantry. Re-add anytime via Settings → Restore Pantry Defaults.',
+    'This removes it from your pantry. You can re-add it anytime from the library browser.',
     'Delete',
     function(){
       pantry=pantry.filter(function(p){return p.id!==id;});
@@ -6386,9 +6412,9 @@ async function seedDefaults(){
 function finishInit(){
   // Migrate: assign ids to any pantry items missing them
   var idFixed=false;
-  pantry.forEach(function(p){
-    if(!p.id){
-      p.id='usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+  pantry.forEach(function(p,i){
+    if(!p.id||p.id==='undefined'){
+      p.id='usr_'+(Date.now()+i)+'_'+Math.random().toString(36).slice(2,5);
       idFixed=true;
     }
   });
