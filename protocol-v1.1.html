@@ -1693,23 +1693,36 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
     <!-- CONDITIONAL: Nasal spray fields -->
     <div id="epNasalFields" style="display:none">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:8px;margin-top:4px">⚗ Spray details</div>
-      <div class="g2-fixed" style="margin-bottom:8px">
-        <div class="field"><label>mcg per spray</label>
-          <input type="number" inputmode="decimal" id="epMcgPerSpray" placeholder="e.g. 100" step="any" min="0" oninput="liveCalcNasal()">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:8px;margin-top:4px">⚗ Nasal spray details</div>
+      <div class="g2" style="margin-bottom:8px">
+        <div class="field"><label title="How many mg are in the peptide vial">Vial strength (mg)</label>
+          <input type="number" inputmode="decimal" id="epNasalVialMg" placeholder="e.g. 5" step="any" min="0" oninput="liveCalcNasal()">
         </div>
-        <div class="field"><label>Sprays per dose</label>
-          <input type="number" inputmode="decimal" id="epSpraysPerDose" placeholder="e.g. 2" step="1" min="1" oninput="liveCalcNasal()">
+        <div class="field"><label title="Total mL of water used — typically 10mL per the guide">Recon volume (mL)</label>
+          <input type="number" inputmode="decimal" id="epNasalReconVol" placeholder="10" step="any" min="0" oninput="liveCalcNasal()">
         </div>
       </div>
-      <div class="field" style="margin-bottom:8px"><label>Sprays remaining</label>
-        <input type="number" inputmode="decimal" id="epSpraysRemaining" placeholder="e.g. 120" step="1" min="0" oninput="liveCalcNasal()">
+      <div class="g2" style="margin-bottom:8px">
+        <div class="field"><label title="Sealed, unused bottles on hand">Sealed bottles</label>
+          <input type="number" inputmode="decimal" id="epNasalBottles" placeholder="0" step="1" min="0" oninput="liveCalcNasal()">
+        </div>
+        <div class="field"><label title="mcg remaining in the bottle currently in use">Open bottle (mcg left)</label>
+          <input type="number" inputmode="decimal" id="epNasalOpenMcg" placeholder="e.g. 3000" step="any" min="0" oninput="liveCalcNasal()">
+        </div>
       </div>
-      <!-- Autocalculated: sprays per dose -->
+      <div class="g2" style="margin-bottom:8px">
+        <div class="field"><label title="How many mcg you want per dose">Desired dose (mcg)</label>
+          <input type="number" inputmode="decimal" id="epNasalDoseMcg" placeholder="e.g. 100" step="any" min="0" oninput="liveCalcNasal()">
+        </div>
+        <div class="field"><label title="How many times per day you dose">Doses per day</label>
+          <input type="number" inputmode="decimal" id="epNasalDosesPerDay" placeholder="1" step="1" min="1" oninput="liveCalcNasal()">
+        </div>
+      </div>
+      <!-- Calculated hint -->
       <div id="epNasalResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">Sprays per dose — per dose</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">Dosing calculator</div>
         <div style="font-family:var(--serif);font-size:22px;color:var(--text)" id="epNasalDraw">—</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px" id="epNasalMath"></div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px;line-height:1.6" id="epNasalMath"></div>
       </div>
     </div>
 
@@ -1860,6 +1873,18 @@ let editingProtoId=null;
 let currentBuildStep=0;
 
 // ════════════ COMPOUND DB ════════════
+// Bump this version string any time new compounds are added to COMPOUND_DB
+const LIBRARY_VERSION='2026-04-27-v2';
+
+// Names of compounds added in the most recent library update
+const NEW_COMPOUNDS=[
+  'DSIP Nasal Spray',
+  'Oxytocin Nasal Spray',
+  'VIP Nasal Spray',
+  'N-Acetyl Selank Amidate Nasal Spray',
+  'N-Acetyl Semax Amidate Nasal Spray'
+];
+
 const COMPOUND_DB=[
   {name:'Tesamorelin',cat:'gh',color:'var(--p5)',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Fat loss','Metabolic'],rationale:'GHRH analogue — strongest clinical evidence for visceral fat reduction.',conflicts:['CJC-1295'],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'Ipamorelin',cat:'gh',color:'var(--p1)',dose:'250mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Sleep / GH','Lean Mass'],rationale:'GH secretagogue — pulsatile GH release for sleep and lean mass.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
@@ -1882,11 +1907,11 @@ const COMPOUND_DB=[
   {name:'Thymosin Alpha-1',cat:'immune',color:'#34d399',dose:'1.5mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Immune'],rationale:'Thymic peptide — immune system modulation and T-cell activation.',conflicts:[],timingWindow:'am',frequency:'2x/week',daysOfWeek:[1,4]},
   {name:'Selank',cat:'neuro',color:'#f472b6',dose:'250mcg',route:'Intranasal',form:'vial',fasting:false,site:'N/A',goals:['Immune','Recovery'],rationale:'Anxiolytic peptide — stress reduction, immune modulation.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'Semax',cat:'neuro',color:'#c084fc',dose:'200mcg',route:'Intranasal',form:'vial',fasting:false,site:'N/A',goals:['Metabolic','Recovery'],rationale:'ACTH analogue — cognitive enhancement, neuroprotection.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'DSIP Nasal',cat:'sleep',color:'#818cf8',dose:'100mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Sleep / GH'],rationale:'Delta sleep-inducing peptide — 2 sprays (50mcg each) before bed. Promotes deep slow-wave sleep.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'Oxytocin Nasal',cat:'mood',color:'#f472b6',dose:'40mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Bonding peptide — 2 sprays (20mcg each) as needed. Supports mood, trust, and social connection.',conflicts:[],timingWindow:'as-needed',frequency:'as needed',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'VIP Nasal',cat:'immune',color:'#34d399',dose:'200mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Immune','Recovery'],rationale:'Vasoactive intestinal peptide — 4 sprays (50mcg each) in the morning. Immune modulation, used in CIRS protocols.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'N-Acetyl Selank Amidate',cat:'mood',color:'#f472b6',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Acetylated Selank — 3 sprays (100mcg each) in early evening or before bed. Anxiolytic, stress and immune support.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'N-Acetyl Semax Amidate',cat:'cognitive',color:'#c084fc',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Metabolic','Recovery'],rationale:'Acetylated Semax — 3 sprays (100mcg each) in the morning or pre-focus. Cognitive enhancement, BDNF support.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'DSIP Nasal Spray',cat:'sleep',color:'#818cf8',dose:'100mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Sleep / GH'],rationale:'Delta sleep-inducing peptide — 2 sprays (50mcg each) before bed. Promotes deep slow-wave sleep.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:5,nasalReconVol:10,nasalDoseMcg:100,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:50,spraysPerDose:2},
+  {name:'Oxytocin Nasal Spray',cat:'mood',color:'#f472b6',dose:'40mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Bonding peptide — 2 sprays (20mcg each) as needed. Supports mood, trust, and social connection.',conflicts:[],timingWindow:'as-needed',frequency:'as needed',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:2,nasalReconVol:10,nasalDoseMcg:40,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:20,spraysPerDose:2},
+  {name:'VIP Nasal Spray',cat:'immune',color:'#34d399',dose:'200mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Immune','Recovery'],rationale:'Vasoactive intestinal peptide — 4 sprays (50mcg each) in the morning. Immune modulation, used in CIRS protocols.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:5,nasalReconVol:10,nasalDoseMcg:200,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:50,spraysPerDose:4},
+  {name:'N-Acetyl Selank Amidate Nasal Spray',cat:'mood',color:'#f472b6',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Acetylated Selank — 3 sprays (100mcg each) in early evening or before bed. Anxiolytic, stress and immune support.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:10,nasalReconVol:10,nasalDoseMcg:300,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:100,spraysPerDose:3},
+  {name:'N-Acetyl Semax Amidate Nasal Spray',cat:'cognitive',color:'#c084fc',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Metabolic','Recovery'],rationale:'Acetylated Semax — 3 sprays (100mcg each) in the morning or pre-focus. Cognitive enhancement, BDNF support.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:10,nasalReconVol:10,nasalDoseMcg:300,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:100,spraysPerDose:3},
 ];
 
 const CAT_COLORS={gh:'var(--p1)',metabolic:'var(--p2)',healing:'#60a5fa',longevity:'var(--p4)',immune:'#34d399',cognitive:'#f472b6',performance:'var(--p3)',sleep:'var(--p4)',mood:'#f472b6',other:'var(--mid)'};
@@ -1927,9 +1952,9 @@ const DEFAULT_PANTRY=[
   {id:'dp_ta1',    name:'Thymosin Alpha-1',     form:'vial',     cat:'immune',   dose:'0.5mg',  route:'Subcutaneous', site:'Abdomen',fasting:false,color:'#34d399',notes:'Thymic peptide. Immune modulation. Start 0.5mg; clinical Rx 1.6mg. 2x/week.',vialMg:5,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── COGNITIVE ──
   {id:'dp_selank', name:'Selank',               form:'vial',     cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Anxiolytic peptide. 100mcg intranasal AM. Stress reduction, immune modulation.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
-  {id:'dp_nasel',  name:'N-Acetyl Selank Amidate',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Acetylated Selank. ~2-3x potency vs standard. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nasel',  name:'N-Acetyl Selank Amidate Nasal Spray',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#f472b6',notes:'Acetylated Selank. ~2-3x potency vs standard. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   {id:'dp_semax',  name:'Semax',                form:'vial',     cat:'cognitive',dose:'200mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'ACTH analogue. Cognitive enhancement. 200mcg intranasal AM.',vialMg:null,vials:0,expiry:'',reorderDays:10,stockLog:[],tags:[]},
-  {id:'dp_nasemax',name:'N-Acetyl Semax Amidate',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'Acetylated Semax. ~2-3x potency. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
+  {id:'dp_nasemax',name:'N-Acetyl Semax Amidate Nasal Spray',form:'nasal',  cat:'cognitive',dose:'100mcg', route:'Intranasal',   site:'N/A',    fasting:false,color:'#c084fc',notes:'Acetylated Semax. ~2-3x potency. 100mcg AM intranasal.',spraysRemaining:null,spraysPerDose:1,mcgPerSpray:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   {id:'dp_lthe',   name:'L-Theanine',           form:'oral',     cat:'cognitive',dose:'100mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#86efac',notes:'Calm focus. 100-400mg. Often stacked with caffeine.',capsRemaining:null,capDose:100,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   {id:'dp_lion',   name:"Lion's Mane",          form:'oral',     cat:'cognitive',dose:'500mg',  route:'Oral',         site:'N/A',    fasting:false,color:'#fcd34d',notes:"NGF support. Start 500mg AM. Clinical range 1,000-3,000mg. Fruiting body extract preferred.",capsRemaining:null,capDose:500,expiry:'',reorderDays:10,stockLog:[],tags:[]},
   // ── SLEEP ──
@@ -3360,7 +3385,7 @@ function saveCheckin(){
   const vh=document.getElementById('ciVHunger');if(vh)vh.textContent='5';
   const cn=document.getElementById('ciNotes');if(cn)cn.value='';
   document.querySelectorAll('#ciSideChips .chip').forEach(function(c){c.classList.remove('on');});
-  renderCheckinState();toggleCheckin();
+  renderCheckinState(); // auto-collapses via checkinOpen=false when done
 }
 
 // ════════════ HISTORY ════════════
@@ -4385,10 +4410,11 @@ function calcDaysLeft(pItem,protoCmp){
     return Math.floor(svRem/dosesPerDay);
   }
   if(pItem.form==='nasal'){
-    var spRem=pItem.spraysRemaining;
-    var spd=pItem.spraysPerDose||1;
-    if(spRem==null||spRem<0) return null;
-    return Math.floor(spRem/(spd*dosesPerDay));
+    var totalMcg=(pItem.nasalTotalMcg!=null)?pItem.nasalTotalMcg
+      :(pItem.nasalOpenMcg||0)+((pItem.nasalBottles||0)*((pItem.nasalVialMg||0)*1000));
+    var doseMcg=pItem.nasalDoseMcg||(pItem.mcgPerSpray&&pItem.spraysPerDose?(pItem.mcgPerSpray*pItem.spraysPerDose):null);
+    if(!doseMcg||doseMcg<=0) return null;
+    return Math.floor(totalMcg/(doseMcg*dosesPerDay));
   }
   if(pItem.form==='prefilled'){
     var pensRem=pItem.pensRemaining;
@@ -4789,7 +4815,7 @@ function isInStock(item){
   if(!item) return false;
   if(item.form==='oral'||item.form==='oral_powder') return !!(item.capsRemaining>0||item.servingsRemaining>0);
   if(item.form==='prefilled') return !!(item.pensRemaining>0);
-  if(item.form==='nasal') return !!(item.spraysRemaining>0);
+  if(item.form==='nasal') return !!((item.nasalTotalMcg>0)||(item.nasalOpenMcg>0)||(item.nasalBottles>0));
   if(item.form==='cream') return !!(item.remainingG>0);
   // vial — any vials or open vial mg
   return !!(item.vials>0||item.openVialMg>0);
@@ -4896,7 +4922,7 @@ function renderPantry(){
     // Multi-concentration: show Active badge
     var sameName=pantry.filter(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
     if(sameName.length>1&&c.activeConcentration) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);white-space:nowrap">&#9679; Active conc.</span>';
-    var id=c.id;
+    var id=c.id||(c.id='usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5));
     var sf='';
     if(c.form==='oral'){
       sf='<div class="pc-stock-fields g2">'
@@ -4909,10 +4935,31 @@ function renderPantry(){
         +'<input type="number" inputmode="decimal" value="'+(c.servingsRemaining!=null?c.servingsRemaining:'')+'" placeholder="e.g. 80" min="0" step="1" onchange="updateStock(\''+id+'\',\'servingsRemaining\',this.value)"></div>'
         +'</div>';
     } else if(c.form==='nasal'){
+      var _nMcgPerSpray=c.nasalVialMg&&c.nasalReconVol?Math.round(c.nasalVialMg*1000/c.nasalReconVol/10*100)/100:null;
+      var _nSprays=_nMcgPerSpray&&c.nasalDoseMcg?Math.round(c.nasalDoseMcg/_nMcgPerSpray*10)/10:null;
+      var _nMcgPerBottle=(c.nasalVialMg||0)*1000;
       sf='<div class="pc-stock-fields g2">'
-        +'<div class="stock-f"><label title="Total sprays remaining across all bottles">Sprays on hand</label>'
-        +'<input type="number" inputmode="decimal" value="'+(c.spraysRemaining!=null?c.spraysRemaining:'')+'" placeholder="e.g. 120" min="0" step="1" onchange="updateStock(\''+id+'\',\'spraysRemaining\',this.value)"></div>'
-        +'</div>';
+        +'<div class="stock-f"><label title="mg in each peptide vial">Vial strength (mg)</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.nasalVialMg||'')+'" placeholder="5" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalVialMg\',this.value)"></div>'
+        +'<div class="stock-f"><label title="Total mL of water used">Recon vol (mL)</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.nasalReconVol||10)+'" placeholder="10" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalReconVol\',this.value)"></div>'
+        +'</div>'
+        +'<div class="pc-stock-fields g2" style="margin-top:4px">'
+        +'<div class="stock-f"><label title="Sealed unused bottles on hand">Sealed bottles</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.nasalBottles||0)+'" placeholder="0" min="0" step="1" onchange="updateStock(\''+id+'\',\'nasalBottles\',this.value)"></div>'
+        +'<div class="stock-f"><label title="mcg remaining in open bottle">Open bottle (mcg left)</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.nasalOpenMcg||'')+'" placeholder="e.g. 3000" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalOpenMcg\',this.value)"></div>'
+        +'</div>'
+        +'<div class="pc-stock-fields g2" style="margin-top:4px">'
+        +'<div class="stock-f"><label title="How many mcg per dose">Desired dose (mcg)</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.nasalDoseMcg||'')+'" placeholder="e.g. 100" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalDoseMcg\',this.value)"></div>'
+        +'<div class="stock-f"><label title="How many times per day">Doses per day</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.nasalDosesPerDay||1)+'" placeholder="1" min="1" step="1" onchange="updateStock(\''+id+'\',\'nasalDosesPerDay\',this.value)"></div>'
+        +'</div>'
+        +(_nMcgPerSpray?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;line-height:1.7">'
+          +_nMcgPerSpray+'mcg/spray'
+          +(_nSprays?' · <strong style="color:var(--text)">'+_nSprays+' spray'+(Math.round(_nSprays)!==1?'s':'')+' per dose</strong>':'')
+          +'</div>':'');
     } else if(c.form==='prefilled'){
       sf='<div class="pc-stock-fields g2">'
         +'<div class="stock-f"><label title="Total pens or prefilled syringes on hand">Pens on hand</label>'
@@ -5008,6 +5055,16 @@ function deletePantryItem(id){
 function updateStock(id,field,value){
   const item=pantry.find(function(p){return p.id===id;});if(!item) return;
   item[field]=field==='expiry'?value:(parseFloat(value)||0);
+  if(item.form==='nasal'){
+    var _vm=(item.nasalVialMg||0)*1000;
+    item.nasalTotalMcg=(item.nasalOpenMcg||0)+(item.nasalBottles||0)*_vm;
+    if(item.nasalVialMg&&item.nasalReconVol){
+      item.mcgPerSpray=Math.round(item.nasalVialMg*1000/item.nasalReconVol/10*100)/100;
+    }
+    if(item.nasalDoseMcg&&item.mcgPerSpray){
+      item.spraysPerDose=Math.round(item.nasalDoseMcg/item.mcgPerSpray*10)/10;
+    }
+  }
   persist(KEYS.pantry,pantry);renderPantry();
 }
 
@@ -5165,12 +5222,13 @@ function openPantryEdit(id){
   var appEl=document.getElementById('epApplicationSite');
   if(appEl) appEl.value=item.applicationSite||'';
   // Nasal spray fields
-  var mcgEl=document.getElementById('epMcgPerSpray');
-  if(mcgEl) mcgEl.value=item.mcgPerSpray||'';
-  var spdEl=document.getElementById('epSpraysPerDose');
-  if(spdEl) spdEl.value=item.spraysPerDose||'';
-  var sremEl=document.getElementById('epSpraysRemaining');
-  if(sremEl) sremEl.value=item.spraysRemaining||'';
+  var nvm=document.getElementById('epNasalVialMg');if(nvm) nvm.value=item.nasalVialMg||'';
+  var nrv=document.getElementById('epNasalReconVol');if(nrv) nrv.value=item.nasalReconVol||10;
+  var nbt=document.getElementById('epNasalBottles');if(nbt) nbt.value=item.nasalBottles||'';
+  var nom=document.getElementById('epNasalOpenMcg');if(nom) nom.value=item.nasalOpenMcg||'';
+  var ndm=document.getElementById('epNasalDoseMcg');if(ndm) ndm.value=item.nasalDoseMcg||'';
+  var ndpd=document.getElementById('epNasalDosesPerDay');if(ndpd) ndpd.value=item.nasalDosesPerDay||1;
+  if(item.form==='nasal') liveCalcNasal();
   // Powder fields
   var psEl=document.getElementById('epPowderSize');
   if(psEl) psEl.value=item.powderSize||'';
@@ -5232,35 +5290,21 @@ function savePantryEdit(){
   var appEl=document.getElementById('epApplicationSite');
   if(appEl) item.applicationSite=appEl.value||'';
   // Nasal spray fields
-  var mcgEl2=document.getElementById('epMcgPerSpray');
-  if(mcgEl2) item.mcgPerSpray=parseFloat(mcgEl2.value)||null;
-  var spdEl2=document.getElementById('epSpraysPerDose');
-  if(spdEl2) item.spraysPerDose=parseFloat(spdEl2.value)||null;
-  var sremEl2=document.getElementById('epSpraysRemaining');
-  if(sremEl2) item.spraysRemaining=parseFloat(sremEl2.value)||null;
-  // Powder fields
-  var psEl2=document.getElementById('epPowderSize');
-  if(psEl2) item.powderSize=parseFloat(psEl2.value)||null;
-  var svEl2=document.getElementById('epServings');
-  if(svEl2) item.servings=parseFloat(svEl2.value)||null;
-  // Pre-filled pen fields
-  var penStrEl2=document.getElementById('epPenStrength');
-  if(penStrEl2) item.penStrength=parseFloat(penStrEl2.value)||null;
-  var pensEl2=document.getElementById('epPensRemaining');
-  if(pensEl2) item.pensRemaining=parseFloat(pensEl2.value)||null;
-  // Name + dose — user input always wins
-  if(newName&&newName!==item.name){
-    if(doseMem[item.name]) {doseMem[newName]=doseMem[item.name];delete doseMem[item.name];}
-    item.name=newName;
+    if(item.form==='nasal'){
+    item.nasalVialMg=parseFloat((document.getElementById('epNasalVialMg')||{}).value)||null;
+    item.nasalReconVol=parseFloat((document.getElementById('epNasalReconVol')||{}).value)||10;
+    item.nasalBottles=parseFloat((document.getElementById('epNasalBottles')||{}).value)||0;
+    item.nasalOpenMcg=parseFloat((document.getElementById('epNasalOpenMcg')||{}).value)||null;
+    item.nasalDoseMcg=parseFloat((document.getElementById('epNasalDoseMcg')||{}).value)||null;
+    item.nasalDosesPerDay=parseFloat((document.getElementById('epNasalDosesPerDay')||{}).value)||1;
+    if(item.nasalVialMg&&item.nasalReconVol)
+      item.mcgPerSpray=Math.round(item.nasalVialMg*1000/item.nasalReconVol/10*100)/100;
+    if(item.nasalDoseMcg&&item.mcgPerSpray)
+      item.spraysPerDose=Math.round(item.nasalDoseMcg/item.mcgPerSpray*10)/10;
+    var _vm2=(item.nasalVialMg||0)*1000;
+    item.nasalTotalMcg=(item.nasalOpenMcg||0)+(item.nasalBottles||0)*_vm2;
   }
-  if(newDose){
-    item.dose=newDose;
-    if(!doseMem[item.name]) doseMem[item.name]={};
-    doseMem[item.name].dose=newDose;
-  }
-  item.color=CAT_COLORS[item.cat]||'var(--mid)';
-  item.tags=getEpTags();
-  persist(KEYS.pantry,pantry);persist(KEYS.doseMem,doseMem);
+    persist(KEYS.pantry,pantry);persist(KEYS.doseMem,doseMem);
   closeModal('editPantryModal');
   renderPantry();renderChecklist();
   toast(item.name+' updated ✓');
@@ -6340,6 +6384,16 @@ async function seedDefaults(){
 
 
 function finishInit(){
+  // Migrate: assign ids to any pantry items missing them
+  var idFixed=false;
+  pantry.forEach(function(p){
+    if(!p.id){
+      p.id='usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+      idFixed=true;
+    }
+  });
+  if(idFixed) persist(KEYS.pantry,pantry);
+
   // Migrate: remove auto-library dp_ items with no stock and not in any protocol
   var protoCompoundNames=new Set();
   protocols.forEach(function(p){
@@ -6395,6 +6449,8 @@ function finishInit(){
   takeAutoSnapshot();
   registerServiceWorker();
   updateMobHeader();
+  // Check for new library compounds
+  checkNewLibraryCompounds();
   // Post-onboarding routing: if first run, open protocol editor for setup
   var justOnboarded=localStorage.getItem('pt_just_onboarded');
   if(justOnboarded==='1'){
@@ -7804,6 +7860,64 @@ function showFilesBackupReminder(){
 // On iOS PWA, Web Share API is the only way to trigger the Files picker
 // This lets users save directly to iCloud Drive, Google Drive, Dropbox etc.
 // Desktop falls back to standard download
+function checkNewLibraryCompounds(){
+  var stored=localStorage.getItem('pt_library_version');
+  if(stored===LIBRARY_VERSION) return; // already seen this version
+  // Find new compounds not already in pantry
+  var pantryNames=new Set(pantry.map(function(p){return p.name.toLowerCase();}));
+  var toShow=NEW_COMPOUNDS.filter(function(name){
+    return !pantryNames.has(name.toLowerCase());
+  });
+  if(!toShow.length){
+    // All new compounds already in pantry — just update version silently
+    localStorage.setItem('pt_library_version',LIBRARY_VERSION);
+    return;
+  }
+  // Render modal list
+  var list=document.getElementById('newCompoundsList');
+  if(list){
+    list.innerHTML=toShow.map(function(name){
+      var db=COMPOUND_DB.find(function(d){return d.name===name;});
+      var color=db?(CAT_COLORS[db.cat]||'var(--mid)'):'var(--mid)';
+      return'<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd)">'        +'<input type="checkbox" data-name="'+name+'" checked'        +' style="-webkit-appearance:checkbox;appearance:checkbox;width:20px;height:20px;min-width:20px;flex-shrink:0;margin-top:3px;border:2px solid var(--p1);border-radius:4px;accent-color:var(--p1);cursor:pointer">'        +'<div style="flex:1;min-width:0">'          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'            +'<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0"></div>'            +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+name+'</div>'          +'</div>'          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5">'            +(db?db.dose+' · '+db.route:'')+'</div>'          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:2px">'            +(db&&db.rationale?db.rationale.split('.')[0]+'.':'')+'</div>'        +'</div>'        +'</div>';
+    }).join('');
+  }
+  setTimeout(function(){openModal('newCompoundsModal');},1200);
+}
+
+function addSelectedNewCompounds(){
+  var list=document.getElementById('newCompoundsList');
+  if(!list) return;
+  var checked=Array.from(list.querySelectorAll('input[type="checkbox"]')).filter(function(cb){return cb.checked;});
+  var added=0;
+  checked.forEach(function(cb){
+    var name=cb.dataset.name;
+    if(pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})) return;
+    var db=COMPOUND_DB.find(function(d){return d.name===name;});
+    if(!db) return;
+    pantry.push(Object.assign({},db,{
+      id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+      vialMg:null,vials:0,reconVol:null,openVialMg:null,
+      capsRemaining:null,capDose:null,pensRemaining:null,
+      spraysRemaining:null,remainingG:null,
+      reorderDays:10,stockLog:[],active:false,
+      notes:db.rationale||''
+    }));
+    added++;
+  });
+  if(added){
+    persist(KEYS.pantry,pantry);
+    renderPantry();
+    toast(added+' compound'+(added>1?'s':'')+' added to pantry ✓','var(--p1)',4000);
+  }
+  dismissNewCompounds();
+}
+
+function dismissNewCompounds(){
+  localStorage.setItem('pt_library_version',LIBRARY_VERSION);
+  closeModal('newCompoundsModal');
+}
+
 function dismissBackupBanner(){
   var banner=document.getElementById('backupReminderBanner');
   if(banner) banner.style.display='none';
@@ -8249,25 +8363,27 @@ function updateAddFormUI(){
 }
 
 function liveCalcNasal(){
-  var mcgPerSpray=parseFloat(document.getElementById('epMcgPerSpray')&&document.getElementById('epMcgPerSpray').value)||null;
-  var doseEl=document.getElementById('epDose');
-  var unitBtns=document.querySelectorAll('#epDoseUnit button');
-  var unit='mcg';
-  unitBtns.forEach(function(b){if(b.classList.contains('on'))unit=b.dataset.unit;});
-  var doseVal=parseFloat(doseEl&&doseEl.value)||null;
-  var result=document.getElementById('epNasalResult');
-  var draw=document.getElementById('epNasalDraw');
-  var math=document.getElementById('epNasalMath');
-  if(!result) return;
-  if(mcgPerSpray&&doseVal){
-    var doseMcg=unit==='mg'?doseVal*1000:doseVal;
-    var sprays=Math.ceil(doseMcg/mcgPerSpray);
-    result.style.display='block';
-    draw.textContent=sprays+(sprays===1?' spray':' sprays');
-    math.textContent=doseVal+unit+' ÷ '+mcgPerSpray+'mcg/spray = '+sprays+(sprays===1?' spray':' sprays')+' per dose';
-  } else {
-    result.style.display='none';
-  }
+  var vialMg=parseFloat(document.getElementById('epNasalVialMg')&&document.getElementById('epNasalVialMg').value)||0;
+  var reconVol=parseFloat(document.getElementById('epNasalReconVol')&&document.getElementById('epNasalReconVol').value)||10;
+  var desiredMcg=parseFloat(document.getElementById('epNasalDoseMcg')&&document.getElementById('epNasalDoseMcg').value)||0;
+  var dosesPerDay=parseFloat(document.getElementById('epNasalDosesPerDay')&&document.getElementById('epNasalDosesPerDay').value)||1;
+  var sealedBottles=parseFloat(document.getElementById('epNasalBottles')&&document.getElementById('epNasalBottles').value)||0;
+  var openMcg=parseFloat(document.getElementById('epNasalOpenMcg')&&document.getElementById('epNasalOpenMcg').value)||0;
+  var resultEl=document.getElementById('epNasalResult');
+  var drawEl=document.getElementById('epNasalDraw');
+  var mathEl=document.getElementById('epNasalMath');
+  if(!vialMg||!reconVol||!desiredMcg){if(resultEl)resultEl.style.display='none';return;}
+  var mcgPerSpray=Math.round((vialMg*1000/reconVol/10)*100)/100; // mcg per 0.1mL spray
+  var spraysPerDose=Math.round((desiredMcg/mcgPerSpray)*10)/10;
+  var totalMcgPerBottle=vialMg*1000;
+  var totalMcg=openMcg+(sealedBottles*totalMcgPerBottle);
+  var daysLeft=totalMcg>0?Math.floor(totalMcg/(desiredMcg*dosesPerDay)):0;
+  if(resultEl) resultEl.style.display='block';
+  if(drawEl) drawEl.textContent=spraysPerDose+' spray'+(spraysPerDose!==1?'s':'');
+  if(mathEl) mathEl.innerHTML=
+    mcgPerSpray+'mcg/spray · '+desiredMcg+'mcg ÷ '+mcgPerSpray+'mcg = '+spraysPerDose+' sprays per dose<br>'
+    +totalMcgPerBottle.toFixed(0)+'mcg per bottle · '
+    +(totalMcg>0?'∼'+daysLeft+' days of supply remaining':'No stock — add bottles or open bottle above');
 }
 
 function liveCalcPowder(){
@@ -8906,6 +9022,25 @@ document.addEventListener('DOMContentLoaded', initApp);
     <div class="btn-row">
       <button class="btn" onclick="saveBackfillCheckin()">Save check-in</button>
       <button class="btn ghost" onclick="closeModal('backfillCheckinModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NEW COMPOUNDS MODAL ═══════════ -->
+<div class="modal-overlay" id="newCompoundsModal">
+  <div class="modal" style="max-height:85vh;padding:0;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid var(--bd);flex-shrink:0">
+      <div class="modal-title" style="margin-bottom:6px">New in the Library
+        <button class="modal-close" onclick="dismissNewCompounds()">&#x2715;</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6">
+        Select compounds to add to your pantry. You can fill in stock details from the Pantry tab.
+      </div>
+    </div>
+    <div id="newCompoundsList" style="overflow-y:auto;flex:1;padding:0 20px 16px"></div>
+    <div style="padding:12px 20px;border-top:1px solid var(--bd);flex-shrink:0;display:flex;gap:8px">
+      <button class="btn" style="flex:1;justify-content:center" onclick="addSelectedNewCompounds()">Add to Pantry</button>
+      <button class="btn ghost" onclick="dismissNewCompounds()">Skip</button>
     </div>
   </div>
 </div>
