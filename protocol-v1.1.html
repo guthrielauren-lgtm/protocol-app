@@ -1710,13 +1710,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           <input type="number" inputmode="decimal" id="epNasalOpenMcg" placeholder="e.g. 3000" step="any" min="0" oninput="liveCalcNasal()">
         </div>
       </div>
-      <div class="g2" style="margin-bottom:8px">
-        <div class="field"><label title="How many mcg you want per dose">Desired dose (mcg)</label>
-          <input type="number" inputmode="decimal" id="epNasalDoseMcg" placeholder="e.g. 100" step="any" min="0" oninput="liveCalcNasal()">
-        </div>
-        <div class="field"><label title="How many times per day you dose">Doses per day</label>
-          <input type="number" inputmode="decimal" id="epNasalDosesPerDay" placeholder="1" step="1" min="1" oninput="liveCalcNasal()">
-        </div>
+      <div class="field" style="margin-bottom:8px"><label title="How many times per day you dose">Doses per day</label>
+        <input type="number" inputmode="decimal" id="epNasalDosesPerDay" placeholder="1" step="1" min="1" oninput="liveCalcNasal()">
       </div>
       <!-- Calculated hint -->
       <div id="epNasalResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
@@ -4412,7 +4407,9 @@ function calcDaysLeft(pItem,protoCmp){
   if(pItem.form==='nasal'){
     var totalMcg=(pItem.nasalTotalMcg!=null)?pItem.nasalTotalMcg
       :(pItem.nasalOpenMcg||0)+((pItem.nasalBottles||0)*((pItem.nasalVialMg||0)*1000));
-    var doseMcg=pItem.nasalDoseMcg||(pItem.mcgPerSpray&&pItem.spraysPerDose?(pItem.mcgPerSpray*pItem.spraysPerDose):null);
+    // Use protocol dose if available, else pantry default dose
+    var _nd=protoCmp&&protoCmp.dose?parseDoseMg(protoCmp.dose):parseDoseMg(pItem.dose||'');
+    var doseMcg=_nd||(pItem.mcgPerSpray&&pItem.spraysPerDose?(pItem.mcgPerSpray*pItem.spraysPerDose):null);
     if(!doseMcg||doseMcg<=0) return null;
     return Math.floor(totalMcg/(doseMcg*dosesPerDay));
   }
@@ -4936,7 +4933,8 @@ function renderPantry(){
         +'</div>';
     } else if(c.form==='nasal'){
       var _nMcgPerSpray=c.nasalVialMg&&c.nasalReconVol?Math.round(c.nasalVialMg*1000/c.nasalReconVol/10*100)/100:null;
-      var _nSprays=_nMcgPerSpray&&c.nasalDoseMcg?Math.round(c.nasalDoseMcg/_nMcgPerSpray*10)/10:null;
+      var _nDoseMcg=parseDoseMg(doseDisplay)||0;
+      var _nSprays=_nMcgPerSpray&&_nDoseMcg?Math.round(_nDoseMcg/_nMcgPerSpray*10)/10:null;
       var _nMcgPerBottle=(c.nasalVialMg||0)*1000;
       sf='<div class="pc-stock-fields g2">'
         +'<div class="stock-f"><label title="mg in each peptide vial">Vial strength (mg)</label>'
@@ -4951,9 +4949,7 @@ function renderPantry(){
         +'<input type="number" inputmode="decimal" value="'+(c.nasalOpenMcg||'')+'" placeholder="e.g. 3000" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalOpenMcg\',this.value)"></div>'
         +'</div>'
         +'<div class="pc-stock-fields g2" style="margin-top:4px">'
-        +'<div class="stock-f"><label title="How many mcg per dose">Desired dose (mcg)</label>'
-        +'<input type="number" inputmode="decimal" value="'+(c.nasalDoseMcg||'')+'" placeholder="e.g. 100" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalDoseMcg\',this.value)"></div>'
-        +'<div class="stock-f"><label title="How many times per day">Doses per day</label>'
+        +'<div class="stock-f"><label title="How many times per day you dose">Doses per day</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.nasalDosesPerDay||1)+'" placeholder="1" min="1" step="1" onchange="updateStock(\''+id+'\',\'nasalDosesPerDay\',this.value)"></div>'
         +'</div>'
         +(_nMcgPerSpray?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;line-height:1.7">'
@@ -5252,7 +5248,7 @@ function openPantryEdit(id){
   var nrv=document.getElementById('epNasalReconVol');if(nrv) nrv.value=item.nasalReconVol||10;
   var nbt=document.getElementById('epNasalBottles');if(nbt) nbt.value=item.nasalBottles||'';
   var nom=document.getElementById('epNasalOpenMcg');if(nom) nom.value=item.nasalOpenMcg||'';
-  var ndm=document.getElementById('epNasalDoseMcg');if(ndm) ndm.value=item.nasalDoseMcg||'';
+  // nasalDoseMcg removed — dose comes from protocol/pantry
   var ndpd=document.getElementById('epNasalDosesPerDay');if(ndpd) ndpd.value=item.nasalDosesPerDay||1;
   if(item.form==='nasal') liveCalcNasal();
   // Powder fields
@@ -5321,12 +5317,13 @@ function savePantryEdit(){
     item.nasalReconVol=parseFloat((document.getElementById('epNasalReconVol')||{}).value)||10;
     item.nasalBottles=parseFloat((document.getElementById('epNasalBottles')||{}).value)||0;
     item.nasalOpenMcg=parseFloat((document.getElementById('epNasalOpenMcg')||{}).value)||null;
-    item.nasalDoseMcg=parseFloat((document.getElementById('epNasalDoseMcg')||{}).value)||null;
     item.nasalDosesPerDay=parseFloat((document.getElementById('epNasalDosesPerDay')||{}).value)||1;
     if(item.nasalVialMg&&item.nasalReconVol)
       item.mcgPerSpray=Math.round(item.nasalVialMg*1000/item.nasalReconVol/10*100)/100;
-    if(item.nasalDoseMcg&&item.mcgPerSpray)
-      item.spraysPerDose=Math.round(item.nasalDoseMcg/item.mcgPerSpray*10)/10;
+    // spraysPerDose derived from protocol/pantry dose at render time
+    var _sd=parseDoseMg(item.dose||'');
+    if(_sd&&item.mcgPerSpray)
+      item.spraysPerDose=Math.round(_sd/item.mcgPerSpray*10)/10;
     var _vm2=(item.nasalVialMg||0)*1000;
     item.nasalTotalMcg=(item.nasalOpenMcg||0)+(item.nasalBottles||0)*_vm2;
   }
@@ -8391,7 +8388,18 @@ function updateAddFormUI(){
 function liveCalcNasal(){
   var vialMg=parseFloat(document.getElementById('epNasalVialMg')&&document.getElementById('epNasalVialMg').value)||0;
   var reconVol=parseFloat(document.getElementById('epNasalReconVol')&&document.getElementById('epNasalReconVol').value)||10;
-  var desiredMcg=parseFloat(document.getElementById('epNasalDoseMcg')&&document.getElementById('epNasalDoseMcg').value)||0;
+  // Pull dose from pantry item being edited (protocol dose or pantry default)
+  var _editId=document.getElementById('editPantryId')?document.getElementById('editPantryId').value:null;
+  var _editItem=_editId?pantry.find(function(p){return p.id===_editId;}):null;
+  var _protoDose=_editItem?(function(){
+    var ap=getActiveProtocols();
+    for(var _i=0;_i<ap.length;_i++){
+      var _pc=ap[_i].compounds&&ap[_i].compounds.find(function(c){return c.name===_editItem.name;});
+      if(_pc&&_pc.dose) return parseDoseMg(_pc.dose);
+    }
+    return parseDoseMg(_editItem.dose||'');
+  }()):0;
+  var desiredMcg=_protoDose||0;
   var dosesPerDay=parseFloat(document.getElementById('epNasalDosesPerDay')&&document.getElementById('epNasalDosesPerDay').value)||1;
   var sealedBottles=parseFloat(document.getElementById('epNasalBottles')&&document.getElementById('epNasalBottles').value)||0;
   var openMcg=parseFloat(document.getElementById('epNasalOpenMcg')&&document.getElementById('epNasalOpenMcg').value)||0;
