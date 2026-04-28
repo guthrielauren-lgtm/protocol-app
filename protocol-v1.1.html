@@ -4389,7 +4389,9 @@ function calcDaysLeft(pItem,protoCmp){
   // doses per day — interval takes priority over weekly pattern
   var dosesPerDay=intervalDays?(1/intervalDays):(dows/7);
   if(dosesPerDay<=0) return null;
-  var rawDose=String(doseMem[pItem.name]?doseMem[pItem.name].dose:pItem.dose||'');
+  // Use protocol compound dose if available, else pantry default dose
+  // Never use doseMem here — that's the last logged dose, not the prescribed dose
+  var rawDose=String((protoCmp&&protoCmp.dose)?protoCmp.dose:(pItem.dose||''));
   var doseMgVal=parseDoseMg(rawDose);
   if(pItem.form==='oral'){
     var capsRem=pItem.capsRemaining;
@@ -5130,6 +5132,11 @@ function deletePantryItem(id){
 function updateStock(id,field,value){
   const item=pantry.find(function(p){return p.id===id;});if(!item) return;
   item[field]=field==='expiry'?value:(parseFloat(value)||0);
+  // If dose field changed, clear stale doseMem so calcDaysLeft uses the new value
+  if((field==='vialMg'||field==='capStrength')&&doseMem[item.name]){
+    delete doseMem[item.name];
+    persist(KEYS.doseMem,doseMem);
+  }
   if(item.form==='nasal'){
     var _vm=(item.nasalVialMg||0)*1000;
     item.nasalTotalMcg=(item.nasalOpenMcg||0)+(item.nasalBottles||0)*_vm;
