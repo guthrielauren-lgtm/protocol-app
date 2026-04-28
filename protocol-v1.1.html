@@ -840,7 +840,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   
 
 
-  <div id="protocolReviewWrap" style="margin-bottom:14px"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
     <div class="chart-period-tabs" id="histFilterTabs" style="margin-bottom:0">
       <button class="cpt on" data-filter="all" onclick="setHistFilter('all')">All</button>
@@ -948,7 +947,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- INSIGHTS -->
 <div class="panel" id="panel-insights">
   <div style="font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding:4px 16px 4px;display:block;border-bottom:1px solid var(--bd);margin-bottom:0" id="phdr-insights">INSIGHTS</div>
-  
+  <div id="protocolReviewWrap" style="margin:8px 16px 0"></div>
   <div id="insightsWrap" style="overflow-y:auto;flex:1;padding:8px 16px 80px"></div>
 </div>
 
@@ -1710,8 +1709,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           <input type="number" inputmode="decimal" id="epNasalOpenMcg" placeholder="e.g. 3000" step="any" min="0" oninput="liveCalcNasal()">
         </div>
       </div>
-      <div class="field" style="margin-bottom:8px"><label title="How many times per day you dose">Doses per day</label>
-        <input type="number" inputmode="decimal" id="epNasalDosesPerDay" placeholder="1" step="1" min="1" oninput="liveCalcNasal()">
+      <div class="g2" style="margin-bottom:8px">
+        <div class="field"><label title="How many mcg each spray delivers — overrides calculated value if set">mcg per spray</label>
+          <input type="number" inputmode="decimal" id="epNasalMcgPerSpray" placeholder="auto-calculated" step="any" min="0" oninput="liveCalcNasal()">
+        </div>
+        <div class="field"><label title="How many times per day you dose">Doses per day</label>
+          <input type="number" inputmode="decimal" id="epNasalDosesPerDay" placeholder="1" step="1" min="1" oninput="liveCalcNasal()">
+        </div>
       </div>
       <!-- Calculated hint -->
       <div id="epNasalResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
@@ -4413,8 +4417,11 @@ function calcDaysLeft(pItem,protoCmp){
     var totalMcg=(pItem.nasalTotalMcg!=null)?pItem.nasalTotalMcg
       :(pItem.nasalOpenMcg||0)+((pItem.nasalBottles||0)*((pItem.nasalVialMg||0)*1000));
     // Use protocol dose if available, else pantry default dose
-    var _nd=protoCmp&&protoCmp.dose?parseDoseMg(protoCmp.dose):parseDoseMg(pItem.dose||'');
-    var doseMcg=_nd||(pItem.mcgPerSpray&&pItem.spraysPerDose?(pItem.mcgPerSpray*pItem.spraysPerDose):null);
+    var _ndMg=protoCmp&&protoCmp.dose?parseDoseMg(protoCmp.dose):parseDoseMg(pItem.dose||'');
+    var _nd=_ndMg*1000; // mg → mcg
+    // Use override mcgPerSpray if user set it
+    var _mps=pItem.mcgPerSprayOverride||pItem.mcgPerSpray;
+    var doseMcg=_nd||(_mps&&pItem.spraysPerDose?(_mps*pItem.spraysPerDose):null);
     if(!doseMcg||doseMcg<=0) return null;
     return Math.floor(totalMcg/(doseMcg*dosesPerDay));
   }
@@ -5019,12 +5026,15 @@ function renderPantry(){
         +'<input type="number" inputmode="decimal" value="'+(c.nasalOpenMcg||'')+'" placeholder="e.g. 3000" min="0" step="any" onchange="updateStock(\''+id+'\',\'nasalOpenMcg\',this.value)"></div>'
         +'</div>'
         +'<div class="pc-stock-fields g2" style="margin-top:4px">'
+        +'<div class="stock-f"><label title="Override the calculated mcg per spray if your bottle delivers a different amount">mcg per spray</label>'
+        +'<input type="number" inputmode="decimal" value="'+(c.mcgPerSprayOverride||'')+'" placeholder="auto" step="any" min="0" onchange="updateStock(\''+id+'\',\'mcgPerSprayOverride\',this.value)"></div>'
         +'<div class="stock-f"><label title="How many times per day you dose">Doses per day</label>'
         +'<input type="number" inputmode="decimal" value="'+(c.nasalDosesPerDay||1)+'" placeholder="1" min="1" step="1" onchange="updateStock(\''+id+'\',\'nasalDosesPerDay\',this.value)"></div>'
         +'</div>'
-        +(_nMcgPerSpray?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;line-height:1.7">'
-          +_nMcgPerSpray+'mcg/spray'
+        +((_nMcgPerSpray||c.mcgPerSprayOverride)?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;line-height:1.7">'
+          +(c.mcgPerSprayOverride?c.mcgPerSprayOverride:_nMcgPerSpray)+'mcg/spray'
           +(_nSprays?' · <strong style="color:var(--text)">'+_nSprays+' spray'+(Math.round(_nSprays)!==1?'s':'')+' per dose</strong>':'')
+          +(c.mcgPerSprayOverride?' <span style="color:var(--dim);font-size:9px">(manual)</span>':' <span style="color:var(--dim);font-size:9px">(calculated)</span>')
           +'</div>':'');
     } else if(c.form==='prefilled'){
       sf='<div class="pc-stock-fields g2">'
@@ -5332,6 +5342,7 @@ function openPantryEdit(id){
   var nom=document.getElementById('epNasalOpenMcg');if(nom) nom.value=item.nasalOpenMcg||'';
   // nasalDoseMcg removed — dose comes from protocol/pantry
   var ndpd=document.getElementById('epNasalDosesPerDay');if(ndpd) ndpd.value=item.nasalDosesPerDay||1;
+  var nmps=document.getElementById('epNasalMcgPerSpray');if(nmps) nmps.value=item.mcgPerSprayOverride||'';
   if(item.form==='nasal') liveCalcNasal();
   // Powder fields
   var psEl=document.getElementById('epPowderSize');
@@ -5408,8 +5419,11 @@ function savePantryEdit(){
     item.nasalBottles=parseFloat((document.getElementById('epNasalBottles')||{}).value)||0;
     item.nasalOpenMcg=parseFloat((document.getElementById('epNasalOpenMcg')||{}).value)||null;
     item.nasalDosesPerDay=parseFloat((document.getElementById('epNasalDosesPerDay')||{}).value)||1;
+    item.mcgPerSprayOverride=parseFloat((document.getElementById('epNasalMcgPerSpray')||{}).value)||null;
     if(item.nasalVialMg&&item.nasalReconVol)
       item.mcgPerSpray=Math.round(item.nasalVialMg*1000/item.nasalReconVol/10*100)/100;
+    // Override takes priority
+    if(item.mcgPerSprayOverride) item.mcgPerSpray=item.mcgPerSprayOverride;
     // spraysPerDose derived from protocol/pantry dose at render time
     var _sd=parseDoseMg(item.dose||'');
     if(_sd&&item.mcgPerSpray)
@@ -6284,7 +6298,7 @@ function updateEditorCompound(protoId,i,field,val){
   const proto=protocols.find(function(p){return p.id===protoId;});
   if(!proto||!proto.compounds[i]) return;
   proto.compounds[i][field]=val;persist(KEYS.protocols,protocols);
-  if(activeProtoId===protoId) renderChecklist();
+  if(activeProtoIds.indexOf(protoId)!==-1||activeProtoId===protoId) renderChecklist();
 }
 function updateEditorFreq(protoId,i,val){
   updateEditorCompound(protoId,i,'frequency',val);
@@ -6344,7 +6358,7 @@ function _doAddCompoundToEditor(protoId,name){
     daysOfWeek:[0,1,2,3,4,5,6],rationale:''});
   persist(KEYS.protocols,protocols);
   closeModal('addToProtoModal');renderProtoEditor(proto);
-  if(activeProtoId===protoId) renderChecklist();
+  if(activeProtoIds.indexOf(protoId)!==-1||activeProtoId===protoId) renderChecklist();
   toast(name+' added ✓');
 }
 function saveAndGoToPantry(){
@@ -6496,6 +6510,10 @@ function importData(input){
       if(b.doseMem){doseMem=b.doseMem;await persist(KEYS.doseMem,doseMem);}
       if(b.bodyLogs){bodyLogs=b.bodyLogs;await persist(KEYS.bodyLogs,bodyLogs);}
       if(b.checkins){checkins=b.checkins;await persist(KEYS.checkins,checkins);}
+      if(b.userProfile){userProfile=b.userProfile;await persist('pt_profile_v1',userProfile);}
+      if(b.goals){localStorage.setItem('pt_goals',JSON.stringify(b.goals));}
+      if(b.wantList){localStorage.setItem('pt_restock_want',JSON.stringify(b.wantList));}
+      if(b.libraryVersion){localStorage.setItem('pt_library_version',b.libraryVersion);}
       if(b.pantry){pantry=b.pantry;await persist(KEYS.pantry,pantry);}
       if(b.protocols){protocols=b.protocols;await persist(KEYS.protocols,protocols);}
       if(b.activeProtoId!==undefined){activeProtoId=b.activeProtoId;await persist(KEYS.activeProtoId,activeProtoId);}
@@ -6852,7 +6870,8 @@ function takeAutoSnapshot(){
   var snap={date:todayStr,ts:Date.now(),
     logCount:logs.length,bodyCount:bodyLogs.length,
     data:{logs:logs,bodyLogs:bodyLogs,pantry:pantry,protocols:protocols,
-          activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,checkins:checkins,doseMem:doseMem}};
+          activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,checkins:checkins,doseMem:doseMem,
+          userProfile:userProfile,goals:JSON.parse(localStorage.getItem('pt_goals')||'[]')}};
   // Rotate — keep last 7 snapshots
   var snaps=[];
   try{var s=localStorage.getItem('pt_snapshots');if(s)snaps=JSON.parse(s);}catch(e){}
@@ -7107,93 +7126,182 @@ async function runProtocolReview(key,detailId,btnId){
   var btn=document.getElementById(btnId||'reviewExpandBtn');
   var detail=document.getElementById(detailId||'reviewDetail');
   if(!btn||!detail) return;
-  btn.textContent='Analyzing…';btn.disabled=true;
+  btn.textContent='Analyzing\u2026';btn.disabled=true;
   try{
     var proto=getActiveProtocol();
-    var recentLogs=logs.slice(0,50);
-    var recentBody=[...bodyLogs].sort(function(a,b){return new Date(b.date)-new Date(a.date);}).slice(0,20);
-    var recentCheckins=(checkins||[]).slice(0,14);
-    var avgSleep=recentCheckins.length?Math.round(recentCheckins.reduce(function(a,c){return a+c.sleep;},0)/recentCheckins.length*10)/10:null;
-    var avgEnergy=recentCheckins.length?Math.round(recentCheckins.reduce(function(a,c){return a+c.energy;},0)/recentCheckins.length*10)/10:null;
-    var avgHunger=recentCheckins.length?Math.round(recentCheckins.reduce(function(a,c){return a+c.hunger;},0)/recentCheckins.length*10)/10:null;
-    var avgRecovery=recentCheckins.length?Math.round(recentCheckins.reduce(function(a,c){return a+c.recovery;},0)/recentCheckins.length*10)/10:null;
-    var sideEffects=recentCheckins.length?[...new Set(recentCheckins.flatMap(function(c){return c.sideEffects&&c.sideEffects!=='None'?c.sideEffects.split(', '):[];}))].join(', ')||'None':'None';
-    // Calc adherence
-    var scheduledDays=new Set();
-    var loggedDays=new Set(recentLogs.map(function(l){return l.date;}));
-    var d=new Date(proto.startDate);var now=new Date();
-    while(d<=now){
-      var dow=d.getDay();
-      var hasCompound=proto.compounds.some(function(c){return !c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1;});
-      if(hasCompound) scheduledDays.add(d.toISOString().split('T')[0]);
-      d.setDate(d.getDate()+1);
+    if(!proto) throw new Error('No active protocol found.');
+    var profile=userProfile||{};
+    var now=new Date();
+    var protoStart=parseLocalDate(proto.startDate);
+    var weeksElapsed=Math.floor((now-protoStart)/(7*24*3600*1000));
+
+    // ── Per-compound compliance ──────────────────────────────────────────────
+    var complianceByCompound={};
+    proto.compounds.forEach(function(c){
+      var scheduledDates=[];
+      var d=new Date(protoStart);
+      while(d<=now){
+        var dow=d.getDay();
+        var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
+        if(dows.indexOf(dow)!==-1) scheduledDates.push(d.toISOString().split('T')[0]);
+        d.setDate(d.getDate()+1);
+      }
+      var loggedDates=new Set(logs.filter(function(l){return l.compound===c.name;}).map(function(l){return l.date;}));
+      var pct=scheduledDates.length>0?Math.round(scheduledDates.filter(function(d){return loggedDates.has(d);}).length/scheduledDates.length*100):0;
+      complianceByCompound[c.name]=pct;
+    });
+
+    // ── Overall adherence ────────────────────────────────────────────────────
+    var allScheduled=new Set();
+    var d2=new Date(protoStart);
+    while(d2<=now){
+      var dow2=d2.getDay();
+      if(proto.compounds.some(function(c){return !c.daysOfWeek||c.daysOfWeek.indexOf(dow2)!==-1;}))
+        allScheduled.add(d2.toISOString().split('T')[0]);
+      d2.setDate(d2.getDate()+1);
     }
-    var adherence=scheduledDays.size>0?Math.round([...scheduledDays].filter(function(day){return loggedDays.has(day);}).length/scheduledDays.size*100):0;
-    var prompt='You are a body recomposition coach analyzing a peptide/supplement protocol. '
-      +'Provide a concise efficacy review. Protocol: '+proto.name+' ('+proto.durationWeeks+' weeks, '
-      +'compounds: '+proto.compounds.map(function(c){return c.name+' '+c.dose;}).join(', ')+'). '
-      +'Adherence: '+adherence+'%. '
-      +'Recent body comp (Withings lbs, newest first): '+recentBody.filter(function(b){return b.source!=='dexa';}).slice(0,5).map(function(b){return b.date+' M:'+b.muscle+' F:'+b.fat;}).join('; ')+'.'
-      +(recentBody.find(function(b){return b.source==='dexa';})?
-        ' Latest DEXA: fat '+recentBody.find(function(b){return b.source==='dexa';}).fatPct+'% lean '+recentBody.find(function(b){return b.source==='dexa';}).muscle+'lbs.':'')
-      +(avgSleep!==null?' Avg sleep (1-10 scale): '+avgSleep+'/10.':' Sleep data: not yet logged in check-ins.')
-      +(avgEnergy!==null?' Avg energy: '+avgEnergy+'/10.':'')
-      +(avgHunger!==null?' Avg hunger: '+avgHunger+'/10 (10=starving).':'')
-      +(avgRecovery!==null?' Avg recovery: '+avgRecovery+'/10.':'')
-      +(sideEffects&&sideEffects!=='None'?' Reported side effects: '+sideEffects+'.':'')
-      +' You MUST respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Start your response with { and end with }.'
-      +' Format: {"verdict":"one sentence verdict","trend":"fat loss","adherence_pct":'+adherence+',"highlights":["finding 1","finding 2","finding 3"],"recommendation":"one actionable sentence","caution":null}';
+    var loggedDays=new Set(logs.filter(function(l){
+      return proto.compounds.some(function(c){return c.name===l.compound;});
+    }).map(function(l){return l.date;}));
+    var adherence=allScheduled.size>0?Math.round([...allScheduled].filter(function(day){return loggedDays.has(day);}).length/allScheduled.size*100):0;
+
+    // ── Check-in trends ──────────────────────────────────────────────────────
+    var sortedCheckins=[...(checkins||[])].sort(function(a,b){return a.date>b.date?1:-1;});
+    var recentCI=sortedCheckins.slice(-14);
+    var earlyCI=sortedCheckins.slice(0,7);
+    function avg(arr,field){return arr.length?Math.round(arr.reduce(function(s,c){return s+(c[field]||0);},0)/arr.length*10)/10:null;}
+    function trend(early,recent,field){
+      var e=avg(early,field),r=avg(recent,field);
+      if(e===null||r===null) return null;
+      var delta=Math.round((r-e)*10)/10;
+      return{early:e,recent:r,delta:delta,dir:delta>0.3?'improving':delta<-0.3?'declining':'stable'};
+    }
+    var sleepTrend=trend(earlyCI,recentCI,'sleep');
+    var energyTrend=trend(earlyCI,recentCI,'energy');
+    var hungerTrend=trend(earlyCI,recentCI,'hunger');
+    var recoveryTrend=trend(earlyCI,recentCI,'recovery');
+    var sideEffects=[...new Set((checkins||[]).flatMap(function(c){
+      return c.sideEffects&&c.sideEffects!=='None'?c.sideEffects.split(', '):[];
+    }))].filter(Boolean);
+
+    // ── Body comp trend ──────────────────────────────────────────────────────
+    var sortedBody=[...bodyLogs].sort(function(a,b){return a.date>b.date?1:-1;});
+    var baseline=sortedBody[0]||null;
+    var latest=sortedBody[sortedBody.length-1]||null;
+    var dexaLogs=sortedBody.filter(function(b){return b.source==='dexa';});
+    var wtDelta=baseline&&latest&&baseline.weight&&latest.weight?Math.round((latest.weight-baseline.weight)*10)/10:null;
+    var fatDelta=dexaLogs.length>1?Math.round((dexaLogs[dexaLogs.length-1].fatPct-dexaLogs[0].fatPct)*10)/10:null;
+
+    // ── Timing patterns ──────────────────────────────────────────────────────
+    var timingNotes=[];
+    proto.compounds.forEach(function(c){
+      if(!c.timingWindow||c.timingWindow==='other') return;
+      var cLogs=logs.filter(function(l){return l.compound===c.name;}).slice(0,20);
+      if(!cLogs.length) return;
+      var fastingOk=cLogs.filter(function(l){
+        return c.fasting?(l.fedState==='fasted'):(l.fedState!=='fasted');
+      }).length;
+      var fastingPct=Math.round(fastingOk/cLogs.length*100);
+      if(c.fasting&&fastingPct<70) timingNotes.push(c.name+' should be taken fasted ('+fastingPct+'% compliance on fasting)');
+    });
+
+    // ── Build system prompt ──────────────────────────────────────────────────
+    var system='You are a knowledgeable body recomposition coach reviewing a client\'s peptide and supplement protocol data. '
+      +'Write a coach\'s note — direct, warm, evidence-based. Use only the data provided. Make no assumptions about what the data does not show. '
+      +'If data is insufficient for a section, say so briefly and move on. '
+      +'Avoid generic peptide claims. Ground every observation in the actual numbers. '
+      +'Format your response as a JSON object with these exact keys: '
+      +'{"whats_working": "paragraph", "needs_attention": "paragraph", "id_adjust": "paragraph", "watch_for": "paragraph", "realistic_outlook": "one sentence based only on trends observed so far"}. '
+      +'No markdown, no backticks. Start with { end with }.';
+
+    // ── Build user prompt ────────────────────────────────────────────────────
+    var userPrompt='CLIENT CONTEXT\n'
+      +'Goals: '+(JSON.parse(localStorage.getItem('pt_goals')||'[]').join(', ')||'not specified')+'\n'
+      +(profile.sex?'Biological sex: '+profile.sex+'\n':'')
+      +(profile.dob?'Age: '+Math.floor((now-new Date(profile.dob))/(365.25*24*3600*1000))+'\n':'')
+      +(profile.targetWeight?'Target weight: '+profile.targetWeight+'lbs\n':'')
+      +(profile.targetBodyFat?'Target body fat: '+profile.targetBodyFat+'%\n':'')
+      +(profile.timelineWeeks?'Timeline: '+profile.timelineWeeks+' weeks\n':'')
+      +'\nPROTOCOL\n'
+      +'Name: '+proto.name+'\n'
+      +'Duration: '+proto.durationWeeks+' weeks (week '+weeksElapsed+' of '+proto.durationWeeks+')\n'
+      +'Compounds:\n'
+      +proto.compounds.map(function(c){
+        return '  - '+c.name+' '+c.dose+' '+(c.timingWindow||'')+' '+(c.frequency||'daily')
+          +(c.fasting?' (fasted)':'')
+          +' — '+weeksElapsed+' weeks elapsed'
+          +' — compliance: '+complianceByCompound[c.name]+'%';
+      }).join('\n')+'\n'
+      +'Overall adherence: '+adherence+'%\n'
+      +'\nBODY COMPOSITION\n'
+      +(baseline&&latest&&wtDelta!==null
+        ?'Weight: '+baseline.weight+'lbs at start → '+latest.weight+'lbs now ('+
+          (wtDelta>=0?'+':'')+wtDelta+'lbs over '+weeksElapsed+' weeks)\n'
+        :'Weight data: not available\n')
+      +(dexaLogs.length>0
+        ?'DEXA body fat: '+dexaLogs[0].fatPct+'% → '+dexaLogs[dexaLogs.length-1].fatPct+'%'
+          +(fatDelta!==null?' ('+fatDelta+'% change)':'')+'\n'
+        :'DEXA data: not available\n')
+      +'\nCHECK-IN TRENDS (1-10 scale)\n'
+      +(sleepTrend?'Sleep: avg '+sleepTrend.recent+'/10, '+sleepTrend.dir+' (was '+sleepTrend.early+' early → '+sleepTrend.recent+' recent)\n':'Sleep: insufficient check-in data\n')
+      +(energyTrend?'Energy: avg '+energyTrend.recent+'/10, '+energyTrend.dir+'\n':'')
+      +(hungerTrend?'Hunger: avg '+hungerTrend.recent+'/10 (10=very hungry), '+hungerTrend.dir+'\n':'')
+      +(recoveryTrend?'Recovery: avg '+recoveryTrend.recent+'/10, '+recoveryTrend.dir+'\n':'')
+      +(sideEffects.length?'Side effects reported: '+sideEffects.join(', ')+'\n':'No side effects reported\n')
+      +(timingNotes.length?'\nTIMING FLAGS\n'+timingNotes.join('\n')+'\n':'');
+
     var apiKey=localStorage.getItem('rp_anthropic_key')||'';
-    var headers={
-      'Content-Type':'application/json',
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    };
+    var headers={'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
     if(apiKey) headers['x-api-key']=apiKey;
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:headers,
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,
-        system:'You are a body recomposition analysis assistant. Always respond with pure JSON only — no markdown, no code blocks, no preamble. Your entire response must be a single valid JSON object starting with { and ending with }.',
-        messages:[{role:'user',content:prompt}]})
+      method:'POST',headers:headers,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,
+        system:system,
+        messages:[{role:'user',content:userPrompt}]})
     });
     var rawText=await resp.text();
     if(!resp.ok){
-      if(resp.status===401) throw new Error('API key required — add yours in Settings → Integrations');
+      if(resp.status===401) throw new Error('API key required — add yours in Settings');
       throw new Error('HTTP '+resp.status+': '+rawText.slice(0,120));
     }
-    var data;
-    try{data=JSON.parse(rawText);}catch(e){throw new Error('Non-JSON response: '+rawText.slice(0,120));}
+    var data=JSON.parse(rawText);
     if(data.error) throw new Error(data.error.type+': '+data.error.message);
-    if(!data.content||!data.content.length) throw new Error('Empty content in: '+JSON.stringify(data).slice(0,120));
     var text=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
-    if(!text) throw new Error('Empty text block');
-    var start=text.indexOf('{');
-    var end=text.lastIndexOf('}');
-    if(start===-1||end===-1||end<=start) throw new Error('No JSON in: '+text.slice(0,120));
-    var review;
-    try{review=JSON.parse(text.slice(start,end+1));}catch(e){throw new Error('Parse failed: '+text.slice(0,120));}
-    var trendColor={'fat loss':'var(--p1)','muscle gain':'var(--p1)','stalled':'var(--p2)','mixed':'var(--p3)'}[review.trend]||'var(--mid)';
+    var start=text.indexOf('{'),end=text.lastIndexOf('}');
+    if(start===-1||end===-1) throw new Error('No JSON in response');
+    var review=JSON.parse(text.slice(start,end+1));
+
+    // ── Render coach's note ──────────────────────────────────────────────────
+    function section(icon,label,content,color){
+      if(!content) return '';
+      return '<div style="margin-bottom:14px">'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:'+(color||'var(--p1)')+';margin-bottom:6px">'+icon+' '+label+'</div>'
+        +'<div style="font-family:var(--sans);font-size:13px;color:var(--text);line-height:1.7">'+content+'</div>'
+        +'</div>';
+    }
     detail.innerHTML=
-      '<div style="font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.5">'+review.verdict+'</div>'
-      +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'
-      +'<span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:10px;background:var(--sf2);color:'+trendColor+'">'+review.trend+'</span>'
-      +'<span style="font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:10px;background:var(--sf2);color:var(--p3)">'+review.adherence_pct+'% adherence</span>'
+      '<div style="border-left:3px solid var(--p1);padding-left:12px;margin-bottom:16px">'
+        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">Week '+weeksElapsed+' of '+proto.durationWeeks+' \u00b7 '+adherence+'% adherence</div>'
+        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+proto.compounds.map(function(c){return c.name+' '+complianceByCompound[c.name]+'%';}).join(' \u00b7 ')+'</div>'
       +'</div>'
-      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:6px">Key findings:</div>'
-      +'<ul style="margin:0 0 12px;padding-left:16px">'
-      +(review.highlights||[]).map(function(h){return'<li style="font-family:var(--mono);font-size:10px;color:var(--text);margin-bottom:4px">'+h+'</li>';}).join('')
-      +'</ul>'
-      +'<div style="font-family:var(--mono);font-size:10px;color:var(--p1);margin-bottom:'+(review.caution?'8px':'0')+'">Recommendation: '+review.recommendation+'</div>'
-      +(review.caution?'<div style="font-family:var(--mono);font-size:10px;color:var(--p2)">Note: '+review.caution+'</div>':'')
-      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:10px;padding-top:8px;border-top:1px solid var(--bd)">AI-generated analysis for informational purposes only. Not medical advice.</div>';
-    detail.style.display='block';
-    btn.textContent='Collapse';btn.disabled=false;
-    btn.onclick=function(){detail.style.display=detail.style.display==='none'?'block':'none';btn.textContent=detail.style.display==='none'?'Full Analysis':'Collapse';};
+      +section('\u2714','What\u2019s working',review.whats_working,'var(--p1)')
+      +section('\u26a0','What needs attention',review.needs_attention,'var(--p2)')
+      +section('\u2192','What I\u2019d adjust',review.id_adjust,'var(--p3)')
+      +section('\u25ce','What to watch for',review.watch_for,'var(--p4)')
+      +(review.realistic_outlook?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-top:4px">'
+        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">REALISTIC OUTLOOK</div>'
+        +'<div style="font-family:var(--sans);font-size:13px;color:var(--text);line-height:1.6;font-style:italic">'+review.realistic_outlook+'</div>'
+        +'</div>':'')
+      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:12px;padding-top:8px;border-top:1px solid var(--bd)">AI-generated coach\u2019s note for informational purposes only. Not medical advice.</div>';
+    // Show in preview modal
+    openReportPreview(proto.name+' · Week '+weeksElapsed+' of '+proto.durationWeeks, detail.innerHTML);
+    detail.style.display='none';
+    btn.textContent='View Report →';btn.disabled=false;
+    btn.onclick=function(){openReportPreview(proto.name+' · Week '+weeksElapsed+' of '+proto.durationWeeks, detail.innerHTML);};
   } catch(err){
-    detail.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--p5);line-height:1.6">⚠ '+err.message+'</div>';
+    detail.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--p5);line-height:1.6">\u26a0 '+err.message+'</div>';
     detail.style.display='block';
-    btn.textContent='Full Analysis →';btn.disabled=false;
+    btn.textContent='Full Analysis \u2192';btn.disabled=false;
   }
 }
 
@@ -8061,6 +8169,18 @@ function addSelectedNewCompounds(){
   dismissNewCompounds();
 }
 
+function openReportPreview(title, contentHtml){
+  var titleEl=document.getElementById('reportPreviewTitle');
+  var bodyEl=document.getElementById('reportPreviewBody');
+  if(titleEl) titleEl.textContent=title||'';
+  if(bodyEl) bodyEl.innerHTML=contentHtml||'';
+  openModal('reportPreviewModal');
+}
+
+function printReport(){
+  window.print();
+}
+
 function dismissNewCompounds(){
   localStorage.setItem('pt_library_version',LIBRARY_VERSION);
   closeModal('newCompoundsModal');
@@ -8075,9 +8195,13 @@ function dismissBackupBanner(){
 
 function exportToFiles(){
   localStorage.setItem('pt_last_files_save', Date.now().toString());
-  var backup={version:10,exported:new Date().toISOString(),
+  var backup={version:11,exported:new Date().toISOString(),
     logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
-    pantry:pantry,protocols:protocols,activeProtoId:activeProtoId,activeProtoIds:activeProtoIds};
+    pantry:pantry,protocols:protocols,activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,
+    userProfile:userProfile,
+    goals:JSON.parse(localStorage.getItem('pt_goals')||'[]'),
+    wantList:JSON.parse(localStorage.getItem('pt_restock_want')||'[]'),
+    libraryVersion:localStorage.getItem('pt_library_version')||''};
   var jsonStr=JSON.stringify(backup,null,2);
   var filename='protocol-backup-'+today()+'.json';
   // iOS PWA: use Web Share API to trigger Files picker
@@ -8524,15 +8648,18 @@ function liveCalcNasal(){
     }
     return parseDoseMg(_editItem.dose||'');
   }()):0;
-  var desiredMcg=_protoDose||0;
+  // parseDoseMg returns mg — convert to mcg for nasal calculations
+  var desiredMcg=(_protoDose||0)*1000;
   var dosesPerDay=parseFloat(document.getElementById('epNasalDosesPerDay')&&document.getElementById('epNasalDosesPerDay').value)||1;
   var sealedBottles=parseFloat(document.getElementById('epNasalBottles')&&document.getElementById('epNasalBottles').value)||0;
   var openMcg=parseFloat(document.getElementById('epNasalOpenMcg')&&document.getElementById('epNasalOpenMcg').value)||0;
   var resultEl=document.getElementById('epNasalResult');
   var drawEl=document.getElementById('epNasalDraw');
   var mathEl=document.getElementById('epNasalMath');
-  if(!vialMg||!reconVol||!desiredMcg){if(resultEl)resultEl.style.display='none';return;}
-  var mcgPerSpray=Math.round((vialMg*1000/reconVol/10)*100)/100; // mcg per 0.1mL spray
+  var mcgPerSprayOverride=parseFloat(document.getElementById('epNasalMcgPerSpray')&&document.getElementById('epNasalMcgPerSpray').value)||0;
+  var mcgPerSprayCalc=(vialMg&&reconVol)?Math.round((vialMg*1000/reconVol/10)*100)/100:0;
+  var mcgPerSpray=mcgPerSprayOverride||mcgPerSprayCalc;
+  if(!mcgPerSpray||!desiredMcg){if(resultEl)resultEl.style.display='none';return;}
   var spraysPerDose=Math.round((desiredMcg/mcgPerSpray)*10)/10;
   var totalMcgPerBottle=vialMg*1000;
   var totalMcg=openMcg+(sealedBottles*totalMcgPerBottle);
@@ -8558,7 +8685,7 @@ function liveCalcPowder(){
     var perServing=parseFloat((size/servings).toFixed(2));
     result.style.display='block';
     draw.textContent=perServing+unit+' per serving';
-    math.textContent=size+unit+' ÷ '+servings+' servings = '+perServing+unit+' per dose';
+    if(math) math.textContent='';
   } else {
     result.style.display='none';
   }
@@ -9181,6 +9308,32 @@ document.addEventListener('DOMContentLoaded', initApp);
     </div>
   </div>
 </div>
+
+<!-- ═══════════ REPORT PREVIEW MODAL ═══════════ -->
+<div class="modal-overlay" id="reportPreviewModal">
+  <div class="modal" style="max-height:92vh;padding:0;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:16px 20px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p1);margin-bottom:3px">Protocol Coach Report</div>
+        <div style="font-family:var(--serif);font-size:17px;color:var(--text)" id="reportPreviewTitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn sm" onclick="printReport()" style="font-size:10px">⬇ PDF</button>
+        <button class="modal-close" onclick="closeModal('reportPreviewModal')">&#x2715;</button>
+      </div>
+    </div>
+    <div id="reportPreviewBody" style="overflow-y:auto;flex:1;padding:20px"></div>
+  </div>
+</div>
+
+<style id="reportPrintStyle">
+@media print {
+  body > *:not(#reportPreviewModal) { display:none!important; }
+  #reportPreviewModal { position:static!important; background:white!important; }
+  #reportPreviewModal .modal { max-height:none!important; box-shadow:none!important; border:none!important; }
+  #reportPreviewModal .modal > div:first-child button { display:none!important; }
+}
+</style>
 
 <!-- ═══════════ NEW COMPOUNDS MODAL ═══════════ -->
 <div class="modal-overlay" id="newCompoundsModal">
