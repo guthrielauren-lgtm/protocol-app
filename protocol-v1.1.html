@@ -4601,7 +4601,7 @@ function renderRestockSection(){
         var db=COMPOUND_DB.find(function(d){return d.name===c.name;});
         var desc=(c.notes)||(db&&db.rationale)||'';
         return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
-          +'<input type="checkbox" '+(ordered?'checked':'')+' onchange="toggleProtoOrdered(\''+c.id+'\',this.checked)" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--p5)">'
+          +'<span data-oid="'+c.id+'" onclick="toggleProtoOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p5);background:'+(ordered?'var(--p5)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
           +'<div style="flex:1;min-width:0"><div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+c.name+'</div>'
           +(desc?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px;line-height:1.5">'+desc.split('.')[0]+'.</div>':'')
           +'</div>'
@@ -4626,7 +4626,7 @@ function renderRestockSection(){
     const ordKey='rp_ordered_'+c.id;
     const ordered=localStorage.getItem(ordKey)==='1';
     return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
-      +'<input type="checkbox" '+(ordered?'checked':'')+' onchange="toggleOrdered(\''+c.id+'\',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--p1)">'
+      +'<span data-oid="'+c.id+'" onclick="toggleOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p1);background:'+(ordered?'var(--p1)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
       +'<div style="flex:1">'
       +'<div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+c.name+'</div>'
       +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">'+(dl===0?'Out of stock':'~'+dl+' days remaining')+'</div>'
@@ -4646,7 +4646,7 @@ function renderRestockSection(){
         var db=COMPOUND_DB.find(function(d){return d.name===name;});
         var desc=db&&db.rationale?db.rationale.split('.')[0]+'.':'';
         return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
-          +'<input type="checkbox" '+(ordered?'checked':'')+' onchange="toggleWantOrdered(\''+name+'\',this.checked)" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--p3)">'
+          +'<span data-name="'+name+'" onclick="toggleWantOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p3);background:'+(ordered?'var(--p3)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
           +'<div style="flex:1;min-width:0"><div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+name+'</div>'
           +(desc?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">'+desc+'</div>':'')
           +'</div>'
@@ -4685,6 +4685,31 @@ function removeFromWantList(name){
 function toggleOrdered(id,checked){
   localStorage.setItem('rp_ordered_'+id,checked?'1':'0');
   renderRestockSection();
+}
+function toggleOrderedUI(el){
+  var id=el.dataset.oid;
+  var checked=localStorage.getItem('rp_ordered_'+id)!=='1';
+  localStorage.setItem('rp_ordered_'+id,checked?'1':'0');
+  el.style.background=checked?'var(--p1)':'transparent';
+  el.innerHTML=checked?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'';
+  var row=el.closest('[style*="display:flex"]');if(row) row.style.opacity=checked?'0.45':'1';
+}
+function toggleProtoOrderedUI(el){
+  var id=el.dataset.oid;
+  var checked=localStorage.getItem('proto_ord_'+id)!=='1';
+  localStorage.setItem('proto_ord_'+id,checked?'1':'0');
+  el.style.background=checked?'var(--p5)':'transparent';
+  el.innerHTML=checked?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'';
+  var row=el.closest('[style*="display:flex"]');if(row) row.style.opacity=checked?'0.45':'1';
+}
+function toggleWantOrderedUI(el){
+  var name=el.dataset.name;
+  var key='rp_want_ordered_'+name.replace(/\s+/g,'_');
+  var checked=localStorage.getItem(key)!=='1';
+  localStorage.setItem(key,checked?'1':'0');
+  el.style.background=checked?'var(--p3)':'transparent';
+  el.innerHTML=checked?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'';
+  var row=el.closest('[style*="display:flex"]');if(row) row.style.opacity=checked?'0.45':'1';
 }
 function toggleProtoOrdered(id,checked){
   localStorage.setItem('proto_ord_'+id,checked?'1':'0');
@@ -5305,6 +5330,8 @@ function savePantryEdit(){
   const item=pantry.find(function(p){return p.id===id;});if(!item) return;
   const newName=document.getElementById('epName').value.trim();
   const newDose=getDoseValue('epDose','epDoseUnit');
+  if(newName) item.name=newName;
+  if(newDose) item.dose=newDose;
   item.route=document.getElementById('epRoute').value;
   item.form=document.getElementById('epForm').value;
   item.cat=document.getElementById('epCat').value;
@@ -5616,13 +5643,43 @@ function renderLibraryBrowser(q){
   var pantryNames=new Set(pantry.map(function(p){return p.name.toLowerCase();}));
   var query=(q||'').toLowerCase().trim();
 
-  // Filter COMPOUND_DB: exclude items already in pantry
-  var available=COMPOUND_DB.filter(function(c){
+  // Build master list: COMPOUND_DB + DEFAULT_PANTRY, deduped by name
+  var seen=new Set();
+  var masterList=[];
+  COMPOUND_DB.forEach(function(c){
+    if(!seen.has(c.name.toLowerCase())){
+      seen.add(c.name.toLowerCase());
+      masterList.push(c);
+    }
+  });
+  DEFAULT_PANTRY.forEach(function(d){
+    if(!seen.has(d.name.toLowerCase())){
+      seen.add(d.name.toLowerCase());
+      // Normalize DEFAULT_PANTRY entry to match COMPOUND_DB shape
+      masterList.push({
+        name:d.name,
+        cat:d.cat||'other',
+        color:d.color||'var(--mid)',
+        dose:d.dose||'—',
+        route:d.route||'',
+        form:d.form||'vial',
+        rationale:d.notes||'',
+        fasting:d.fasting||false,
+        site:d.site||'',
+        timingWindow:d.timingWindow||'am',
+        frequency:d.frequency||'daily',
+        daysOfWeek:d.daysOfWeek||[0,1,2,3,4,5,6]
+      });
+    }
+  });
+
+  // Filter: exclude items already in pantry, apply search
+  var available=masterList.filter(function(c){
     if(pantryNames.has(c.name.toLowerCase())) return false;
     if(!query) return true;
     return c.name.toLowerCase().indexOf(query)>-1
       ||(c.cat||'').toLowerCase().indexOf(query)>-1
-      ||(c.rationale||'').toLowerCase().indexOf(query)>-1;
+      ||(c.rationale||c.notes||'').toLowerCase().indexOf(query)>-1;
   });
 
   if(!available.length){
@@ -5665,7 +5722,9 @@ function renderLibraryBrowser(q){
 }
 
 function addFromLibrary(name){
-  var dbItem=COMPOUND_DB.find(function(c){return c.name===name;});
+  // Look in COMPOUND_DB first, then DEFAULT_PANTRY
+  var dbItem=COMPOUND_DB.find(function(c){return c.name===name;})
+    ||DEFAULT_PANTRY.find(function(d){return d.name===name;});
   if(!dbItem) return;
   if(pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
     toast(name+' is already in your pantry');
