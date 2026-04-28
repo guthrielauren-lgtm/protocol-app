@@ -264,7 +264,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .pantry-add-form{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:12px;display:none}
 .pantry-add-form.open{display:block}
 .pc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;transition:border-color .15s;overflow:hidden}.pc-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}.pc-hdr.open{border-bottom:1px solid var(--bd)}.pc-body{display:none;padding:12px 14px 14px}.pc-body.open{display:block}
-.pc:hover{border-color:var(--bd2)}.pc.low-stock{border-color:var(--warn)}.pc.inactive{opacity:.45}
+.pc:hover{border-color:var(--bd2)}.pc.low-stock{}.pc.inactive{opacity:.45}
 .pc-top{display:flex;align-items:center;gap:10px}
 .pc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .pc-name-wrap{flex:1;min-width:0}
@@ -1654,7 +1654,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div id="epUnitsResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">Units to draw — per dose</div>
         <div style="font-family:var(--serif);font-size:22px;color:var(--text)" id="epUnitsDraw">—</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px" id="epUnitsMath"></div>
+
       </div>
     </div>
 
@@ -1680,7 +1680,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div id="epCapsResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">Capsules per dose — per dose</div>
         <div style="font-family:var(--serif);font-size:22px;color:var(--text)" id="epCapsDraw">—</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px" id="epCapsMath"></div>
+
       </div>
     </div>
 
@@ -1717,7 +1717,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div id="epNasalResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">Dosing calculator</div>
         <div style="font-family:var(--serif);font-size:22px;color:var(--text)" id="epNasalDraw">—</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px;line-height:1.6" id="epNasalMath"></div>
+
       </div>
     </div>
 
@@ -1742,7 +1742,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div id="epPowderResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">Serving size — per dose</div>
         <div style="font-family:var(--serif);font-size:22px;color:var(--text)" id="epPowderDraw">—</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px" id="epPowderMath"></div>
+
       </div>
     </div>
 
@@ -4397,7 +4397,10 @@ function calcDaysLeft(pItem,protoCmp){
     var capsRem=pItem.capsRemaining;
     if(capsRem==null||capsRem<0) return null;
     if(capsRem===0) return 0;
-    var capStr=pItem.capStrength||pItem.capDose||null;
+    // Use pre-normalized capStrengthMg if available, else normalize from unit
+    var capStr=pItem.capStrengthMg||(pItem.capStrength
+      ?(pItem.capStrengthUnit==='mcg'?pItem.capStrength/1000:pItem.capStrength)
+      :pItem.capDose||null);
     var capsPerDose=(doseMgVal&&capStr)?Math.max(1,Math.ceil(doseMgVal/capStr)):1;
     return Math.floor(capsRem/(capsPerDose*dosesPerDay));
   }
@@ -4607,40 +4610,49 @@ function renderRestockSection(){
           +'<div style="flex:1;min-width:0"><div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+c.name+'</div>'
           +(desc?'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px;line-height:1.5">'+desc.split('.')[0]+'.</div>':'')
           +'</div>'
-          +'<button class="btn sm" onclick="openRestock(\''+c.id+'\')" style="font-size:10px;padding:5px 10px">Add to Stock</button>'
+          +'<button class="btn sm" onclick="openRestock(\''+c.id+'\')" style="font-size:10px;padding:5px 10px;background:var(--p2d);border-color:var(--p2);color:var(--p2)">Add to Stock</button>'
           +'</div>';
       }).join('');
   }
   list.innerHTML=_needsHtml;
 
-  var _noLowStock=!items.length;
-  if(_noLowStock){
-    // list already has needsOrdering — don't overwrite
-  }
-  if(items.length){
-    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);padding:10px 14px 4px;border-top:2px solid var(--bd)">Running low or out of stock</div>'
-      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">Check the box once you\u2019ve placed a reorder. Tap <strong style="color:var(--text)">+ Restock</strong> when your new supply arrives to update your stock count.</div>';
-  }
-  list.innerHTML+=items.map(function(c){
-    const pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
-    const dl=calcDaysLeft(c,pcmp);
-    const inProto=protoNames.has(c.name);
-    const ordKey='rp_ordered_'+c.id;
-    const ordered=localStorage.getItem(ordKey)==='1';
+  // Split low-stock into protocol vs non-protocol
+  var protoLowItems=items.filter(function(c){return protoNames.has(c.name.toLowerCase());});
+  var otherLowItems=items.filter(function(c){return !protoNames.has(c.name.toLowerCase());});
+
+  function renderLowRow(c){
+    var pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
+    var dl=calcDaysLeft(c,pcmp);
+    var ordKey='rp_ordered_'+c.id;
+    var ordered=localStorage.getItem(ordKey)==='1';
     return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
-      +'<span data-oid="'+c.id+'" onclick="toggleOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p1);background:'+(ordered?'var(--p1)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
-      +'<div style="flex:1">'
-      +'<div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+c.name+'</div>'
-      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">'+(dl===0?'Out of stock':'~'+dl+' days remaining')+'</div>'
-      +'</div>'
-      +(inProto?'<span style="font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid var(--p2);color:var(--p2)">Protocol</span>':'')
-      +'<button class="btn sm" onclick="openRestock(\''+c.id+'\')" style="padding:5px 10px;font-size:10px">+ Restock</button>'
+      +'<span data-oid="'+c.id+'" onclick="toggleOrderedUI(this)" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p1);background:'+(ordered?'var(--p1)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
+      +'<div style="flex:1"><div style="font-family:var(--lora,var(--serif));font-size:13px;color:var(--text)">'+c.name+'</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">'+(dl===0?'Out of stock':'~'+dl+' days remaining')+'</div></div>'
+      +'<button class="btn sm" onclick="openRestock(\''+c.id+'\')" style="padding:5px 10px;font-size:10px;background:var(--p2d);border-color:var(--p2);color:var(--p2)">+ Restock</button>'
       +'</div>';
-  }).join('');
-  var want=[];
+  }
+
+  // Merge protocol needs-ordering + running low into one section
+  var allProtoReorder=needsOrdering.concat(protoLowItems);
+  if(allProtoReorder.length){
+    // Re-render needsOrdering rows using renderLowRow style for consistency
+    // (needsOrdering already rendered above as _needsHtml — clear and redo)
+  }
+  if(protoLowItems.length){
+    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);padding:10px 14px 4px;border-top:2px solid var(--bd)">In protocol — reorder needed</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">Tap the circle once you’ve placed a reorder. Tap <strong style="color:var(--text)">+ Restock</strong> when your supply arrives.</div>'
+      +protoLowItems.map(renderLowRow).join('');
+  }
+  if(otherLowItems.length){
+    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 14px 4px;border-top:2px solid var(--bd)">Other stock alerts</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">These items are running low but are not in your active protocol.</div>'
+      +otherLowItems.map(renderLowRow).join('');
+  }
+    var want=[];
   try{var ws=localStorage.getItem('pt_restock_want');if(ws)want=JSON.parse(ws);}catch(e){}
   if(want.length){
-    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 14px 4px;border-top:2px solid var(--bd)">To order — not yet in pantry</div>'
+    list.innerHTML+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 14px 4px;border-top:2px solid var(--bd)">To order — to order</div>'
       +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:6px 14px 8px;line-height:1.6">Check the box once you’ve placed an order to track it as pending. Remove it once it arrives and you’ve added it to your pantry.</div>'
       +want.map(function(name){
         var ordKey='rp_want_ordered_'+name.replace(/\s+/g,'_');
@@ -4948,7 +4960,7 @@ function renderPantry(){
     var physHint='';
     if(c.form==='oral'&&c.capStrength){
       var dmv=parseDoseMg(doseDisplay);
-      var csm=c.capStrength<1?c.capStrength*1000:c.capStrength;
+      var csm=c.capStrengthMg||(c.capStrengthUnit==='mcg'?c.capStrength/1000:c.capStrength);
       var caps2=dmv>0&&csm>0?Math.ceil(dmv/csm):null;
       if(caps2) physHint=' &middot; <span style="color:var(--p1)">'+caps2+' cap'+(caps2!==1?'s':'')+'</span>';
     } else if(c.form==='vial'&&c.vialMg&&c.reconVol){
@@ -4959,7 +4971,13 @@ function renderPantry(){
     }
     var badges='';
     if(inProto) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1);white-space:nowrap">&#9679; In protocol</span> ';
-    if(inStock) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.35);white-space:nowrap">&#9679; In stock</span>';
+    if(inStock){
+      badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.35);white-space:nowrap">&#9679; In stock</span>';
+      if(low) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(245,166,35,.1);color:var(--p2);border:1px solid var(--p2);white-space:nowrap">⚠ '+
+        (daysLeft===0?'Out of stock':'~'+daysLeft+'d left')+'</span>';
+    } else if(!inStock&&protoNames&&protoNames.has(c.name.toLowerCase())){
+      badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(242,92,84,.1);color:var(--p5);border:1px solid var(--p5);white-space:nowrap">&#9679; No stock</span>';
+    }
     // Multi-concentration: show Active badge + combined stock indicator
     var sameName=pantry.filter(function(p){return p.name.toLowerCase()===c.name.toLowerCase()&&p.form==='vial';});
     if(sameName.length>1){
@@ -5037,7 +5055,7 @@ function renderPantry(){
     } else {
       daysRowHtml+='<div class="days-rem" style="color:var(--dim)">add stock to track days</div>';
     }
-    daysRowHtml+='<button class="restock-btn" onclick="openRestock(\''+id+'\')" style="margin-top:0">+ Restock</button>';
+    daysRowHtml+='<button class="restock-btn" onclick="openRestock(\''+id+'\')" style="margin-top:0" style="background:var(--p2d);border-color:var(--p2);color:var(--p2)">+ Restock</button>';
     daysRowHtml+='</div>';
     var lowWarnHtml=low?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);padding-top:6px;border-top:1px solid var(--bd)">&#9888; '+(out?'Out of stock':'Low stock')+' \u2014 reorder soon.</div>':'';
     // Concentration subtitle for header
@@ -5300,6 +5318,10 @@ function openPantryEdit(id){
   if(upcEl) upcEl.value=item.unitsPerContainer||'';
   var capStrEl=document.getElementById('epCapStrength');
   if(capStrEl) capStrEl.value=item.capStrength||'';
+  // Restore unit toggle for cap strength
+  var capUnitBtnsLoad=document.querySelectorAll('#epCapUnit button');
+  var savedCapUnit=item.capStrengthUnit||'mcg';
+  capUnitBtnsLoad.forEach(function(b){b.classList.toggle('on',b.dataset.unit===savedCapUnit);});
   // Topical
   var appEl=document.getElementById('epApplicationSite');
   if(appEl) appEl.value=item.applicationSite||'';
@@ -5370,6 +5392,12 @@ function savePantryEdit(){
   if(upcEl) item.unitsPerContainer=parseFloat(upcEl.value)||null;
   var capStrEl=document.getElementById('epCapStrength');
   if(capStrEl) item.capStrength=parseFloat(capStrEl.value)||null;
+  var capUnitBtns2=document.querySelectorAll('#epCapUnit button');
+  item.capStrengthUnit='mcg';
+  capUnitBtns2.forEach(function(b){if(b.classList.contains('on'))item.capStrengthUnit=b.dataset.unit;});
+  // Normalize capStrength to mg for consistent calcDaysLeft
+  if(item.capStrength&&item.capStrengthUnit==='mcg') item.capStrengthMg=item.capStrength/1000;
+  else item.capStrengthMg=item.capStrength;
   // Topical
   var appEl=document.getElementById('epApplicationSite');
   if(appEl) item.applicationSite=appEl.value||'';
@@ -8423,7 +8451,7 @@ function liveCalcInject(){
   var doseVal=parseFloat(doseEl&&doseEl.value)||null;
   var result=document.getElementById('epUnitsResult');
   var unitsDraw=document.getElementById('epUnitsDraw');
-  var unitsMath=document.getElementById('epUnitsMath');
+  var unitsMath=null;
   if(!result) return;
   if(vialMg&&reconVol&&doseVal){
     // Convert dose to mg if in mcg
@@ -8433,7 +8461,7 @@ function liveCalcInject(){
     var units=Math.round(volumeMl*100); // 1mL = 100 units
     result.style.display='block';
     unitsDraw.textContent=units+' units';
-    unitsMath.textContent=vialMg+'mg ÷ '+reconVol+'mL = '+concentration.toFixed(2)+'mg/mL · '+doseVal+unit+' ÷ '+concentration.toFixed(2)+'mg/mL = '+volumeMl.toFixed(3)+'mL = '+units+' units';
+    if(unitsMath) unitsMath.textContent='';
   } else {
     result.style.display='none';
   }
@@ -8452,7 +8480,7 @@ function liveCalcOralEp(){
   var capVal=parseFloat(capEl&&capEl.value)||null;
   var result=document.getElementById('epCapsResult');
   var capsDraw=document.getElementById('epCapsDraw');
-  var capsMath=document.getElementById('epCapsMath');
+  var capsMath=null;
   if(!result) return;
   if(doseVal&&capVal){
     // Normalize both to same unit
@@ -8461,7 +8489,7 @@ function liveCalcOralEp(){
     var caps=Math.ceil(doseNorm/capNorm);
     result.style.display='block';
     capsDraw.textContent=caps+(caps===1?' capsule':' capsules');
-    capsMath.textContent=doseVal+doseUnit+' ÷ '+capVal+capUnit+'/cap = '+caps+(caps===1?' capsule':' capsules');
+    if(capsMath) capsMath.textContent='';
   } else {
     result.style.display='none';
   }
@@ -8511,10 +8539,7 @@ function liveCalcNasal(){
   var daysLeft=totalMcg>0?Math.floor(totalMcg/(desiredMcg*dosesPerDay)):0;
   if(resultEl) resultEl.style.display='block';
   if(drawEl) drawEl.textContent=spraysPerDose+' spray'+(spraysPerDose!==1?'s':'');
-  if(mathEl) mathEl.innerHTML=
-    mcgPerSpray+'mcg/spray · '+desiredMcg+'mcg ÷ '+mcgPerSpray+'mcg = '+spraysPerDose+' sprays per dose<br>'
-    +totalMcgPerBottle.toFixed(0)+'mcg per bottle · '
-    +(totalMcg>0?'∼'+daysLeft+' days of supply remaining':'No stock — add bottles or open bottle above');
+  if(mathEl) mathEl.innerHTML=(totalMcg>0?'∼'+daysLeft+' days of supply remaining':'No stock — add bottles or open bottle above');
 }
 
 function liveCalcPowder(){
@@ -8527,7 +8552,7 @@ function liveCalcPowder(){
   var servings=parseFloat(servingsEl&&servingsEl.value)||null;
   var result=document.getElementById('epPowderResult');
   var draw=document.getElementById('epPowderDraw');
-  var math=document.getElementById('epPowderMath');
+  var math=null;
   if(!result) return;
   if(size&&servings){
     var perServing=parseFloat((size/servings).toFixed(2));
