@@ -4975,7 +4975,7 @@ function renderPantry(){
       badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.35);white-space:nowrap">&#9679; In stock</span>';
       if(low) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(245,166,35,.1);color:var(--p2);border:1px solid var(--p2);white-space:nowrap">⚠ '+
         (daysLeft===0?'Out of stock':'~'+daysLeft+'d left')+'</span>';
-    } else if(!inStock&&protoNames&&protoNames.has(c.name.toLowerCase())){
+    } else if(!inStock&&inProto){
       badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(242,92,84,.1);color:var(--p5);border:1px solid var(--p5);white-space:nowrap">&#9679; No stock</span>';
     }
     // Multi-concentration: show Active badge + combined stock indicator
