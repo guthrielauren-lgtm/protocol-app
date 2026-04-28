@@ -4426,10 +4426,11 @@ function calcDaysLeft(pItem,protoCmp){
     var gPerDose=0.5;
     return remG>0?Math.floor(remG/(gPerDose*dosesPerDay)):0;
   }
-  // Vial
-  var fullMg=(pItem.vials||0)*(pItem.vialMg||0);
-  var openMg=pItem.openVialMg||0;
-  var totalMg=fullMg+openMg;
+  // Vial — sum across ALL same-name pantry entries for combined days of supply
+  var allEntries=pantry.filter(function(p){return p.name.toLowerCase()===pItem.name.toLowerCase()&&p.form==='vial';});
+  var totalMg=allEntries.reduce(function(sum,p){
+    return sum+((p.vials||0)*(p.vialMg||0))+(p.openVialMg||0);
+  },0);
   if(totalMg<=0||!doseMgVal) return null;
   return Math.floor(totalMg/(doseMgVal*dosesPerDay));
 }
@@ -4460,16 +4461,31 @@ function setActiveConcentration(id,name){
   if(q.length) setTimeout(function(){promptConcentrationPick(q[0],q.slice(1));},400);
 }
 function checkConcentrationPromotion(name){
-  var entries=pantry.filter(function(p){return p.name.toLowerCase()===name.toLowerCase();});
+  var entries=pantry.filter(function(p){
+    return p.name.toLowerCase()===name.toLowerCase()&&p.form==='vial';
+  });
   if(entries.length<2) return;
   var active=entries.find(function(p){return p.activeConcentration===true;});
-  if(!active||isInStock(active)) return;
-  var next=entries.filter(function(p){return !p.activeConcentration&&isInStock(p);});
-  if(!next.length) return;
-  next[0].activeConcentration=true;
-  active.activeConcentration=false;
-  persist(KEYS.pantry,pantry);
-  toast(name+' stock depleted — switching to '+(next[0].vialMg||'next')+'mg/vial supply ✓','var(--p1)',5000);
+  // If active entry is out but others have stock — prompt to switch
+  if(active&&!isInStock(active)){
+    var next=entries.filter(function(p){return p.id!==active.id&&(p.vials>0||p.openVialMg>0);});
+    if(next.length){
+      active.activeConcentration=false;
+      persist(KEYS.pantry,pantry);
+      showConfirm(
+        'Switch to '+next[0].vialMg+'mg/vial '+name+'?',
+        'Your current strength is out of stock. You have '+next[0].vials+' vial'+(next[0].vials!==1?'s':'')
+          +' of the '+next[0].vialMg+'mg/vial strength available. The dosing calculator will update to reflect the new concentration.',
+        'Switch strength',
+        function(){
+          next[0].activeConcentration=true;
+          persist(KEYS.pantry,pantry);
+          toast(name+' switched to '+(next[0].vialMg||'next')+'mg/vial ✓','var(--p1)',5000);
+          renderToday();renderPantry();
+        }
+      );
+    }
+  }
 }
 
 function deductStock(name,doseStr){
@@ -4814,8 +4830,9 @@ function isInStock(item){
   if(item.form==='prefilled') return !!(item.pensRemaining>0);
   if(item.form==='nasal') return !!((item.nasalTotalMcg>0)||(item.nasalOpenMcg>0)||(item.nasalBottles>0));
   if(item.form==='cream') return !!(item.remainingG>0);
-  // vial — any vials or open vial mg
-  return !!(item.vials>0||item.openVialMg>0);
+  // vial — check across ALL same-name entries
+  var allVialEntries=pantry.filter(function(p){return p.name.toLowerCase()===item.name.toLowerCase()&&p.form==='vial';});
+  return allVialEntries.some(function(p){return p.vials>0||p.openVialMg>0;});
 }
 function applyPantryFilters(items){
   if(!pantryFilters.length) return items;
@@ -4916,10 +4933,18 @@ function renderPantry(){
     var badges='';
     if(inProto) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1);white-space:nowrap">&#9679; In protocol</span> ';
     if(inStock) badges+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.35);white-space:nowrap">&#9679; In stock</span>';
-    // Multi-concentration: show Active badge
-    var sameName=pantry.filter(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
-    if(sameName.length>1&&c.activeConcentration) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);white-space:nowrap">&#9679; Active conc.</span>';
-    var id=c.id||(c.id='usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5));
+    // Multi-concentration: show Active badge + combined stock indicator
+    var sameName=pantry.filter(function(p){return p.name.toLowerCase()===c.name.toLowerCase()&&p.form==='vial';});
+    if(sameName.length>1){
+      if(c.activeConcentration) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3);white-space:nowrap">&#9679; Active conc.</span>';
+      var otherStocked=sameName.filter(function(p){return p.id!==c.id&&(p.vials>0||p.openVialMg>0);});
+      if(otherStocked.length&&!c.activeConcentration) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd);white-space:nowrap">other strength available</span>';
+    }
+    if(!c.id||c.id==='undefined'){
+      c.id='usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+      persist(KEYS.pantry,pantry); // persist immediately so id is stable
+    }
+    var id=c.id;
     var sf='';
     if(c.form==='oral'){
       sf='<div class="pc-stock-fields g2">'
@@ -5067,10 +5092,13 @@ function deletePantryItem(id){
     'This removes it from your pantry. You can re-add it anytime from the library browser.',
     'Delete',
     function(){
-      pantry=pantry.filter(function(p){return p.id!==id;});
+      var deletedName=item.name.toLowerCase();
+      // Remove all entries with this name (catches dp_ duplicates)
+      pantry=pantry.filter(function(p){return p.name.toLowerCase()!==deletedName;});
       persist(KEYS.pantry,pantry);
       toast(item.name+' removed from pantry ✓');
       renderPantry();
+      renderRestockSection();
     }
   );
 }
@@ -5602,12 +5630,15 @@ function renderLibraryBrowser(q){
     return;
   }
 
-  // Group by category
+  // Group by category, alphabetized within each group
   var byCategory={};
   available.forEach(function(c){
     var cat=c.cat||'other';
     if(!byCategory[cat]) byCategory[cat]=[];
     byCategory[cat].push(c);
+  });
+  Object.keys(byCategory).forEach(function(cat){
+    byCategory[cat].sort(function(a,b){return a.name.localeCompare(b.name);});
   });
 
   var html='';
@@ -6410,7 +6441,7 @@ function finishInit(){
   // Migrate: assign ids to any pantry items missing them
   var idFixed=false;
   pantry.forEach(function(p,i){
-    if(!p.id||p.id==='undefined'){
+    if(!p.id||p.id==='undefined'||p.id===''||p.id===null){
       p.id='usr_'+(Date.now()+i)+'_'+Math.random().toString(36).slice(2,5);
       idFixed=true;
     }
@@ -8656,7 +8687,7 @@ function suggestTagsForCompound(name){
       setTimeout(function(){if(suggest)suggest.style.display='none';},4000);
     }
   } else {
-    suggestTagsViaAI(name);
+    // suggestTagsViaAI not available — silently skip for unknown compounds
   }
 }
 
@@ -9081,7 +9112,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 <!-- ═══════════ LIBRARY BROWSER MODAL ═══════════ -->
 <div class="modal-overlay" id="libraryBrowserModal">
-  <div class="modal" style="max-height:85vh;padding:0;display:flex;flex-direction:column">
+  <div class="modal" style="max-height:85vh;padding:0;display:flex;flex-direction:column;overflow:hidden">
     <!-- Sticky header -->
     <div style="padding:22px 20px 12px;border-bottom:1px solid var(--bd);flex-shrink:0">
       <div class="modal-title" style="margin-bottom:10px">Compound Library
