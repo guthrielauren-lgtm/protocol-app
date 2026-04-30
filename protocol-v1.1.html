@@ -810,10 +810,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="checkin-body" id="checkinBody">
       <div class="sliders">
-        <div class="sl-field"><div class="sl-hdr"><label>Sleep Quality</label><span class="sl-val" id="ciVSleep" style="color:var(--p3)">5</span></div><input type="range" min="1" max="10" value="5" id="ciSleep" oninput="document.getElementById('ciVSleep').textContent=this.value"><div class="sl-scale"><span>1 · poor</span><span>10 · excellent</span></div></div>
+        <div class="sl-field"><div class="sl-hdr"><label>Sleep Quality <span id="ciSleepOuraTag" style="font-family:var(--mono);font-size:8px;color:var(--p1);font-weight:400;display:none">· from Oura</span></label><span class="sl-val" id="ciVSleep" style="color:var(--p3)">5</span></div><input type="range" min="1" max="10" value="5" id="ciSleep" oninput="document.getElementById('ciVSleep').textContent=this.value"><div class="sl-scale"><span>1 · poor</span><span>10 · excellent</span></div></div>
         <div class="sl-field"><div class="sl-hdr"><label>Energy</label><span class="sl-val" id="ciVEnergy" style="color:var(--p1)">5</span></div><input type="range" min="1" max="10" value="5" id="ciEnergy" oninput="document.getElementById('ciVEnergy').textContent=this.value"><div class="sl-scale"><span>1 · depleted</span><span>10 · peak</span></div></div>
         <div class="sl-field"><div class="sl-hdr"><label>Hunger</label><span class="sl-val" id="ciVHunger" style="color:var(--p2)">5</span></div><input type="range" min="1" max="10" value="5" id="ciHunger" oninput="document.getElementById('ciVHunger').textContent=this.value"><div class="sl-scale"><span>1 · none</span><span>10 · starving</span></div></div>
-        <div class="sl-field"><div class="sl-hdr"><label>Recovery</label><span class="sl-val" id="ciVRecovery" style="color:var(--p4)">5</span></div><input type="range" min="1" max="10" value="5" id="ciRecovery" oninput="document.getElementById('ciVRecovery').textContent=this.value"><div class="sl-scale"><span>1 · sore</span><span>10 · fresh</span></div></div>
+        <div class="sl-field"><div class="sl-hdr"><label>Recovery <span id="ciRecoveryOuraTag" style="font-family:var(--mono);font-size:8px;color:var(--p1);font-weight:400;display:none">· from Oura</span></label><span class="sl-val" id="ciVRecovery" style="color:var(--p4)">5</span></div><input type="range" min="1" max="10" value="5" id="ciRecovery" oninput="document.getElementById('ciVRecovery').textContent=this.value"><div class="sl-scale"><span>1 · sore</span><span>10 · fresh</span></div></div>
+        <div class="sl-field"><div class="sl-hdr"><label>Activity <span id="ciActivityOuraTag" style="font-family:var(--mono);font-size:8px;color:var(--p1);font-weight:400;display:none">· from Oura</span></label><span class="sl-val" id="ciVActivity" style="color:var(--p2)">5</span></div><input type="range" min="1" max="10" value="5" id="ciActivity" oninput="document.getElementById('ciVActivity').textContent=this.value"><div class="sl-scale"><span>1 · sedentary</span><span>10 · very active</span></div></div>
       </div>
       <div class="field" style="margin-bottom:10px">
         <label>Side Effects</label>
@@ -1297,7 +1298,41 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
   <!-- INTEGRATIONS -->
   <div class="sec-lbl" style="margin-top:18px">Integrations</div>
-  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6">Auto-sync integrations are in development. Import your scan data now via CSV export from your device.</div>
+  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6">Import biometric and lab data to enrich your Coach APEX reports.</div>
+  <!-- Claude Health Sync -->
+  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:3px">Protocol Pro</div>
+        <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Claude Health Sync</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2)" id="healthSyncBadge">Not synced</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:12px">Sync Apple Health metrics (HRV, resting HR, weight, sleep, SpO₂) and Function Health labs into your Coach APEX reports. Generate the sync JSON in Claude, then paste it here.</div>
+    <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg)" onclick="openModal('healthSyncModal')">Paste Sync Data</button>
+    <div id="healthSyncStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
+  </div>
+
+
+  <!-- Oura Ring Integration -->
+  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px" id="ouraCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Oura Ring</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Sleep, readiness &amp; HRV auto-sync</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="ouraBadge">Not connected</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:10px">Connect your Oura ring to automatically pull sleep scores, readiness, HRV balance, and resting HR into your Coach APEX reports. Requires a Personal Access Token from <span style="color:var(--p1)">cloud.ouraring.com/personal-access-tokens</span>.</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input type="password" id="ouraPatInput" placeholder="Paste your Personal Access Token" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn sm" style="background:var(--p1);border-color:var(--p1);color:var(--bg)" onclick="connectOura()">Connect &amp; Sync</button>
+      <button class="btn sm" id="ouraDisconnectBtn" style="display:none" onclick="disconnectOura()">Disconnect</button>
+    </div>
+    <div id="ouraStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.6"></div>
+  </div>
 
   <!-- BodySpec CSV Import -->
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:10px">
@@ -1846,7 +1881,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 // ════════════ STORAGE ════════════
 const KEYS={logs:'pt_logs_v2',doseMem:'pt_dose_mem',bodyLogs:'pt_body_v1',
             checkins:'pt_checkins_v1',pantry:'pt_pantry_v1',
-            protocols:'pt_protocols_v1',activeProtoId:'pt_active_proto',activeProtoIds:'pt_active_protos'};
+            protocols:'pt_protocols_v1',activeProtoId:'pt_active_proto',activeProtoIds:'pt_active_protos',
+            healthSync:'pt_health_sync_v1',
+            oura:'pt_oura_v1'};
 
 async function persist(key,val){
   // localStorage only — window.storage is Claude artifact storage, not available on GitHub Pages
@@ -1861,6 +1898,8 @@ async function load(key,fb=null){
 
 // ════════════ STATE ════════════
 let logs=[],doseMem={},bodyLogs=[],checkins=[],pantry=[],protocols=[],activeProtoId=null,activeProtoIds=[];
+var healthSync=null;
+var ouraData=null;
 let chartPeriod={fat:0,wt:0}; // days to show; 0 = all
 let selectedGoals=[];
 let selectedTemplateId=null;
@@ -2177,18 +2216,46 @@ function renderInsights(){
 
 function buildInsightsHTML(proto){
   var profile=userProfile||{};
-  // Protocol header
   var protoHdr='';
   if(proto){
     var elapsed=proto.startDate?Math.floor((new Date()-new Date(proto.startDate))/(7*86400000)):0;
     protoHdr='<div style="padding:12px 0 8px;margin-bottom:2px">'
       +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px">Active protocol</div>'
       +'<div style="font-family:var(--serif);font-size:22px;color:var(--text);margin-bottom:2px">'+proto.name+'</div>'
-      +'<div style="font-family:var(--mono);font-size:10px;color:var(--mid)">Week '+elapsed+' of '+(proto.durationWeeks||'?')+' · '+(proto.compounds||[]).length+' compound'+(proto.compounds.length!==1?'s':'')+'</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--mid)">Week '+elapsed+' of '+(proto.durationWeeks||'?')+' · '+(proto.compounds||[]).length+' compound'+((proto.compounds||[]).length!==1?'s':'')+'</div>'
     +'</div>';
   }
-  return protoHdr+buildGoalProgressSection(proto,profile)
-    +buildInsightsReviewCard(proto)
+  var syncStrip='';
+  if(healthSync&&healthSync.syncDate){
+    var ah=healthSync.appleHealth||{};
+    var fh=(healthSync.functionHealth||[]).filter(function(m){return m.inRange===false;});
+    syncStrip='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
+      +'<div>'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px">Health sync</div>'
+        +'<div style="font-family:var(--mono);font-size:10px;color:var(--text)">'
+          +(ah.hrv_7day_avg_ms?'HRV '+ah.hrv_7day_avg_ms+'ms · ':'')+(ah.restingHR_7day_avg_bpm?'RHR '+ah.restingHR_7day_avg_bpm+'bpm · ':'')+''
+          +(fh.length?'<span style="color:var(--p2)">'+fh.length+' lab flag'+(fh.length!==1?'s':'')+'</span>':'All labs in range')
+        +'</div>'
+      +'</div>'
+      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+healthSync.syncDate+'</div>'
+    +'</div>';
+  }
+  if(ouraData&&ouraData.syncDate){
+    var os=ouraData.sleep||{},or2=ouraData.readiness||{};
+    syncStrip+='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
+      +'<div>'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px">Oura ring</div>'
+        +'<div style="font-family:var(--mono);font-size:10px;color:var(--text)">'
+          +(os.avgScore7d?'Sleep '+os.avgScore7d+' · ':'')
+          +(or2.avgScore7d?'Readiness '+or2.avgScore7d:'')
+        +'</div>'
+      +'</div>'
+      +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+ouraData.syncDate+'</div>'
+        +'<button onclick="resyncOura()" style="font-family:var(--mono);font-size:9px;background:none;border:none;color:var(--p1);cursor:pointer;padding:0;margin-top:2px">Refresh ↻</button>'
+      +'</div>'
+    +'</div>';
+  }
+  return protoHdr+syncStrip+buildInsightsReviewCard(proto)+buildGoalProgressSection(proto,profile)
     +buildHeatmapSection(proto)
     +buildTrendSection()
     +buildCheckinSection();
@@ -2207,16 +2274,14 @@ function buildGoalProgressSection(proto,profile){
   if(targetWt&&baselineWt&&latestWt){
     var startW=parseFloat(baselineWt.weight),curW=parseFloat(latestWt.weight);
     var delta=Math.round((curW-startW)*10)/10;
-    var totalNeeded=startW-targetWt;
-    var pct=totalNeeded!==0?Math.max(0,Math.min(100,Math.round(((startW-curW)/totalNeeded)*100))):0;
+    var tn=startW-targetWt;
+    var pct=tn!==0?Math.max(0,Math.min(100,Math.round(((startW-curW)/tn)*100))):0;
     html+='<div style="margin-bottom:12px">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">'
         +'<span style="font-family:var(--serif);font-size:14px;color:var(--text)">Weight</span>'
         +'<span style="font-family:var(--mono);font-size:10px;color:'+(delta<=0?'var(--p1)':'var(--p5)')+'">'+(delta>0?'+':'')+delta+' lbs</span>'
       +'</div>'
-      +'<div style="position:relative;height:8px;background:var(--sf);border-radius:4px;overflow:hidden">'
-        +'<div style="height:100%;width:'+pct+'%;background:var(--p1);border-radius:4px"></div>'
-      +'</div>'
+      +'<div style="position:relative;height:8px;background:var(--sf);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--p1);border-radius:4px"></div></div>'
       +'<div style="display:flex;justify-content:space-between;margin-top:4px">'
         +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+startW+'lbs start</span>'
         +'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">'+pct+'% to goal</span>'
@@ -2226,38 +2291,32 @@ function buildGoalProgressSection(proto,profile){
     html+='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:10px">Set a target weight in Settings to track progress.</div>';
   }
   if(targetFat&&dexaLogs.length>=2){
-    var startF=parseFloat(dexaLogs[0].fatPct),curF=parseFloat(dexaLogs[dexaLogs.length-1].fatPct);
-    var dF=Math.round((curF-startF)*10)/10;
-    var tFN=startF-targetFat;
-    var pF=tFN!==0?Math.max(0,Math.min(100,Math.round(((startF-curF)/tFN)*100))):0;
+    var sF=parseFloat(dexaLogs[0].fatPct),cF=parseFloat(dexaLogs[dexaLogs.length-1].fatPct);
+    var dF=Math.round((cF-sF)*10)/10,tFN=sF-targetFat;
+    var pF=tFN!==0?Math.max(0,Math.min(100,Math.round(((sF-cF)/tFN)*100))):0;
     html+='<div style="margin-bottom:4px">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">'
         +'<span style="font-family:var(--serif);font-size:14px;color:var(--text)">Body fat %</span>'
         +'<span style="font-family:var(--mono);font-size:10px;color:'+(dF<=0?'var(--p1)':'var(--p5)')+'">'+(dF>0?'+':'')+dF+'%</span>'
       +'</div>'
-      +'<div style="position:relative;height:8px;background:var(--sf);border-radius:4px;overflow:hidden">'
-        +'<div style="height:100%;width:'+pF+'%;background:var(--p3);border-radius:4px"></div>'
-      +'</div>'
+      +'<div style="position:relative;height:8px;background:var(--sf);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pF+'%;background:var(--p3);border-radius:4px"></div></div>'
       +'<div style="display:flex;justify-content:space-between;margin-top:4px">'
-        +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+startF+'% start</span>'
+        +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+sF+'% start</span>'
         +'<span style="font-family:var(--mono);font-size:9px;color:var(--p3)">'+pF+'% to goal</span>'
         +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+targetFat+'% goal</span>'
       +'</div></div>';
   }
   if(proto&&proto.startDate&&timelineWks){
-    var elapsed=Math.floor((new Date()-new Date(proto.startDate))/(7*86400000));
-    var tlP=Math.min(100,Math.round(elapsed/timelineWks*100));
+    var el=Math.floor((new Date()-new Date(proto.startDate))/(7*86400000));
+    var tP=Math.min(100,Math.round(el/timelineWks*100));
     html+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">'
       +'<div style="display:flex;justify-content:space-between;margin-bottom:5px">'
         +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">Timeline</span>'
-        +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">Week '+elapsed+' of '+timelineWks+'</span>'
+        +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">Week '+el+' of '+timelineWks+'</span>'
       +'</div>'
-      +'<div style="position:relative;height:5px;background:var(--sf);border-radius:3px;overflow:hidden">'
-        +'<div style="height:100%;width:'+tlP+'%;background:var(--p4);border-radius:3px"></div>'
-      +'</div></div>';
+      +'<div style="position:relative;height:5px;background:var(--sf);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+tP+'%;background:var(--p4);border-radius:3px"></div></div></div>';
   }
-  html+='</div>';
-  return html;
+  html+='</div>';return html;
 }
 
 function buildHeatmapSection(proto){
@@ -2292,8 +2351,7 @@ function buildHeatmapSection(proto){
     +'<span style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:1px;background:var(--p1);display:inline-block"></span>Full</span>'
     +'<span style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:1px;background:var(--p2);display:inline-block"></span>Partial</span>'
     +'<span style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:1px;background:var(--sf);border:1px solid var(--bd);display:inline-block"></span>Missed</span>'
-  +'</div></div>';
-  return html;
+  +'</div></div>';return html;
 }
 
 function buildSparkSVG(vals,color){
@@ -2301,14 +2359,12 @@ function buildSparkSVG(vals,color){
   var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rng=mx-mn||1;
   var pts=vals.map(function(v,i){return (i*(100/(vals.length-1))).toFixed(1)+','+(24-((v-mn)/rng)*(24-4)-2).toFixed(1);}).join(' ');
   var lp=pts.split(' ').pop().split(',');
-  return '<polyline points="'+pts+'" stroke="'+color+'" stroke-width="1.5" fill="none"/>'
-    +'<circle cx="'+lp[0]+'" cy="'+lp[1]+'" r="2.5" fill="'+color+'"/>';
+  return '<polyline points="'+pts+'" stroke="'+color+'" stroke-width="1.5" fill="none"/><circle cx="'+lp[0]+'" cy="'+lp[1]+'" r="2.5" fill="'+color+'"/>';
 }
 
 function calcCompliancePrior(proto){
   if(!proto||!proto.compounds||!proto.compounds.length) return null;
-  var e=new Date();e.setDate(e.getDate()-28);
-  var s=new Date();s.setDate(s.getDate()-56);
+  var e=new Date();e.setDate(e.getDate()-28);var s=new Date();s.setDate(s.getDate()-56);
   var sc=0,lg=0;
   for(var d=new Date(s);d<e;d.setDate(d.getDate()+1)){
     var dow=d.getDay(),ds=d.toISOString().slice(0,10);
@@ -2327,9 +2383,9 @@ function buildTrendSection(){
   if(dx.length>=2){var f0=parseFloat(dx[0].fatPct),fN=parseFloat(dx[dx.length-1].fatPct),df=Math.round((fN-f0)*10)/10;cards.push({label:'Body fat',value:fN+'%',delta:(df>0?'+':'')+df+'%',color:df<=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(dx.map(function(b){return parseFloat(b.fatPct);}),df<=0?'#3dd68c':'#f25c54')});}
   else cards.push({label:'Body fat',value:'—',delta:'DEXA needed',color:'var(--dim)',spark:''});
   var proto=getActiveProtocol();
-  if(proto){var c4=calcCompliance(proto,'28');var c8=calcCompliancePrior(proto);var dc=c4!==null&&c8!==null?c4-c8:null;cards.push({label:'Compliance',value:c4!==null?c4+'%':'—',delta:dc!==null?(dc>=0?'+':'')+dc+'% vs prior':'',color:dc===null?'var(--p1)':dc>=0?'var(--p1)':'var(--p5)',spark:''});}
+  if(proto){var c4=calcCompliance(proto,'28'),c8=calcCompliancePrior(proto),dc=c4!==null&&c8!==null?c4-c8:null;cards.push({label:'Compliance',value:c4!==null?c4+'%':'—',delta:dc!==null?(dc>=0?'+':'')+dc+'% vs prior':'',color:dc===null?'var(--p1)':dc>=0?'var(--p1)':'var(--p5)',spark:''});}
   var ci=[...(checkins||[])].sort(function(a,b){return a.date>b.date?1:-1;});
-  if(ci.length>=3){var rE=ci.slice(0,7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length);var eE=ci.slice(-7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length);var de=Math.round((rE-eE)*10)/10;cards.push({label:'Energy',value:Math.round(rE*10)/10+'/10',delta:(de>=0?'+':'')+de+' trend',color:de>=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(ci.slice(0,14).reverse().map(function(c){return c.energy||5;}),'#3dd68c')});}
+  if(ci.length>=3){var rE=ci.slice(0,7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length),eE=ci.slice(-7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length),de=Math.round((rE-eE)*10)/10;cards.push({label:'Energy',value:Math.round(rE*10)/10+'/10',delta:(de>=0?'+':'')+de+' trend',color:de>=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(ci.slice(0,14).reverse().map(function(c){return c.energy||5;}),'#3dd68c')});}
   else cards.push({label:'Energy',value:'—',delta:'Log check-ins',color:'var(--dim)',spark:''});
   var html='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Trends</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   cards.forEach(function(card){html+='<div style="background:var(--sf);border-radius:6px;padding:10px"><div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px">'+card.label+'</div><div style="font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:2px">'+card.value+'</div><div style="font-family:var(--mono);font-size:9px;color:'+card.color+'">'+card.delta+'</div>'+(card.spark?'<svg width="100%" height="24" viewBox="0 0 100 24" preserveAspectRatio="none" style="margin-top:6px">'+card.spark+'</svg>':'')+'</div>';});
@@ -2341,9 +2397,8 @@ function buildCheckinSection(){
   var html='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Check-in averages</div>';
   if(!ci.length) return html+'<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Complete daily check-ins to see trends.</div></div>';
   var recent=ci.slice(0,14);
-  [{key:'sleep',label:'Sleep',color:'#2ec4b6'},{key:'energy',label:'Energy',color:'#3dd68c'},{key:'hunger',label:'Hunger',color:'#f5a623'},{key:'recovery',label:'Recovery',color:'#9b72cf'}].forEach(function(m){
-    var vals=recent.map(function(c){return c[m.key]||0;}).filter(Boolean);
-    if(!vals.length) return;
+  [{key:'sleep',label:'Sleep',color:'#2ec4b6'},{key:'energy',label:'Energy',color:'#3dd68c'},{key:'hunger',label:'Hunger',color:'#f5a623'},{key:'recovery',label:'Recovery',color:'#9b72cf'},{key:'activity',label:'Activity',color:'#f5a623',note:'(Oura-assisted)'}].forEach(function(m){
+    var vals=recent.map(function(c){return c[m.key]||0;}).filter(Boolean);if(!vals.length) return;
     var avg=Math.round(vals.reduce(function(s,v){return s+v;},0)/vals.length*10)/10;
     var early=ci.slice(-7).map(function(c){return c[m.key]||0;}).filter(Boolean);
     var ea=early.length?early.reduce(function(s,v){return s+v;},0)/early.length:avg;
@@ -2357,16 +2412,14 @@ function buildCheckinSection(){
 }
 
 function buildInsightsReviewCard(proto){
-  // Card wrapper + Pro badge header
-  var html='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:10px">';
-  // Header row
-  html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
-    +'<div>'
-      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:4px">Protocol Pro</div>'
-      +'<div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:4px">Coach APEX Reports</div>'
-      +'<div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.6">At each milestone, APEX reviews your actual logged data — compliance, body comp trends, wellness scores, and timing patterns — and delivers a personalized coaching note with clinician-ready reference data.</div>'
-    +'</div>'
-  +'</div>';
+  var html='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:10px">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+      +'<div>'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:4px">Protocol Pro</div>'
+        +'<div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:4px">Coach APEX Reports</div>'
+        +'<div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.6">At each milestone, APEX reviews your logged data — compliance, body comp, wellness scores, timing, and biometrics — and delivers a personalized coaching note with clinician-ready reference data.</div>'
+      +'</div>'
+    +'</div>';
   if(!proto) return html+'<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Activate a protocol to unlock AI coach reports.</div></div>';
   var protoStart=proto.startDate?new Date(proto.startDate):null;
   var totalWeeks=proto.durationWeeks||12;
@@ -2377,7 +2430,6 @@ function buildInsightsReviewCard(proto){
     var reached=currentPct>=m.pct;
     var pct100=Math.round(m.pct*100);
     var key='pt_review_'+proto.id+'_'+pct100;
-    // Calculate unlock date
     var unlockDate='';
     if(!reached&&protoStart){
       var unlockMs=protoStart.getTime()+(m.pct*totalWeeks*7*86400000);
@@ -2386,38 +2438,22 @@ function buildInsightsReviewCard(proto){
     if(reached){
       html+='<div style="border:1px solid var(--p2);border-radius:8px;padding:12px;background:var(--p2d)">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(isPro?'10px':'4px')+'">'
-          +'<div>'
-            +'<div style="font-family:var(--serif);font-size:15px;color:var(--text)">'+m.label+' ✔</div>'
-            +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+m.desc+'</div>'
-          +'</div>'
-          +(isPro
-            ?'<button id="reviewBtn'+pct100+'" onclick="runProtocolReview(this.dataset.key,this.dataset.det,this.id)" data-key="'+key+'" data-det="reviewDetail'+pct100+'" style="font-family:var(--mono);font-size:10px;padding:6px 14px;background:var(--p2);color:var(--bg);border:none;border-radius:6px;cursor:pointer;white-space:nowrap">View Report →</button>'
-            :'<button onclick="goToProUpgrade()" style="font-family:var(--mono);font-size:10px;padding:6px 14px;background:none;border:1px solid var(--p2);border-radius:6px;cursor:pointer;color:var(--p2);white-space:nowrap">✶ Unlock Pro</button>'
-          )
+          +'<div><div style="font-family:var(--serif);font-size:15px;color:var(--text)">'+m.label+' ✔</div><div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+m.desc+'</div></div>'
+          +(isPro?'<button id="reviewBtn'+pct100+'" onclick="runProtocolReview(this.dataset.key,this.dataset.det,this.id)" data-key="'+key+'" data-det="reviewDetail'+pct100+'" style="font-family:var(--mono);font-size:10px;padding:6px 14px;background:var(--p2);color:var(--bg);border:none;border-radius:6px;cursor:pointer;white-space:nowrap">View Report →</button>'
+            :'<button onclick="goToProUpgrade()" style="font-family:var(--mono);font-size:10px;padding:6px 14px;background:none;border:1px solid var(--p2);border-radius:6px;cursor:pointer;color:var(--p2);white-space:nowrap">✶ Unlock Pro</button>')
         +'</div>'
         +(isPro?'<div id="reviewDetail'+pct100+'" style="display:none;margin-top:8px"></div>':'')
       +'</div>';
     } else {
       html+='<div style="border:1px dashed var(--bd);border-radius:8px;padding:12px;opacity:0.55">'
         +'<div style="display:flex;align-items:center;justify-content:space-between">'
-          +'<div>'
-            +'<div style="font-family:var(--serif);font-size:15px;color:var(--text)">'+m.label+'</div>'
-            +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+m.desc+'</div>'
-          +'</div>'
-          +'<div style="text-align:right">'
-            +(unlockDate?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Unlocks</div><div style="font-family:var(--mono);font-size:11px;color:var(--mid)">'+unlockDate+'</div>':'')
-          +'</div>'
+          +'<div><div style="font-family:var(--serif);font-size:15px;color:var(--text)">'+m.label+'</div><div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+m.desc+'</div></div>'
+          +(unlockDate?'<div style="text-align:right"><div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Unlocks</div><div style="font-family:var(--mono);font-size:11px;color:var(--mid)">'+unlockDate+'</div></div>':'')
         +'</div>'
       +'</div>';
     }
   });
-  html+='</div></div>';
-  return html;
-}
-
-function reopenSavedReport(protoId,idx){
-  var sr=[];try{var s=localStorage.getItem('pt_saved_reports_'+protoId);if(s)sr=JSON.parse(s);}catch(e){}
-  var r=sr[idx];if(r) openReportPreview(r.title,r.html);
+  html+='</div></div>';return html;
 }
 
 function calcCompliance(proto,period){
@@ -2455,6 +2491,7 @@ function renderToday(){
   }
   renderProtoHeader();renderBodyStrip();renderChecklist();renderCheckinState();renderTomorrow();
 }
+
 
 function renderTomorrow(){
   var wrap=document.getElementById('tomorrowSection');
@@ -3087,7 +3124,25 @@ function toggleCheckin(){
   if(body) body.classList.toggle('open',checkinOpen);
   if(hdr) hdr.classList.toggle('open',checkinOpen);
   if(chev) chev.textContent=checkinOpen?'▴':'▾';
+  if(checkinOpen) prefillCheckinFromOura();
 }
+function prefillCheckinFromOura(){
+  if(!ouraData||!ouraData.syncDate) return;
+  // Only prefill if today's check-in hasn't been saved yet
+  if(checkins.some(function(c){return c.date===today();})) return;
+  var s=ouraData.sleep||{},r=ouraData.readiness||{},a=ouraData.activity||{};
+  function setSlider(id,valId,tagId,score100){
+    if(!score100) return;
+    var val=Math.max(1,Math.min(10,Math.round(score100/10)));
+    var el=document.getElementById(id);if(el) el.value=val;
+    var vel=document.getElementById(valId);if(vel) vel.textContent=val;
+    var tag=document.getElementById(tagId);if(tag) tag.style.display='inline';
+  }
+  setSlider('ciSleep','ciVSleep','ciSleepOuraTag',s.avgScore7d*10);
+  setSlider('ciRecovery','ciVRecovery','ciRecoveryOuraTag',r.avgScore7d*10);
+  setSlider('ciActivity','ciVActivity','ciActivityOuraTag',a.avgScore7d*10);
+}
+
 function renderCheckinState(){
   const done=checkins.some(function(c){return c.date===today();});
   if(done) checkinOpen=false;
@@ -3117,14 +3172,16 @@ function saveCheckin(){
     energy:+document.getElementById('ciEnergy').value,
     hunger:+document.getElementById('ciHunger').value,
     recovery:+document.getElementById('ciRecovery').value,
+    activity:+document.getElementById('ciActivity').value,
     sideEffects:fx,notes:document.getElementById('ciNotes').value};
   checkins=checkins.filter(function(c){return c.date!==t;});
   checkins.unshift(entry);persist(KEYS.checkins,checkins);
   toast('Check-in saved ✓');
-  ['ciSleep','ciEnergy','ciRecovery'].forEach(function(id){const el=document.getElementById(id);if(el)el.value=7;});
+  ['ciSleep','ciEnergy','ciRecovery','ciActivity'].forEach(function(id){const el=document.getElementById(id);if(el)el.value=7;});
   const h=document.getElementById('ciHunger');if(h)h.value=5;
-  ['ciVSleep','ciVEnergy','ciVRecovery'].forEach(function(id){const el=document.getElementById(id);if(el)el.textContent='7';});
+  ['ciVSleep','ciVEnergy','ciVRecovery','ciVActivity'].forEach(function(id){const el=document.getElementById(id);if(el)el.textContent='7';});
   const vh=document.getElementById('ciVHunger');if(vh)vh.textContent='5';
+  ['ciSleepOuraTag','ciRecoveryOuraTag','ciActivityOuraTag'].forEach(function(id){var t=document.getElementById(id);if(t)t.style.display='none';});
   const cn=document.getElementById('ciNotes');if(cn)cn.value='';
   document.querySelectorAll('#ciSideChips .chip').forEach(function(c){c.classList.remove('on');});
   renderCheckinState(); // auto-collapses via checkinOpen=false when done
@@ -6256,6 +6313,8 @@ function importData(input){
       if(b.userProfile){userProfile=b.userProfile;await persist('pt_profile_v1',userProfile);}
       if(b.goals){localStorage.setItem('pt_goals',JSON.stringify(b.goals));}
       if(b.wantList){localStorage.setItem('pt_restock_want',JSON.stringify(b.wantList));}
+      if(b.healthSync){healthSync=b.healthSync;await persist(KEYS.healthSync,healthSync);}
+      if(b.ouraData){ouraData=b.ouraData;await persist(KEYS.oura,ouraData);}
       if(b.libraryVersion){localStorage.setItem('pt_library_version',b.libraryVersion);}
       if(b.pantry){pantry=b.pantry;await persist(KEYS.pantry,pantry);}
       if(b.protocols){protocols=b.protocols;await persist(KEYS.protocols,protocols);}
@@ -6296,16 +6355,12 @@ function finishInit(){
   // Migrate: normalize legacy timingWindow values
   var _twMap={'morning':'am','presleep':'pm','as-needed':'other','as needed':'other'};
   var _twMig=false;
-  protocols.forEach(function(p){
-    (p.compounds||[]).forEach(function(c){
-      if(_twMap[c.timingWindow]){c.timingWindow=_twMap[c.timingWindow];_twMig=true;}
-    });
-  });
+  protocols.forEach(function(p){(p.compounds||[]).forEach(function(c){
+    if(_twMap[c.timingWindow]){c.timingWindow=_twMap[c.timingWindow];_twMig=true;}
+  });});
   if(_twMig) persist(KEYS.protocols,protocols);
   var _ptwMig=false;
-  pantry.forEach(function(p){
-    if(_twMap[p.timingWindow]){p.timingWindow=_twMap[p.timingWindow];_ptwMig=true;}
-  });
+  pantry.forEach(function(p){if(_twMap[p.timingWindow]){p.timingWindow=_twMap[p.timingWindow];_ptwMig=true;}});
   if(_ptwMig) persist(KEYS.pantry,pantry);
 
   // Migrate: assign ids to any pantry items missing them
@@ -6351,6 +6406,10 @@ function finishInit(){
   }
   // Load user profile
   loadProfile();
+  updateHealthSyncUI();
+  updateOuraUI();
+  // Auto re-sync Oura if connected
+  if(ouraData&&ouraData.pat) setTimeout(resyncOura,2000);
   // One-time cleanup of any tour_ keys from old versions
   cleanupTourData();
   // iOS Files backup reminder — show if last save was >3 days ago
@@ -6964,12 +7023,13 @@ async function runProtocolReview(key,detailId,btnId){
     });
 
     // ── Build system prompt ──────────────────────────────────────────────────
-    var system='You are a knowledgeable body recomposition coach reviewing a client\'s peptide and supplement protocol data. '
-      +'Write a coach\'s note — direct, warm, evidence-based. Use only the data provided. Make no assumptions about what the data does not show. '
-      +'If data is insufficient for a section, say so briefly and move on. '
-      +'Avoid generic peptide claims. Ground every observation in the actual numbers. '
-      +'Format your response as a JSON object with these exact keys: '
-      +'{"whats_working": "paragraph", "needs_attention": "paragraph", "id_adjust": "paragraph", "watch_for": "paragraph", "realistic_outlook": "one sentence based only on trends observed so far"}. '
+    var system='You are APEX, an AI coaching intelligence built into Protocol Pro. '
+      +'Write an encouraging, honest, occasionally witty coach note. '
+      +'Use ONLY the provided data. Never assume. Never make generic claims. '
+      +'If a section has no data, say so briefly with a light touch. '
+      +'When data is strong, celebrate it. When it needs work, be direct but warm. '
+      +'If Apple Health or Function Health data is included, reference specific numbers and trends from it. '
+      +'Respond ONLY with JSON: {"whats_working":"paragraph","needs_attention":"paragraph","id_adjust":"paragraph","watch_for":"paragraph","realistic_outlook":"one energizing sentence grounded in observed trends"}. '
       +'No markdown, no backticks. Start with { end with }.';
 
     // ── Build user prompt ────────────────────────────────────────────────────
@@ -7005,8 +7065,47 @@ async function runProtocolReview(key,detailId,btnId){
       +(energyTrend?'Energy: avg '+energyTrend.recent+'/10, '+energyTrend.dir+'\n':'')
       +(hungerTrend?'Hunger: avg '+hungerTrend.recent+'/10 (10=very hungry), '+hungerTrend.dir+'\n':'')
       +(recoveryTrend?'Recovery: avg '+recoveryTrend.recent+'/10, '+recoveryTrend.dir+'\n':'')
+      +(function(){
+        var actCI=[...(checkins||[])].sort(function(a,b){return a.date>b.date?1:-1;});
+        var rA=actCI.slice(0,14).filter(function(c){return c.activity;});
+        if(!rA.length) return '';
+        var avgA=Math.round(rA.reduce(function(s,c){return s+(c.activity||0);},0)/rA.length*10)/10;
+        return 'Activity: avg '+avgA+'/10\n';
+      })()
       +(sideEffects.length?'Side effects reported: '+sideEffects.join(', ')+'\n':'No side effects reported\n')
-      +(timingNotes.length?'\nTIMING FLAGS\n'+timingNotes.join('\n')+'\n':'');
+      +(timingNotes.length?'\nTIMING FLAGS\n'+timingNotes.join('\n')+'\n':'')
+      // ── Oura data ────────────────────────────────────────────────────────────
+      +(ouraData&&ouraData.sleep?(function(){
+        var s=ouraData.sleep||{},r=ouraData.readiness||{},a=ouraData.activity||{},rhr=ouraData.restingHR||{};
+        var out='\nOURA RING (synced '+ouraData.syncDate+', 7-day averages)\n';
+        if(s.avgScore7d) out+='Sleep score: '+s.avgScore7d+'/100\n';
+        if(s.avgTotal7d_hrs) out+='Total sleep: '+s.avgTotal7d_hrs+'hrs\n';
+        if(s.avgDeep7d_hrs) out+='Deep sleep: '+s.avgDeep7d_hrs+'hrs\n';
+        if(s.avgREM7d_hrs) out+='REM sleep: '+s.avgREM7d_hrs+'hrs\n';
+        if(r.avgScore7d) out+='Readiness score: '+r.avgScore7d+'/100\n';
+        if(r.avgHRVBalance7d) out+='HRV balance: '+r.avgHRVBalance7d+'\n';
+        if(rhr.avg7d) out+='Resting HR: '+rhr.avg7d+'bpm\n';
+        if(a.avgScore7d) out+='Activity score: '+a.avgScore7d+'/100\n';
+        if(a.avgActiveCalories7d) out+='Active calories: '+a.avgActiveCalories7d+'kcal\n';
+        return out;
+      })():'')
+      +(healthSync&&healthSync.appleHealth?(function(){
+        var ah=healthSync.appleHealth,s='\nAPPLE HEALTH (synced '+healthSync.syncDate+')\n';
+        if(ah.hrv_7day_avg_ms) s+='HRV 7d avg: '+ah.hrv_7day_avg_ms+'ms'+(ah.hrv_30day_avg_ms?' | 30d: '+ah.hrv_30day_avg_ms+'ms':'')+'\n';
+        if(ah.restingHR_7day_avg_bpm) s+='Resting HR 7d avg: '+ah.restingHR_7day_avg_bpm+'bpm'+(ah.restingHR_30day_avg_bpm?' | 30d: '+ah.restingHR_30day_avg_bpm+'bpm':'')+'\n';
+        if(ah.weight_lbs) s+='Weight (latest): '+ah.weight_lbs+'lbs\n';
+        if(ah.activeCalories_7day_avg_kcal) s+='Active calories 7d avg: '+ah.activeCalories_7day_avg_kcal+'kcal\n';
+        if(ah.spo2_avg_pct) s+='SpO2 avg: '+ah.spo2_avg_pct+'%\n';
+        if(ah.sleepHours_7day_avg) s+='Sleep 7d avg: '+ah.sleepHours_7day_avg+'hrs\n';
+        return s;
+      })():'')
+      +(healthSync&&healthSync.functionHealth&&healthSync.functionHealth.length?(function(){
+        var s='\nFUNCTION HEALTH LABS (synced '+healthSync.syncDate+')\n';
+        healthSync.functionHealth.forEach(function(m){
+          s+=(m.inRange===false?'[OUT OF RANGE] ':'')+m.name+': '+m.value+' '+m.units+(m.date?' ('+m.date+')':'')+'\n';
+        });
+        return s;
+      })():'');
 
     var apiKey=localStorage.getItem('rp_anthropic_key')||'';
     var headers={'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
@@ -7029,28 +7128,21 @@ async function runProtocolReview(key,detailId,btnId){
     if(start===-1||end===-1) throw new Error('No JSON in response');
     var review=JSON.parse(text.slice(start,end+1));
 
-    // ── Render coach's note ──────────────────────────────────────────────────
-    function section(icon,label,content,color){
-      if(!content) return '';
-      return '<div style="margin-bottom:14px">'
-        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:'+(color||'var(--p1)')+';margin-bottom:6px">'+icon+' '+label+'</div>'
-        +'<div style="font-family:var(--sans);font-size:13px;color:var(--text);line-height:1.7">'+content+'</div>'
-        +'</div>';
-    }
+    // ── Render APEX coach note ─────────────────────────────────────────────────
+    var reportDate=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
     detail.innerHTML=
-      '<div style="border-left:3px solid var(--p1);padding-left:12px;margin-bottom:16px">'
-        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">Week '+weeksElapsed+' of '+proto.durationWeeks+' \u00b7 '+adherence+'% adherence</div>'
-        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+proto.compounds.map(function(c){return c.name+' '+complianceByCompound[c.name]+'%';}).join(' \u00b7 ')+'</div>'
-      +'</div>'
-      +section('\u2714','What\u2019s working',review.whats_working,'var(--p1)')
-      +section('\u26a0','What needs attention',review.needs_attention,'var(--p2)')
-      +section('\u2192','What I\u2019d adjust',review.id_adjust,'var(--p3)')
-      +section('\u25ce','What to watch for',review.watch_for,'var(--p4)')
-      +(review.realistic_outlook?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-top:4px">'
-        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">REALISTIC OUTLOOK</div>'
-        +'<div style="font-family:var(--sans);font-size:13px;color:var(--text);line-height:1.6;font-style:italic">'+review.realistic_outlook+'</div>'
-        +'</div>':'')
-      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:12px;padding-top:8px;border-top:1px solid var(--bd)">AI-generated coach\u2019s note for informational purposes only. Not medical advice.</div>';
+      '<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px 16px;margin-bottom:16px">'+'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'+'<div style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--p2);font-weight:700">Coach APEX</div>'+'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Protocol Pro</div>'+'</div>'
+      +'<div style="font-family:var(--serif);font-size:15px;color:var(--text);margin-bottom:4px">'+proto.name+' · Week '+weeksElapsed+' of '+proto.durationWeeks+'</div>'
+      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+adherence+'% adherence · '+reportDate+'</div>'
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+proto.compounds.map(function(c){var p=complianceByCompound[c.name];var cl=p>=80?'var(--p1)':p>=50?'var(--p2)':'var(--p5)';return '<span style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid '+cl+';color:'+cl+'">'+c.name+' '+p+'%</span>';}).join('')+'</div>'
+    +(review.whats_working?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:6px">✔ What’s working</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.whats_working+'</div></div>':'')
+    +(review.needs_attention?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ What needs attention</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.needs_attention+'</div></div>':'')
+    +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
+    +(review.watch_for?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p4);margin-bottom:6px">◎ What to watch for</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.watch_for+'</div></div>':'')
+    +(review.realistic_outlook?'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-bottom:5px;letter-spacing:.1em;text-transform:uppercase">Realistic Outlook</div><div style="font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.7;font-style:italic">'+review.realistic_outlook+'</div></div>':'')
+    +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:8px;border-top:1px solid var(--bd)">Coach APEX is an AI tool in Protocol Pro. Generated from your logged data only. Not medical advice. '+reportDate+'</div>';
+
         var _rt=proto.name+' · Week '+weeksElapsed+' of '+proto.durationWeeks;
     var _sr=[];try{var _rs=localStorage.getItem('pt_saved_reports_'+proto.id);if(_rs)_sr=JSON.parse(_rs);}catch(e){}
     var _ml=key.split('_').pop()+'%';
@@ -7063,26 +7155,8 @@ async function runProtocolReview(key,detailId,btnId){
     btn.textContent='View Report →';btn.disabled=false;
     btn.onclick=function(){openReportPreview(_rt,detail.innerHTML);};
   } catch(err){
-    detail.innerHTML=
-      '<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px 16px;margin-bottom:16px">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-          +'<div style="font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--p2);font-weight:700">Coach APEX</div>'
-          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Protocol Pro</div>'
-        +'</div>'
-        +'<div style="font-family:var(--serif);font-size:15px;color:var(--text);margin-bottom:4px">'+proto.name+' · Week '+weeksElapsed+' of '+proto.durationWeeks+'</div>'
-        +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+adherence+'% adherence · '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})+'</div>'
-      +'</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'
-        +proto.compounds.map(function(c){var p=complianceByCompound[c.name];var cl=p>=80?'var(--p1)':p>=50?'var(--p2)':'var(--p5)';return '<span style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid '+cl+';color:'+cl+'">'+c.name+' '+p+'%</span>';}).join('')
-      +'</div>'
-      +(review.whats_working?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:6px">✔ What’s working</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.whats_working+'</div></div>':'')
-      +(review.needs_attention?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ What needs attention</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.needs_attention+'</div></div>':'')
-      +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
-      +(review.watch_for?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p4);margin-bottom:6px">◎ What to watch for</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.watch_for+'</div></div>':'')
-      +(review.realistic_outlook?'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-bottom:5px;letter-spacing:.1em;text-transform:uppercase">Realistic Outlook</div><div style="font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.7;font-style:italic">'+review.realistic_outlook+'</div></div>':'')
-      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:8px;border-top:1px solid var(--bd)">Coach APEX is an AI tool in Protocol Pro. Generated from your logged data only. Not medical advice.</div>'
-      ;
-detail.style.display='block';
+    detail.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--p5);line-height:1.6">\u26a0 '+err.message+'</div>';
+    detail.style.display='block';
     btn.textContent='Full Analysis \u2192';btn.disabled=false;
   }
 }
@@ -7956,6 +8030,160 @@ function dismissNewCompounds(){
   closeModal('newCompoundsModal');
 }
 
+async function connectOura(){
+  var pat=document.getElementById('ouraPatInput').value.trim();
+  if(!pat){toast('Paste your Personal Access Token first');return;}
+  var btn=document.querySelector('#ouraCard .btn.sm');
+  if(btn){btn.textContent='Syncing\u2026';btn.disabled=true;}
+  try{
+    var today=new Date().toISOString().slice(0,10);
+    var thirtyDaysAgo=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+    var headers={'Authorization':'Bearer '+pat};
+    var [sleepRes,readinessRes,activityRes,hrRes]=await Promise.all([
+      fetch('https://api.ouraring.com/v2/usercollection/daily_sleep?start_date='+thirtyDaysAgo+'&end_date='+today,{headers:headers}),
+      fetch('https://api.ouraring.com/v2/usercollection/daily_readiness?start_date='+thirtyDaysAgo+'&end_date='+today,{headers:headers}),
+      fetch('https://api.ouraring.com/v2/usercollection/daily_activity?start_date='+thirtyDaysAgo+'&end_date='+today,{headers:headers}),
+      fetch('https://api.ouraring.com/v2/usercollection/heartrate?start_datetime='+thirtyDaysAgo+'T00:00:00&end_datetime='+today+'T23:59:59',{headers:headers}),
+    ]);
+    if(!sleepRes.ok) throw new Error('Auth failed ('+sleepRes.status+') — check your token');
+    var sleepJson=await sleepRes.json();
+    var readinessJson=await readinessRes.json();
+    var activityJson=await activityRes.json();
+    var hrJson=await hrRes.json();
+    // Process sleep: last 7d avg score, deep/REM/light avg, total sleep avg
+    var sleepData=sleepJson.data||[];
+    var recent7Sleep=sleepData.slice(-7);
+    function avg7(arr,key){return arr.length?Math.round(arr.reduce(function(s,d){return s+(d[key]||0);},0)/arr.length):null;}
+    // Resting HR from heartrate endpoint (min overnight)
+    var hrData=hrJson.data||[];
+    var nightlyHR=hrData.filter(function(h){var hr=new Date(h.timestamp).getHours();return hr>=0&&hr<=6;}).map(function(h){return h.bpm;});
+    var avgRHR=nightlyHR.length?Math.round(nightlyHR.reduce(function(s,v){return s+v;},0)/nightlyHR.length):null;
+    // Readiness
+    var readData=readinessJson.data||[];
+    var recent7Read=readData.slice(-7);
+    var avgReadiness=avg7(recent7Read,'score');
+    var avgHRVBalance=recent7Read.length?Math.round(recent7Read.reduce(function(s,d){return s+((d.contributors&&d.contributors.hrv_balance)||0);},0)/recent7Read.length):null;
+    // Activity
+    var actData=activityJson.data||[];
+    var recent7Act=actData.slice(-7);
+    var avgActivity=avg7(recent7Act,'score');
+    var avgCalories=recent7Act.length?Math.round(recent7Act.reduce(function(s,d){return s+(d.active_calories||0);},0)/recent7Act.length):null;
+    ouraData={
+      connectedAt:new Date().toISOString(),
+      syncDate:today,
+      pat:pat, // stored for re-sync
+      sleep:{
+        avgScore7d:avg7(recent7Sleep,'score'),
+        avgTotal7d_hrs:recent7Sleep.length?Math.round(recent7Sleep.reduce(function(s,d){return s+((d.contributors&&d.contributors.total_sleep)||0);},0)/recent7Sleep.length/3600*10)/10:null,
+        avgDeep7d_hrs:recent7Sleep.length?Math.round(recent7Sleep.reduce(function(s,d){return s+((d.contributors&&d.contributors.deep_sleep)||0);},0)/recent7Sleep.length/3600*10)/10:null,
+        avgREM7d_hrs:recent7Sleep.length?Math.round(recent7Sleep.reduce(function(s,d){return s+((d.contributors&&d.contributors.rem_sleep)||0);},0)/recent7Sleep.length/3600*10)/10:null,
+      },
+      readiness:{
+        avgScore7d:avgReadiness,
+        avgHRVBalance7d:avgHRVBalance,
+      },
+      activity:{
+        avgScore7d:avgActivity,
+        avgActiveCalories7d:avgCalories,
+      },
+      restingHR:{avg7d:avgRHR},
+    };
+    persist(KEYS.oura,ouraData);
+    localStorage.setItem('pt_oura_pat',pat);
+    updateOuraUI();
+    if(document.getElementById('insightsWrap')) renderInsights();
+    toast('Oura synced \u2713');
+  } catch(err){
+    var statusEl=document.getElementById('ouraStatus');
+    if(statusEl) statusEl.innerHTML='<span style="color:var(--p5)">\u26a0 '+err.message+'</span>';
+    toast('Oura sync failed');
+  } finally {
+    var btn2=document.querySelector('#ouraCard .btn.sm');
+    if(btn2){btn2.textContent='Connect & Sync';btn2.disabled=false;}
+  }
+}
+
+function disconnectOura(){
+  ouraData=null;
+  persist(KEYS.oura,null);
+  localStorage.removeItem('pt_oura_pat');
+  updateOuraUI();
+  if(document.getElementById('insightsWrap')) renderInsights();
+  toast('Oura disconnected');
+}
+
+async function resyncOura(){
+  var pat=localStorage.getItem('pt_oura_pat')||(ouraData&&ouraData.pat)||'';
+  if(!pat) return;
+  var inp=document.getElementById('ouraPatInput');
+  if(inp) inp.value=pat;
+  await connectOura();
+}
+
+function updateOuraUI(){
+  var badge=document.getElementById('ouraBadge');
+  var status=document.getElementById('ouraStatus');
+  var disconnectBtn=document.getElementById('ouraDisconnectBtn');
+  var inp=document.getElementById('ouraPatInput');
+  if(!ouraData){
+    if(badge){badge.textContent='Not connected';badge.style.background='var(--sf)';badge.style.color='var(--dim)';badge.style.borderColor='var(--bd)';}
+    if(disconnectBtn) disconnectBtn.style.display='none';
+    if(status) status.textContent='';
+    return;
+  }
+  if(badge){badge.textContent='Connected \u2713';badge.style.background='var(--p1d)';badge.style.color='var(--p1)';badge.style.borderColor='var(--p1)';}
+  if(disconnectBtn) disconnectBtn.style.display='inline-flex';
+  if(inp) inp.value='';
+  var s=ouraData.sleep||{},r=ouraData.readiness||{},a=ouraData.activity||{};
+  if(status){
+    var parts=[];
+    if(s.avgScore7d) parts.push('Sleep '+s.avgScore7d);
+    if(r.avgScore7d) parts.push('Readiness '+r.avgScore7d);
+    if(a.avgScore7d) parts.push('Activity '+a.avgScore7d);
+    status.textContent='Synced '+ouraData.syncDate+(parts.length?' \u00b7 '+parts.join(' \u00b7 '):'');
+  }
+}
+
+function importHealthSync(){
+  var raw=document.getElementById('healthSyncInput').value.trim();
+  if(!raw){toast('Paste your sync JSON first');return;}
+  var data;
+  try{
+    raw=raw.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+    data=JSON.parse(raw);
+  }catch(e){
+    document.getElementById('healthSyncPreview').innerHTML='<span style="color:var(--p5)">Invalid JSON — check your paste</span>';
+    return;
+  }
+  if(!data.syncDate){document.getElementById('healthSyncPreview').innerHTML='<span style="color:var(--p5)">Missing syncDate field</span>';return;}
+  healthSync=data;
+  persist(KEYS.healthSync,healthSync);
+  document.getElementById('healthSyncInput').value='';
+  closeModal('healthSyncModal');
+  updateHealthSyncUI();
+  if(document.getElementById('insightsWrap')) renderInsights();
+  toast('Health data synced ✓');
+}
+
+function updateHealthSyncUI(){
+  var badge=document.getElementById('healthSyncBadge');
+  var status=document.getElementById('healthSyncStatus');
+  if(!healthSync){
+    if(badge){badge.textContent='Not synced';badge.style.background='var(--p2d)';badge.style.color='var(--p2)';badge.style.borderColor='var(--p2)';}
+    if(status) status.textContent='';return;
+  }
+  var d=healthSync.syncDate||'';
+  var ahKeys=healthSync.appleHealth?Object.keys(healthSync.appleHealth).length:0;
+  var fhCount=healthSync.functionHealth?healthSync.functionHealth.length:0;
+  if(badge){badge.textContent='Synced ✓';badge.style.background='var(--p1d)';badge.style.color='var(--p1)';badge.style.borderColor='var(--p1)';}
+  if(status) status.textContent=d+' · '+ahKeys+' Health metrics · '+fhCount+' lab markers';
+}
+
+function generateHealthSyncPrompt(){
+  var prompt='Please generate my Protocol health sync JSON now. Pull:\n1. Apple Health: HRV 7-day avg (ms), HRV 30-day avg (ms), resting HR 7-day avg (bpm), resting HR 30-day avg (bpm), most recent weight in lbs, active calories 7-day avg (kcal), blood oxygen avg (%), sleep hours 7-day avg\n2. Function Health: all out-of-range biomarkers plus hs-CRP, cortisol, testosterone total, testosterone free, glucose, HbA1c, insulin, TSH, eGFR, ferritin, vitamin D, homocysteine, LDL, HDL, triglycerides\n\nFormat as JSON exactly like this:\n{\n  "syncDate": "YYYY-MM-DD",\n  "appleHealth": {\n    "hrv_7day_avg_ms": X,\n    "hrv_30day_avg_ms": X,\n    "restingHR_7day_avg_bpm": X,\n    "restingHR_30day_avg_bpm": X,\n    "weight_lbs": X,\n    "activeCalories_7day_avg_kcal": X,\n    "spo2_avg_pct": X,\n    "sleepHours_7day_avg": X\n  },\n  "functionHealth": [\n    {"name": "...", "value": X, "units": "...", "inRange": true/false, "date": "YYYY-MM-DD"}\n  ]\n}\n\nOnly include the JSON, no other text.';
+  navigator.clipboard.writeText(prompt).then(function(){toast('Prompt copied ✔ — paste into Claude to generate your sync JSON');});
+}
+
 function openReportPreview(title,contentHtml){
   var t=document.getElementById('reportPreviewTitle');
   var b=document.getElementById('reportPreviewBody');
@@ -7968,18 +8196,13 @@ function shareReport(){
   var t=document.getElementById('reportPreviewTitle');
   if(!b) return;
   var title=t?t.textContent:'Protocol Pro Report';
-  var content='<html><head><meta charset="utf-8"><title>'+title+'</title>'
-    +'<style>body{font-family:sans-serif;max-width:680px;margin:32px auto;padding:0 20px;color:#111;line-height:1.6}</style>'
-    +'</head><body><h1>'+title+'</h1>'+b.innerHTML+'</body></html>';
+  var content='<html><head><meta charset="utf-8"><title>'+title+'</title><style>body{font-family:sans-serif;max-width:680px;margin:32px auto;padding:0 20px;color:#111;line-height:1.6}</style></head><body><h1>'+title+'</h1>'+b.innerHTML+'</body></html>';
   var blob=new Blob([content],{type:'text/html'});
   var file=new File([blob],'apex-report-'+today()+'.html',{type:'text/html'});
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-    navigator.share({files:[file],title:title})
-      .then(function(){toast('Report shared ✓ — open in Safari to print as PDF');})
-      .catch(function(e){if(e.name!=='AbortError') copyReportText();});
+    navigator.share({files:[file],title:title}).then(function(){toast('Report shared ✓ — open in Safari to print as PDF');}).catch(function(e){if(e.name!=='AbortError') copyReportText();});
   } else {
-    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='apex-report-'+today()+'.html';a.click();
-    toast('Report downloaded ✓');
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='apex-report-'+today()+'.html';a.click();toast('Report downloaded ✓');
   }
 }
 function copyReportText(){
@@ -8003,7 +8226,9 @@ function exportToFiles(){
     userProfile:userProfile,
     goals:JSON.parse(localStorage.getItem('pt_goals')||'[]'),
     wantList:JSON.parse(localStorage.getItem('pt_restock_want')||'[]'),
-    libraryVersion:localStorage.getItem('pt_library_version')||''};
+    libraryVersion:localStorage.getItem('pt_library_version')||'',
+    healthSync:healthSync,
+    ouraData:ouraData};
   var jsonStr=JSON.stringify(backup,null,2);
   var filename='protocol-backup-'+today()+'.json';
   // iOS PWA: use Web Share API to trigger Files picker
@@ -8167,11 +8392,11 @@ async function initApp(){
     load(KEYS.logs,[]),load(KEYS.doseMem,{}),load(KEYS.bodyLogs,[]),
     load(KEYS.checkins,[]),load(KEYS.pantry,[]),
     load(KEYS.protocols,[]),load(KEYS.activeProtoId,null),
-    load(KEYS.activeProtoIds,[]),
+    load(KEYS.activeProtoIds,[]),load(KEYS.healthSync,null),load(KEYS.oura,null),
   ]);
   logs=results[0];doseMem=results[1];bodyLogs=results[2];
   checkins=results[3];pantry=results[4];protocols=results[5];activeProtoId=results[6];
-  activeProtoIds=results[7]||[];
+  activeProtoIds=results[7]||[];healthSync=results[8]||null;ouraData=results[9]||null;
   // Migrate: if activeProtoIds empty but activeProtoId exists, seed from legacy
   if(!activeProtoIds.length&&activeProtoId) activeProtoIds=[activeProtoId];
   researchUnlocked=localStorage.getItem('pt_research_unlocked')==='1';
@@ -9131,6 +9356,26 @@ document.addEventListener('DOMContentLoaded', initApp);
 </div>
 
 <!-- ═══════════ LIBRARY BROWSER MODAL ═══════════ -->
+<div class="modal-overlay" id="healthSyncModal">
+  <div class="modal" style="max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:3px">Protocol Pro</div>
+        <div style="font-family:var(--sans);font-size:17px;font-weight:600;color:var(--text)">Claude Health Sync</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('healthSyncModal')">&#x2715;</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:8px;flex-shrink:0">Ask Claude to generate your sync JSON, then paste it below.</div>
+    <button class="btn sm" style="margin-bottom:10px;flex-shrink:0;align-self:flex-start" onclick="generateHealthSyncPrompt()">&#x1F4CB; Copy Claude Prompt</button>
+    <textarea id="healthSyncInput" placeholder='Paste your health sync JSON here...' style="flex:1;min-height:180px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6"></textarea>
+    <div id="healthSyncPreview" style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;min-height:16px;flex-shrink:0"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-shrink:0">
+      <button class="btn" style="flex:1;justify-content:center;background:var(--p2);border-color:var(--p2);color:var(--bg)" onclick="importHealthSync()">Import</button>
+      <button class="btn ghost" style="flex:1;justify-content:center" onclick="closeModal('healthSyncModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="reportPreviewModal">
   <div class="modal" style="max-height:92vh;padding:0;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:16px 20px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
