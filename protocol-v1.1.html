@@ -1698,16 +1698,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           <input type="number" inputmode="decimal" id="epReconVol" placeholder="e.g. 2" step="any" min="0" oninput="liveCalcInject()">
         </div>
       </div>
-      <div class="field" style="margin-bottom:10px">
-        <label>Injection site</label>
-        <select id="epSite">
-          <option value="Subcutaneous abdomen">Subcutaneous abdomen</option>
-          <option value="Subcutaneous thigh">Subcutaneous thigh</option>
-          <option value="Deltoid">Deltoid</option>
-          <option value="Glute">Glute</option>
-          <option value="Rotate sites">Rotate sites</option>
-          <option value="N/A">N/A</option>
-        </select>
+      <div class="g2" style="margin-bottom:10px">
+        <div class="field"><label>Injection site</label>
+          <select id="epSite">
+            <option value="Subcutaneous abdomen">Subcutaneous abdomen</option>
+            <option value="Subcutaneous thigh">Subcutaneous thigh</option>
+            <option value="Deltoid">Deltoid</option>
+            <option value="Glute">Glute</option>
+            <option value="Rotate sites">Rotate sites</option>
+            <option value="N/A">N/A</option>
+          </select>
+        </div>
+        <div class="field"><label>Off-cycle weeks</label>
+          <input type="number" id="epCycleOff" placeholder="from DB" min="1" max="52">
+        </div>
       </div>
       <!-- Autocalculated units to draw -->
       <div id="epUnitsResult" style="display:none;background:var(--p1d);border:1px solid var(--p1);border-radius:6px;padding:10px 12px;margin-bottom:10px">
@@ -1830,7 +1834,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
 
     <div class="btn-row">
-      <button class="btn" onclick="savePantryEdit()">Save</button>
+  
+    <button class="btn" onclick="savePantryEdit()">Save</button>
       <button class="btn ghost" onclick="closeModal('editPantryModal')">Cancel</button>
     </div>
   </div>
@@ -1949,22 +1954,22 @@ const NEW_COMPOUNDS=[
 ];
 
 const COMPOUND_DB=[
-  {name:'Tesamorelin',cat:'gh',color:'var(--p5)',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Fat loss','Metabolic'],rationale:'GHRH analogue — strongest clinical evidence for visceral fat reduction.',conflicts:['CJC-1295'],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'Ipamorelin',cat:'gh',color:'var(--p1)',dose:'250mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Sleep / GH','Lean Mass'],rationale:'GH secretagogue — pulsatile GH release for sleep and lean mass.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'CJC-1295',cat:'gh',color:'var(--p1)',dose:'100mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Sleep / GH','Lean Mass'],rationale:'GHRH — amplifies Ipamorelin GH pulse. Do not combine with Tesamorelin.',conflicts:['Tesamorelin'],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'Tirzepatide',cat:'metabolic',color:'var(--p2)',dose:'5mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'GLP-1/GIP dual agonist — primary appetite suppression.',conflicts:['Retatrutide','Semaglutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1]},
+  {name:'Tesamorelin',cat:'gh',color:'var(--p5)',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Fat loss','Metabolic'],rationale:'GHRH analogue — strongest clinical evidence for visceral fat reduction.',conflicts:['CJC-1295'],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:10},
+  {name:'Ipamorelin',cat:'gh',color:'var(--p1)',dose:'250mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Sleep / GH','Lean Mass'],rationale:'GH secretagogue — pulsatile GH release for sleep and lean mass.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:10},
+  {name:'CJC-1295',cat:'gh',color:'var(--p1)',dose:'100mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Sleep / GH','Lean Mass'],rationale:'GHRH — amplifies Ipamorelin GH pulse. Do not combine with Tesamorelin.',conflicts:['Tesamorelin'],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
+  {name:'Tirzepatide',cat:'metabolic',color:'var(--p2)',dose:'5mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'GLP-1/GIP dual agonist — primary appetite suppression.',conflicts:['Retatrutide','Semaglutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'Retatrutide',cat:'metabolic',color:'#fb923c',dose:'2mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'Triple GLP-1/GIP/glucagon agonist — aggressive visceral fat mobilization.',conflicts:['Tirzepatide','Semaglutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1]},
-  {name:'Semaglutide',cat:'metabolic',color:'#fbbf24',dose:'0.5mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'GLP-1 agonist — appetite suppression and glycemic control.',conflicts:['Tirzepatide','Retatrutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1]},
-  {name:'Cagrilintide',cat:'metabolic',color:'#f87171',dose:'0.5mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'Amylin analogue — synergistic appetite suppression with GLP-1 class.',conflicts:['Retatrutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1]},
-  {name:'5-Amino-1MQ',cat:'metabolic',color:'var(--p3)',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Subcutaneous abdomen',goals:['Fat loss','Metabolic'],rationale:'NNMT inhibitor — raises NAD+, boosts basal metabolic rate.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'Semaglutide',cat:'metabolic',color:'#fbbf24',dose:'0.5mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'GLP-1 agonist — appetite suppression and glycemic control.',conflicts:['Tirzepatide','Retatrutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1],cycleOnWeeks:8,cycleOffWeeks:8},
+  {name:'Cagrilintide',cat:'metabolic',color:'#f87171',dose:'0.5mg',route:'Subcutaneous',form:'prefilled',fasting:false,site:'Thigh',goals:['Fat loss','Appetite'],rationale:'Amylin analogue — synergistic appetite suppression with GLP-1 class.',conflicts:['Retatrutide'],timingWindow:'weekly',frequency:'weekly',daysOfWeek:[1],cycleOnWeeks:8,cycleOffWeeks:8},
+  {name:'5-Amino-1MQ',cat:'metabolic',color:'var(--p3)',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Subcutaneous abdomen',goals:['Fat loss','Metabolic'],rationale:'NNMT inhibitor — raises NAD+, boosts basal metabolic rate.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'SLU-PP-332',cat:'metabolic',color:'var(--p4)',dose:'20mg',route:'Oral',form:'oral',fasting:false,site:'N/A',goals:['Metabolic','Lean Mass'],rationale:'ERR agonist — mitochondrial biogenesis, exercise mimetic.',conflicts:[],timingWindow:'preworkout',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'AOD-9604',cat:'metabolic',color:'#fbbf24',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Fat loss'],rationale:'HGH fragment — targeted fat oxidation without glucose effects.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'AOD-9604',cat:'metabolic',color:'#fbbf24',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Fat loss'],rationale:'HGH fragment — targeted fat oxidation without glucose effects.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'MOTS-c',cat:'metabolic',color:'#2dd4bf',dose:'5mg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Metabolic','Fat loss'],rationale:'Mitochondria-derived peptide — metabolic flexibility.',conflicts:[],timingWindow:'am',frequency:'3x/week',daysOfWeek:[1,3,5]},
-  {name:'BPC-157',cat:'healing',color:'#60a5fa',dose:'250mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery'],rationale:'Body protection compound — systemic healing, gut health, tendon repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'TB-500',cat:'healing',color:'#34d399',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery'],rationale:'Systemic healing — tissue remodeling and inflammation reduction.',conflicts:[],timingWindow:'am',frequency:'2x/week',daysOfWeek:[1,4]},
+  {name:'BPC-157',cat:'healing',color:'#60a5fa',dose:'250mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery'],rationale:'Body protection compound — systemic healing, gut health, tendon repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
+  {name:'TB-500',cat:'healing',color:'#34d399',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery'],rationale:'Systemic healing — tissue remodeling and inflammation reduction.',conflicts:[],timingWindow:'am',frequency:'2x/week',daysOfWeek:[1,4],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'KLOW',cat:'healing',color:'#4ade80',dose:'—',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery','Immune'],rationale:'Blend: GHK-Cu + TB-500 + BPC-157 + KPV — comprehensive repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'SS-31',cat:'longevity',color:'var(--p4)',dose:'5mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity'],rationale:'Mitochondrial membrane protector — reduces oxidative stress.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
-  {name:'GHK-Cu',cat:'longevity',color:'#f472b6',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity','Recovery'],rationale:'Copper peptide — collagen synthesis, tissue repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'GHK-Cu',cat:'longevity',color:'#f472b6',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity','Recovery'],rationale:'Copper peptide — collagen synthesis, tissue repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'Epithalon',cat:'longevity',color:'#818cf8',dose:'10mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity','Sleep / GH'],rationale:'Telomerase activator — longevity and sleep quality. 10-day cycle quarterly.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'NAD+',cat:'longevity',color:'#38bdf8',dose:'500mg',route:'Oral',form:'oral',fasting:false,site:'N/A',goals:['Longevity','Metabolic'],rationale:'Cellular energy substrate — mitochondrial function.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'Thymosin Alpha-1',cat:'immune',color:'#34d399',dose:'1.5mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Immune'],rationale:'Thymic peptide — immune system modulation and T-cell activation.',conflicts:[],timingWindow:'am',frequency:'2x/week',daysOfWeek:[1,4]},
@@ -1975,7 +1980,15 @@ const COMPOUND_DB=[
   {name:'VIP Nasal Spray',cat:'immune',color:'#34d399',dose:'200mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Immune','Recovery'],rationale:'Vasoactive intestinal peptide — 4 sprays (50mcg each) in the morning. Immune modulation, used in CIRS protocols.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:5,nasalReconVol:10,nasalDoseMcg:200,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:50,spraysPerDose:4},
   {name:'N-Acetyl Selank Amidate Nasal Spray',cat:'mood',color:'#f472b6',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Recovery','Mood'],rationale:'Acetylated Selank — 3 sprays (100mcg each) in early evening or before bed. Anxiolytic, stress and immune support.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:10,nasalReconVol:10,nasalDoseMcg:300,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:100,spraysPerDose:3},
   {name:'N-Acetyl Semax Amidate Nasal Spray',cat:'cognitive',color:'#c084fc',dose:'300mcg',route:'Intranasal',form:'nasal',fasting:false,site:'N/A',goals:['Metabolic','Recovery'],rationale:'Acetylated Semax — 3 sprays (100mcg each) in the morning or pre-focus. Cognitive enhancement, BDNF support.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],nasalVialMg:10,nasalReconVol:10,nasalDoseMcg:300,nasalDosesPerDay:1,nasalBottles:0,nasalOpenMcg:null,nasalTotalMcg:0,mcgPerSpray:100,spraysPerDose:3},
-];
+,
+  {name:'KLOW Blend',contains:['GHK-Cu','BPC-157','TB-500','KPV'],route:'Subcutaneous',form:'vial',
+   dose:'2.5mg/500mcg/500mcg/500mcg',site:'Abdomen',fasting:false,
+   timingWindow:'am',frequency:'5 days on, 2 days off',
+   daysOfWeek:[1,2,3,4,5],
+   category:'healing',
+   goals:['healing','recovery','tissue repair','inflammation','immune support','skin','gut health','musculoskeletal'],
+   rationale:'Synergistic blend of GHK-Cu, BPC-157, TB-500 and KPV for comprehensive tissue regeneration, anti-inflammatory action, and gut barrier support.',
+   notes:'50mg/10mg/10mg/10mg per vial. Reconstitute with 2ml BAC water. 10 units per dose. 8-12 weeks on, 8-12 weeks off.',cycleOnWeeks:8,cycleOffWeeks:12}];
 
 const CAT_COLORS={gh:'var(--p1)',metabolic:'var(--p2)',healing:'#60a5fa',longevity:'var(--p4)',immune:'#34d399',cognitive:'#f472b6',performance:'var(--p3)',sleep:'var(--p4)',mood:'#f472b6',other:'var(--mid)'};
 
@@ -3029,6 +3042,37 @@ function updateManualStreak(name, dose, route, form, site, timingWindow){
 
 function logCompound(name,uid){
   var _pItem=pantry.find(function(p){return p.name===name;});
+  // Check off-cycle status before logging
+  var _cycle=getCycleStatus(_pItem);
+  if(_cycle.offCycle){
+    showConfirm(
+      '🔄 Off-cycle warning',
+      name+' is currently in its off-cycle period ('+_cycle.daysLeft+' days remaining until '+_cycle.until+'). Logging during an off-cycle may reduce efficacy and restart your cycle clock. Continue anyway?',
+      'Log anyway',
+      function(){ _doLogCompound(name,uid); },
+      'Cancel',
+      null
+    );
+    return;
+  }
+  _doLogCompound(name,uid);
+}
+function _doLogCompound(name,uid){
+  var _pItem=pantry.find(function(p){return p.name===name;});
+  // Check for blend component conflicts
+  var _blendConflict=getBlendCycleConflict(name);
+  if(_blendConflict){
+    var _msg=_blendConflict.type==='blend'
+      ?name+' is already covered by '+_blendConflict.conflictName+' (last logged '+_blendConflict.date+'). Logging separately would double-dose these shared compounds. Continue anyway?'
+      :name+' contains '+_blendConflict.conflictName+' which was recently logged individually ('+_blendConflict.date+'). This would double-dose that compound. Continue anyway?';
+    showConfirm('⚠ Blend overlap warning',_msg,'Log anyway',
+      function(){ _executeLog(name,uid); },'Cancel',null);
+    return;
+  }
+  _executeLog(name,uid);
+}
+function _executeLog(name,uid){
+  var _pItem=pantry.find(function(p){return p.name===name;});
   const dose=getDoseValue('dose-'+uid,'doseunit-'+uid)||getEffectiveDose(name)||'—';
   const siteEl=document.querySelector('#cre-'+uid+' .chip.on');
   const site=siteEl?siteEl.textContent:'Abdomen';
@@ -3051,6 +3095,13 @@ function logCompound(name,uid){
   persist(KEYS.doseMem,doseMem);
   logs.unshift(entry);persist(KEYS.logs,logs);
   deductStock(name,dose);
+  // If this is a blend, propagate cycle end date to component pantry items
+  var _proto=getActiveProtocol();
+  if(_proto&&_proto.startDate&&_proto.durationWeeks){
+    var _protoEndMs=new Date(_proto.startDate).getTime()+(_proto.durationWeeks*7*86400000);
+    var _protoEnd=new Date(_protoEndMs).toISOString().slice(0,10);
+    setCycleEndForBlendComponents(name,_protoEnd);
+  }
   // Track manual streak (only for compounds not already in protocol)
   updateManualStreak(name,dose,entry.route,c.form,entry.site,c.timingWindow);
   toast(name.split(' ')[0]+' logged ✓');
@@ -3148,6 +3199,108 @@ function toggleCheckin(){
   if(chev) chev.textContent=checkinOpen?'▴':'▾';
   if(checkinOpen) prefillCheckinFromOura();
 }
+function getBlendConflicts(name){
+  // Returns list of blend names that contain this compound (and vice versa for blends)
+  var conflicts=[];
+  var nameLC=(name||'').toLowerCase();
+  // Is this compound contained in a blend?
+  COMPOUND_DB.forEach(function(c){
+    if(!c||!c.name) return;
+    if(c.contains&&c.contains.some(function(n){return n.toLowerCase()===nameLC;})){
+      conflicts.push({type:'blend',name:c.name,contains:c.contains});
+    }
+  });
+  // Is this a blend itself? Find individual compounds it contains
+  var thisEntry=COMPOUND_DB.find(function(c){return c.name.toLowerCase()===nameLC;});
+  if(thisEntry&&thisEntry.contains){
+    thisEntry.contains.forEach(function(n){
+      conflicts.push({type:'component',name:n});
+    });
+  }
+  // Also check pantry for user-added blends with notes listing compounds
+  return conflicts;
+}
+
+function getBlendCycleConflict(name){
+  // Check if any blend containing this compound was recently logged
+  // or if this is a blend and individual components were recently logged
+  var conflicts=getBlendConflicts(name);
+  if(!conflicts.length) return null;
+  var today30=new Date();today30.setDate(today30.getDate()-30);
+  var recentLogs=logs.filter(function(l){return new Date(l.date)>=today30;});
+  for(var i=0;i<conflicts.length;i++){
+    var c=conflicts[i];
+    var conflictName=(c.name||'');
+    if(!conflictName) return;
+    var recentLog=recentLogs.find(function(l){return l.compound&&l.compound.toLowerCase()===conflictName.toLowerCase();});
+    if(recentLog){
+      return {conflictName:conflictName,type:c.type,date:recentLog.date};
+    }
+  }
+  return null;
+}
+
+function setCycleEndForBlendComponents(blendName,cycleEndDate){
+  // When a blend is logged, set the same cycle end date on all component pantry items
+  var blendEntry=COMPOUND_DB.find(function(c){return c.name===blendName;});
+  if(!blendEntry||!blendEntry.contains) return;
+  var changed=false;
+  blendEntry.contains.forEach(function(componentName){
+    // Write to protocol compound (correct layer)
+    protocols.forEach(function(p){
+      if(activeProtoIds.indexOf(p.id)===-1) return;
+      (p.compounds||[]).forEach(function(c){
+        if(c.name.toLowerCase()===componentName.toLowerCase()){
+          c.cycleEndDate=cycleEndDate;
+          changed=true;
+        }
+      });
+    });
+  });
+  if(changed) persist(KEYS.protocols,protocols);
+}
+
+function getCycleStatus(pItem){
+  // Returns {offCycle:bool, until:string|null, daysLeft:number}
+  if(!pItem||!pItem.name) return {offCycle:false,until:null,daysLeft:0};
+  // Get cycle data from COMPOUND_DB
+  var db=COMPOUND_DB.find(function(c){return c&&c.name&&c.name.toLowerCase()===pItem.name.toLowerCase();});
+  var cycleOffWeeks=pItem.cycleOffWeeks||(db&&db.cycleOffWeeks)||0;
+  if(!cycleOffWeeks) return {offCycle:false,until:null,daysLeft:0};
+  // Determine cycle end date: 1) protocol compound override, 2) protocol end date, 3) last log
+  var cycleEndDate=null;
+  // Find active protocol containing this compound
+  var _cycleProto=protocols.find(function(p){
+    return activeProtoIds.indexOf(p.id)!==-1&&
+      (p.compounds||[]).some(function(c){return c.name===pItem.name;});
+  });
+  if(_cycleProto){
+    // Check for per-compound override in protocol
+    var _protoCompound=(_cycleProto.compounds||[]).find(function(c){return c.name===pItem.name;});
+    if(_protoCompound&&_protoCompound.cycleEndDate){
+      cycleEndDate=_protoCompound.cycleEndDate;
+    } else if(_cycleProto.startDate&&_cycleProto.durationWeeks){
+      var endMs=new Date(_cycleProto.startDate).getTime()+(_cycleProto.durationWeeks*7*86400000);
+      cycleEndDate=new Date(endMs).toISOString().slice(0,10);
+    }
+  }
+  if(!cycleEndDate){
+    // Fall back to last logged dose date
+    var lastLog=logs.filter(function(l){return l.compound===pItem.name;}).sort(function(a,b){return b.date>a.date?1:-1;})[0];
+    if(lastLog) cycleEndDate=lastLog.date;
+  }
+  if(!cycleEndDate) return {offCycle:false,until:null,daysLeft:0};
+  var cycleEndMs=new Date(cycleEndDate).getTime();
+  var offUntilMs=cycleEndMs+(cycleOffWeeks*7*86400000);
+  var nowMs=Date.now();
+  if(nowMs>cycleEndMs&&nowMs<offUntilMs){
+    var until=new Date(offUntilMs).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    var daysLeft=Math.ceil((offUntilMs-nowMs)/86400000);
+    return {offCycle:true,until:until,daysLeft:daysLeft};
+  }
+  return {offCycle:false,until:null,daysLeft:0};
+}
+
 function prefillCheckinFromOura(){
   if(!ouraData||!ouraData.syncDate) return;
   // Only prefill if today's check-in hasn't been saved yet
@@ -4814,6 +4967,12 @@ function renderPantry(){
       var otherStocked=sameName.filter(function(p){return p.id!==c.id&&(p.vials>0||p.openVialMg>0);});
       if(otherStocked.length&&!c.activeConcentration) badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd);white-space:nowrap">other strength available</span>';
     }
+    // Off-cycle badge
+    var _pItemForCycle=pantry.find(function(p){return p&&p.id&&p.id===c.id;});
+    var _cycle=(_pItemForCycle||c)?getCycleStatus(_pItemForCycle||c):{offCycle:false,until:null};
+    if(_cycle.offCycle){
+      badges+=' <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(242,92,84,.1);color:var(--p5);border:1px solid var(--p5);white-space:nowrap">🔄 Off cycle until '+_cycle.until+'</span>';
+    }
     if(!c.id||c.id==='undefined'){
       c.id='usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
       persist(KEYS.pantry,pantry); // persist immediately so id is stable
@@ -5125,6 +5284,12 @@ function openPantryEdit(id){
   // Timing
   var timingEl=document.getElementById('epTiming');
   if(timingEl) timingEl.value=item.timingWindow||item.timing||'am';
+  // Cycle override fields
+  var _co=document.getElementById('epCycleOff');
+  if(_co){
+    var _db3=COMPOUND_DB.find(function(d){return d&&d.name&&d.name.toLowerCase()===(item.name||'').toLowerCase();});
+    _co.value=item.cycleOffWeeks||(_db3&&_db3.cycleOffWeeks)||'';
+  }
   // Schedule / frequency
   // Schedule — pill mode (weekly vs every N days)
   var isInterval=item.frequency==='interval'||(item.intervalDays&&item.intervalDays>0&&item.frequency!=='weekly');
@@ -5193,6 +5358,7 @@ function savePantryEdit(){
   const newName=document.getElementById('epName').value.trim();
   const newDose=getDoseValue('epDose','epDoseUnit');
   if(newName) item.name=newName;
+  var _co2=document.getElementById('epCycleOff');if(_co2&&_co2.value) item.cycleOffWeeks=parseInt(_co2.value); else delete item.cycleOffWeeks;
   if(newDose) item.dose=newDose;
   item.route=document.getElementById('epRoute').value;
   item.form=document.getElementById('epForm').value;
@@ -5417,7 +5583,21 @@ async function runBuildStep1(){
       .map(function(p){return p.name+'('+((doseMem[p.name]&&doseMem[p.name].dose)||p.dose)+','+p.route+','+p.form+')';}).join(', ');
     const goals=selectedGoals.join(', ');
     const context=document.getElementById('builderContext').value;
-    const prompt='Research peptide protocol designer. Pantry: '+activePantryList+'\nGoals: '+goals+'\n'+(context?'Context: '+context:'')+'\n\nReturn ONLY JSON array of suggested compounds (prioritize pantry items), no markdown:\n[{"name":"exact name","inPantry":true,"dose":"dose","route":"route","form":"oral or vial","fasting":true,"site":"Abdomen","timing":"Upon Waking","timingWindow":"am","frequency":"daily","daysOfWeek":[0,1,2,3,4,5,6],"rationale":"1 sentence","priority":1}]\ntimingWindow: am/preworkout/weekly/pm/other. Priority 1=highest. Max 8 compounds. Include both pantry and non-pantry relevant compounds.';
+    const prompt='You are an expert peptide protocol designer. Select exactly 3-5 compounds for the stated goals. Be highly selective — less is more. Quality over quantity.'
+      +'\nAvailable pantry: '+activePantryList
+      +'\nGoals: '+goals
+      +(context?'\nContext: '+context:'')
+      +'\n\nSELECTION RULES:\n'
+      +'1. Prefer pantry items that directly match the goals. Non-pantry only if a critical gap exists.\n'
+      +'2. Fat loss goals: prioritize GLP-1/GIP agonist, Tesamorelin or AOD-9604, one GH secretagogue. Max 4 compounds.\n'
+      +'3. Muscle/recomp goals: prioritize CJC-1295+Ipamorelin, BPC-157, TB-500. Max 4 compounds.\n'
+      +'4. Longevity goals: prioritize Epithalon, BPC-157, one NAD+ support. Max 4 compounds.\n'
+      +'5. Sleep/recovery goals: prioritize DSIP, CJC-1295+Ipamorelin (PM timing), one recovery peptide. Max 4 compounds.\n'
+      +'6. Healing goals: prioritize BPC-157, TB-500, one immune support. Max 3 compounds.\n'
+      +'7. Never include more than 5 compounds total. If multiple goals, find compounds that serve multiple goals.\n'
+      +'\nReturn ONLY a JSON array, no markdown:\n'
+      +'[{"name":"exact name","inPantry":true,"dose":"dose","route":"route","form":"oral or vial","fasting":true,"site":"Abdomen","timing":"Upon Waking","timingWindow":"am","frequency":"daily","daysOfWeek":[0,1,2,3,4,5,6],"rationale":"1 sentence explaining why this compound for these goals","priority":1}]\n'
+      +'timingWindow options: am/midday/preworkout/pm/other. Priority 1=highest. Return 3-5 compounds maximum.';
     const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
@@ -5428,7 +5608,8 @@ async function runBuildStep1(){
     if(s===-1) throw new Error('No data');
     buildCompounds=JSON.parse(raw.substring(s,e+1)).filter(function(c){
       var n=c.name||'';
-      return !/blend/i.test(n);
+      var isNamed=/^(KLOW|GLOW|Triple Threat|BPC.*TB|Tesamorelin.*Ipamorelin|Ipamorelin.*CJC)/i.test(n);
+      return isNamed||!/blend/i.test(n);
     }).map(function(c){
       var actuallyInPantry=pantry.some(function(p){
         return p.name.toLowerCase()===(c.name||'').toLowerCase()&&isInStock(p);
@@ -5684,7 +5865,11 @@ function renderCustomizeCompounds(compounds){
       '<div class="review-compound" style="border-left:3px solid '+(getPColor(c.name)||'var(--p1)') + '">'
       +'<div class="rc-hdr open" onclick="toggleRC(this)">'
         +'<div class="rc-dot" style="background:'+(getPColor(c.name)||'var(--mid)')+'"></div>'
-        +'<div class="rc-name">'+c.name+'</div>'
+        +'<div class="rc-name">'+c.name+(function(){
+          var pItem=pantry.find(function(p){return p.name===c.name;});
+          var cy=getCycleStatus(pItem);
+          return cy.offCycle?' <span style="font-family:var(--mono);font-size:8px;padding:1px 6px;border-radius:8px;background:rgba(242,92,84,.1);color:var(--p5);border:1px solid var(--p5)">🔄 off cycle until '+cy.until+'</span>':'';
+        }())+'</div>'
         +'<div class="rc-summary">'+(c.dose||'—')+' · '+(c.timing||'—')+'</div>'
         +'<button class="rc-remove" onclick="event.stopPropagation();removeCustomizeCompound('+i+')">✕</button>'
       +'</div>'
@@ -6106,7 +6291,10 @@ function renderEditorEditView(proto){
       +'<div class="field"><label>Fasting</label><select onchange="updateEditorCompound(\''+proto.id+'\','+i+',\'fasting\',this.value===\'true\')">'
       +'<option value="true"'+(c.fasting?' selected':'')+'>Yes</option><option value="false"'+(!c.fasting?' selected':'')+'>No</option></select></div></div>'
       +'<div class="field"><label>Days</label><div class="dow-pills">'+dowPills+'</div></div>'
+      +'<div class="g2">'
       +'<div class="field"><label>Rationale</label><input type="text" value="'+(c.rationale||'')+'" oninput="updateEditorCompound(\''+proto.id+'\','+i+',\'rationale\',this.value)"></div>'
+      +'<div class="field"><label>🔄 Cycle end date</label><input type="date" value="'+(c.cycleEndDate||'')+'" onchange="updateEditorCompound(\''+proto.id+'\','+i+',\'cycleEndDate\',this.value)" style="min-height:38px"><div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px">Defaults to protocol end date</div></div>'
+      +'</div>'
       +'</div></div>';
   }).join('');
 }
@@ -6246,6 +6434,9 @@ function buildStaticSuggestions(goals,allPantry){
   var twLabel={am:'Upon Waking',preworkout:'Pre-Workout',weekly:'Weekly',pm:'Pre-Sleep',other:'Other'};
 
   function isBlendItem(name,rationale){
+    // Named blends (KLOW, GLOW, etc) are allowed — only filter truly generic blend entries
+    var named=/^(KLOW|GLOW|Triple Threat|BPC.*TB|Tesamorelin.*Ipamorelin|Ipamorelin.*CJC)/i.test(name||'');
+    if(named) return false;
     return /blend/i.test(name||'')||/blend/i.test(rationale||'');
   }
 
@@ -6263,12 +6454,29 @@ function buildStaticSuggestions(goals,allPantry){
   var result=[];
   var seen=new Set();
 
-  // 1. Always include all stocked pantry items (priority — regardless of goal match)
-  allPantry.filter(function(p){return isInStock(p);}).forEach(function(p){
+  // 1. Score stocked pantry items against goals — include top 5 only
+  var scoredPantry=allPantry.filter(function(p){return isInStock(p)&&!isBlendItem(p.name,p.notes);}).map(function(p){
     var key=p.name.toLowerCase();
-    if(seen.has(key)||isBlendItem(p.name,p.notes)) return;
+    var db=COMPOUND_DB.find(function(c){return c.name.toLowerCase()===key;})||DEFAULT_PANTRY.find(function(d){return d.name.toLowerCase()===key;});
+    var compGoals=(db&&db.goals)||[];
+    var score=0;
+    if(wantsFat&&compGoals.some(function(g){return/fat|appetite|weight|metabol/i.test(g);})) score+=3;
+    if(wantsLean&&compGoals.some(function(g){return/lean|muscle|recomp/i.test(g);})) score+=3;
+    if(wantsSleep&&compGoals.some(function(g){return/sleep|gh|recovery/i.test(g);})) score+=2;
+    if(wantsHeal&&compGoals.some(function(g){return/recov|heal|repair/i.test(g);})) score+=3;
+    if(wantsLong&&compGoals.some(function(g){return/longevity|aging|anti/i.test(g);})) score+=3;
+    if(wantsMetab&&compGoals.some(function(g){return/metabol|energy|insulin/i.test(g);})) score+=2;
+    if(wantsImmune&&compGoals.some(function(g){return/immune/i.test(g);})) score+=2;
+    if(wantsPerf&&compGoals.some(function(g){return/perform|strength|endur/i.test(g);})) score+=2;
+    if(wantsMood&&compGoals.some(function(g){return/mood|cogn|anxiety/i.test(g);})) score+=2;
+    return {p:p,db:db,score:score,key:key};
+  }).sort(function(a,b){return b.score-a.score;});
+
+  // Take top 5 scoring pantry items
+  scoredPantry.slice(0,5).forEach(function(item){
+    var p=item.p,db=item.db,key=item.key;
+    if(seen.has(key)) return;
     seen.add(key);
-    var db=COMPOUND_DB.find(function(c){return c.name.toLowerCase()===key;});
     result.push({
       name:p.name,inPantry:true,selected:false,
       dose:p.dose||(db&&db.dose)||'—',
@@ -6276,12 +6484,12 @@ function buildStaticSuggestions(goals,allPantry){
       form:p.form||(db&&db.form)||'vial',
       fasting:p.fasting||!!(db&&db.fasting),
       site:p.site||(db&&db.site)||'Abdomen',
-      timing:db?twLabel[db.timingWindow]||'Upon Waking':'Upon Waking',
+      timing:db?twLabel[db.timingWindow||'am']||'Upon Waking':'Upon Waking',
       timingWindow:db?db.timingWindow||'am':'am',
       frequency:p.frequency||(db&&db.frequency)||'daily',
       daysOfWeek:(db&&db.daysOfWeek)||[0,1,2,3,4,5,6],
       rationale:(db&&db.rationale)||p.notes||'',
-      priority:1
+      priority:item.score>0?1:2
     });
   });
 
@@ -6299,6 +6507,7 @@ function buildStaticSuggestions(goals,allPantry){
     if(wantsMood&&c.goals.some(function(g){return/mood|cognitive/i.test(g);})) return true;
     return false;
   }).forEach(function(c){
+    if(result.length>=5) return; // cap at 5 total
     var key=c.name.toLowerCase();
     if(seen.has(key)) return;
     seen.add(key);
@@ -7350,7 +7559,7 @@ var PROTOCOL_TEMPLATES=[
   {id:'tmpl_sleep',name:'Sleep Stack',color:'var(--p3)',weeks:8,
    desc:'Deep sleep optimization and overnight recovery through targeted peptide support.',
    compounds:[
-    {name:'DSIP',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+    {name:'DSIP',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:4,cycleOffWeeks:4},
     {name:'Ipamorelin',dose:'300mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
     {name:'Magnesium Glycinate',dose:'400mg',route:'Oral',form:'oral',fasting:false,site:'N/A',timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
     {name:'L-Theanine',dose:'200mg',route:'Oral',form:'oral',fasting:false,site:'N/A',timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
@@ -7358,8 +7567,8 @@ var PROTOCOL_TEMPLATES=[
   {id:'tmpl_immunity',name:'Immunity Stack',color:'var(--p1)',weeks:8,
    desc:'Immune system support, inflammation modulation, and resilience building.',
    compounds:[
-    {name:'Thymosin Alpha 1',dose:'1mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'am',frequency:'daily',daysOfWeek:[1,3,5]},
-    {name:'VIP',dose:'100mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+    {name:'Thymosin Alpha 1',dose:'1mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'am',frequency:'daily',daysOfWeek:[1,3,5],cycleOnWeeks:8,cycleOffWeeks:8},
+    {name:'VIP',dose:'100mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
     {name:'Glutathione',dose:'150mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'am',frequency:'daily',daysOfWeek:[1,3]},
   ]},
   {id:'tmpl_mood',name:'Mood & Resilience Stack',color:'var(--p4)',weeks:8,
@@ -8587,13 +8796,13 @@ function importBodySpecCSV(input){
 var GUIDE_DB={
   'BPC-157':        {form:'vial',   vialMg:10, reconVol:2, doseLow:'250mcg',doseHigh:'500mcg',unitsLow:5,  unitsHigh:10, timing:'AM+PM',         frequency:'Twice daily, 5 on 2 off',  duration:'8 weeks on, 8 off',      cat:'healing'},
   'TB-500':         {form:'vial',   vialMg:10, reconVol:2, doseLow:'500mcg',doseHigh:'1mg',   unitsLow:10, unitsHigh:20, timing:'AM or PM',      frequency:'5 days on, 2 off',          duration:'8 weeks on, 8 off',      cat:'healing'},
-  'BPC-157 + TB-500 Blend':{form:'vial',vialMg:5,reconVol:2,doseLow:'250mcg',doseHigh:'500mcg',unitsLow:10,unitsHigh:20,timing:'AM+PM',         frequency:'Twice daily, 5 on 2 off',  duration:'8 weeks on, 8 off',      cat:'healing'},
-  'ARA-290':        {form:'vial',   vialMg:10, reconVol:2, doseLow:'1mg',   doseHigh:'2mg',   unitsLow:20, unitsHigh:40, timing:'AM or PM',      frequency:'Daily',                     duration:'4-8 weeks on, 4-8 off',  cat:'healing'},
+  'BPC-157 + TB-500 Blend':{contains:['BPC-157','TB-500'],form:'vial',vialMg:5,reconVol:2,doseLow:'250mcg',doseHigh:'500mcg',unitsLow:10,unitsHigh:20,timing:'AM+PM',         frequency:'Twice daily, 5 on 2 off',  duration:'8 weeks on, 8 off',      cat:'healing'},
+  'ARA-290':        {form:'vial',   vialMg:10, reconVol:2, doseLow:'1mg',   doseHigh:'2mg',   unitsLow:20, unitsHigh:40, timing:'AM or PM',      frequency:'Daily',                     duration:'4-8 weeks on, 4-8 off',  cat:'healing',cycleOnWeeks:8,cycleOffWeeks:8},
   'Cartalax':       {form:'vial',   vialMg:20, reconVol:2, doseLow:'2mg',   doseHigh:'2mg',   unitsLow:20, unitsHigh:20, timing:'AM or PM',      frequency:'Daily',                     duration:'30 days',                cat:'healing'},
   'KLOW Blend':     {form:'vial',   vialMg:80, reconVol:3, doseLow:'2.5mg', doseHigh:'2.5mg', unitsLow:15, unitsHigh:15, timing:'AM or PM',      frequency:'5 days on, 2 off',          duration:'8-12 weeks on, 8-12 off',cat:'healing'},
   'KPV':            {form:'vial',   vialMg:10, reconVol:2, doseLow:'500mcg',doseHigh:'1mg',   unitsLow:10, unitsHigh:20, timing:'AM or PM',      frequency:'5 days on, 2 off',          duration:'8 weeks on, 8 off',      cat:'healing'},
   'GHK-Cu':         {form:'vial',   vialMg:50, reconVol:3, doseLow:'1.5mg', doseHigh:'2.5mg', unitsLow:9,  unitsHigh:15, timing:'AM or PM',      frequency:'Daily',                     duration:'8 weeks on, 8 off',      cat:'healing'},
-  'GLOW Blend':     {form:'vial',   vialMg:70, reconVol:3, doseLow:'2.5mg', doseHigh:'2.5mg', unitsLow:15, unitsHigh:15, timing:'AM or PM',      frequency:'Daily',                     duration:'8-12 weeks on, 8-12 off',cat:'healing'},
+  'GLOW Blend':     {contains:['GHK-Cu','BPC-157','TB-500'],form:'vial',   vialMg:70, reconVol:3, doseLow:'2.5mg', doseHigh:'2.5mg', unitsLow:15, unitsHigh:15, timing:'AM or PM',      frequency:'Daily',                     duration:'8-12 weeks on, 8-12 off',cat:'healing'},
   '5-Amino-1MQ':    {form:'vial',   vialMg:5,   reconVol:2,   doseLow:'250mcg',doseHigh:'500mcg',unitsLow:10,unitsHigh:20, timing:'AM',            frequency:'5 days on, 2 off',          duration:'8-10 weeks on, 8-10 off',cat:'metabolic'},
   'AOD-9604':       {form:'vial',   vialMg:5,  reconVol:2, doseLow:'300mcg',doseHigh:'1mg',   unitsLow:12, unitsHigh:40, timing:'AM',            frequency:'5 days on, 2 off',          duration:'8-12 weeks on, 8-12 off',cat:'metabolic'},
   'Cagrilintide':   {form:'prefilled',vialMg:5,reconVol:2, doseLow:'0.25mg',doseHigh:'2.4mg', unitsLow:10, unitsHigh:100,timing:'AM',            frequency:'Weekly',                    duration:'Until goal',             cat:'metabolic'},
@@ -8605,7 +8814,7 @@ var GUIDE_DB={
   'Ipamorelin + Tesamorelin Blend':{form:'vial',vialMg:3,reconVol:2,doseLow:'300mcg',doseHigh:'300mcg',unitsLow:10,unitsHigh:10,timing:'AM+PM', frequency:'Twice daily, 5 on 2 off',  duration:'8-10 weeks on, 8-10 off',cat:'gh'},
   'Tesamorelin':    {form:'vial',   vialMg:10, reconVol:2, doseLow:'1mg',   doseHigh:'1mg',   unitsLow:20, unitsHigh:20, timing:'AM or PM',      frequency:'5 days on, 2 off',          duration:'8-10 weeks on, 8-10 off',cat:'gh'},
   'CJC-1295':       {form:'vial',   vialMg:5,  reconVol:2, doseLow:'250mcg',doseHigh:'250mcg',unitsLow:10, unitsHigh:10, timing:'AM+PM',         frequency:'Twice daily, 5 on 2 off',  duration:'8-10 weeks on, 8-10 off',cat:'gh'},
-  'Epitalon':       {form:'vial',   vialMg:10, reconVol:2, doseLow:'1mg',   doseHigh:'5mg',   unitsLow:20, unitsHigh:100,timing:'PM',            frequency:'Daily',                     duration:'20 days, 3x per year',   cat:'longevity'},
+  'Epitalon':       {form:'vial',   vialMg:10, reconVol:2, doseLow:'1mg',   doseHigh:'5mg',   unitsLow:20, unitsHigh:100,timing:'PM',            frequency:'Daily',                     duration:'20 days, 3x per year',   cat:'longevity',cycleOnWeeks:3,cycleOffWeeks:16},
   'SS-31':          {form:'vial',   vialMg:10, reconVol:2, doseLow:'500mcg',doseHigh:'2mg',   unitsLow:40, unitsHigh:40, timing:'AM',            frequency:'5 days on, 2 off',          duration:'8 weeks on, 8 off',      cat:'longevity'},
   'NAD+':           {form:'vial',   vialMg:500,reconVol:5, doseLow:'50mg',  doseHigh:'50mg',  unitsLow:50, unitsHigh:50, timing:'AM',            frequency:'5 days on, 2 off',          duration:'As needed',              cat:'longevity'},
   'Glutathione':    {form:'vial',   vialMg:600,reconVol:3, doseLow:'150mg', doseHigh:'200mg', unitsLow:75, unitsHigh:100,timing:'AM or PM',      frequency:'1-2 times per week',        duration:'As needed',              cat:'longevity'},
