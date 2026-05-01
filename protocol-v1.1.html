@@ -1331,6 +1331,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div id="healthSyncStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
   </div>
 
+  <!-- Clinical Notes -->
+  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Clinical Notes</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:10px">Context that Coach APEX should always consider when interpreting your lab results. Example: known conditions, clinician clarifications, race-based reference range adjustments.</div>
+    <textarea id="clinicalNotesInput" placeholder="e.g. eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist." style="width:100%;min-height:80px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6;box-sizing:border-box"></textarea>
+    <button class="btn sm" style="margin-top:8px" onclick="saveClinicalNotes()">Save Notes</button>
+    <div id="clinicalNotesStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
+  </div>
+
 
   <!-- Oura Ring Integration -->
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px" id="ouraCard">
@@ -6417,6 +6426,7 @@ function finishInit(){
   updateHealthSyncUI();
   updateOuraUI();
   updateApexKeyUI();
+  loadClinicalNotesUI();
   // One-time cleanup of any tour_ keys from old versions
   cleanupTourData();
   // iOS Files backup reminder — show if last save was >3 days ago
@@ -7036,10 +7046,13 @@ async function runProtocolReview(key,detailId,btnId){
       +'If a section has no data, say so briefly with a light touch. '
       +'When data is strong, celebrate it. When it needs work, be direct but warm. '
       +'If Apple Health or Function Health data is included, reference specific numbers and trends from it. '
-      +'Respond ONLY with JSON: {"whats_working":"paragraph","needs_attention":"paragraph","id_adjust":"paragraph","watch_for":"paragraph","realistic_outlook":"one energizing sentence grounded in observed trends"}. '
+      +'Respond ONLY with JSON: {"whats_working":"paragraph","needs_attention":"paragraph","id_adjust":"paragraph","watch_for":"paragraph","realistic_outlook":"one energizing sentence grounded in observed trends","questions_for_doctor":["question 1","question 2","question 3"]}. '
+      +'For questions_for_doctor: generate 3-5 specific, data-grounded questions the patient should ask their PCP or relevant specialist based on flagged labs, trends, or protocol interactions. '
+      +'Reference actual values where relevant (e.g. "My cortisol is 24.2 mcg/dL — what lifestyle or protocol factors could be driving this?"). '
       +'No markdown, no backticks. Start with { end with }.';
 
     // ── Build user prompt ────────────────────────────────────────────────────
+    var clinicalNotes=localStorage.getItem('pt_clinical_notes')||'';
     var userPrompt='CLIENT CONTEXT\n'
       +'Goals: '+(JSON.parse(localStorage.getItem('pt_goals')||'[]').join(', ')||'not specified')+'\n'
       +(profile.sex?'Biological sex: '+profile.sex+'\n':'')
@@ -7060,14 +7073,26 @@ async function runProtocolReview(key,detailId,btnId){
       +'Overall adherence: '+adherence+'%\n'
       +'\nBODY COMPOSITION\n'
       +(baseline&&latest&&wtDelta!==null
-        ?'Weight: '+baseline.weight+'lbs at start → '+latest.weight+'lbs now ('+
+        ?'Weight: '+baseline.weight+'lbs at start \u2192 '+latest.weight+'lbs now ('+
           (wtDelta>=0?'+':'')+wtDelta+'lbs over '+weeksElapsed+' weeks)\n'
         :'Weight data: not available\n')
-      +(dexaLogs.length>0
-        ?'DEXA body fat: '+dexaLogs[0].fatPct+'% → '+dexaLogs[dexaLogs.length-1].fatPct+'%'
-          +(fatDelta!==null?' ('+fatDelta+'% change)':'')+'\n'
-        :'DEXA data: not available\n')
-      +'\nCHECK-IN TRENDS (1-10 scale)\n'
+      +(function(){
+        var allBC=[...bodyLogs].sort(function(a,b){return a.date>b.date?1:-1;});
+        var withingsLogs=allBC.filter(function(b){return b.source!=='dexa'&&b.fatPct!=null;});
+        var s='';
+        if(withingsLogs.length>=2){
+          var wFirst=withingsLogs[0],wLast=withingsLogs[withingsLogs.length-1];
+          var wFatDelta=Math.round((wLast.fatPct-wFirst.fatPct)*10)/10;
+          s+='Withings body fat: '+wFirst.fatPct+'% \u2192 '+wLast.fatPct+'%'+(wFatDelta!==0?' ('+(wFatDelta>0?'+':'')+wFatDelta+'%)':'')+'\n';
+          if(wLast.muscle) s+='Lean mass (latest): '+wLast.muscle+'lbs\n';
+        }
+        if(dexaLogs.length>0){
+          s+='DEXA body fat: '+dexaLogs[0].fatPct+'% \u2192 '+dexaLogs[dexaLogs.length-1].fatPct+'%'+(fatDelta!==null?' ('+(fatDelta>0?'+':'')+fatDelta+'%)':'')+'\n';
+          s+='DEXA scans: '+dexaLogs.length+' total ('+dexaLogs[0].date+' to '+dexaLogs[dexaLogs.length-1].date+')\n';
+        }
+        return s||'Body composition data: not available\n';
+      })()
++'\nCHECK-IN TRENDS (1-10 scale)\n'
       +(sleepTrend?'Sleep: avg '+sleepTrend.recent+'/10, '+sleepTrend.dir+' (was '+sleepTrend.early+' early → '+sleepTrend.recent+' recent)\n':'Sleep: insufficient check-in data\n')
       +(energyTrend?'Energy: avg '+energyTrend.recent+'/10, '+energyTrend.dir+'\n':'')
       +(hungerTrend?'Hunger: avg '+hungerTrend.recent+'/10 (10=very hungry), '+hungerTrend.dir+'\n':'')
@@ -7081,6 +7106,7 @@ async function runProtocolReview(key,detailId,btnId){
       })()
       +(sideEffects.length?'Side effects reported: '+sideEffects.join(', ')+'\n':'No side effects reported\n')
       +(timingNotes.length?'\nTIMING FLAGS\n'+timingNotes.join('\n')+'\n':'')
+      +(clinicalNotes?'\nCLINICAL NOTES (from patient\'s clinician — use to contextualize lab flags)\n'+clinicalNotes+'\n':'')
       // ── Oura data ────────────────────────────────────────────────────────────
       +(ouraData&&ouraData.sleep?(function(){
         var s=ouraData.sleep||{},r=ouraData.readiness||{},a=ouraData.activity||{},rhr=ouraData.restingHR||{};
@@ -7148,7 +7174,20 @@ async function runProtocolReview(key,detailId,btnId){
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
     +(review.watch_for?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p4);margin-bottom:6px">◎ What to watch for</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.watch_for+'</div></div>':'')
     +(review.realistic_outlook?'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-bottom:5px;letter-spacing:.1em;text-transform:uppercase">Realistic Outlook</div><div style="font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.7;font-style:italic">'+review.realistic_outlook+'</div></div>':'')
-    +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:8px;border-top:1px solid var(--bd)">Coach APEX is an AI tool in Protocol Pro. Generated from your logged data only. Not medical advice. '+reportDate+'</div>';
+        +(review.questions_for_doctor&&review.questions_for_doctor.length
+      ?'<div style="margin-bottom:16px">'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:8px">❓ Questions for your doctor</div>'
+        +'<div style="background:var(--sf);border-radius:8px;padding:12px 14px">'
+        +review.questions_for_doctor.map(function(q,i){
+          return '<div style="display:flex;gap:10px;'+(i>0?'margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)':'')+'">'
+            +'<span style="font-family:var(--mono);font-size:11px;color:var(--p3);flex-shrink:0;font-weight:700">'+(i+1)+'.</span>'
+            +'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.6">'+q+'</div>'
+          +'</div>';
+        }).join('')
+        +'</div></div>'
+      :'')
+    +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:8px;border-top:1px solid var(--bd)">Coach APEX is an AI tool in Protocol Pro. Generated from your logged data only. Not medical advice. '+reportDate+'</div>'
+    ;
 
         var _rt=proto.name+' · Week '+weeksElapsed+' of '+proto.durationWeeks;
     var _sr=[];try{var _rs=localStorage.getItem('pt_saved_reports_'+proto.id);if(_rs)_sr=JSON.parse(_rs);}catch(e){}
@@ -8113,6 +8152,22 @@ function updateOuraUI(){
     if(a.avgScore7d) parts.push('Activity '+a.avgScore7d);
     status.textContent='Synced '+ouraData.syncDate+(parts.length?' \u00b7 '+parts.join(' \u00b7 '):'');
   }
+}
+
+function saveClinicalNotes(){
+  var notes=document.getElementById('clinicalNotesInput').value.trim();
+  localStorage.setItem('pt_clinical_notes',notes);
+  var status=document.getElementById('clinicalNotesStatus');
+  if(status) status.textContent=notes?'Notes saved ✓ — APEX will reference these in every report':'Notes cleared';
+  toast('Clinical notes saved ✓');
+}
+
+function loadClinicalNotesUI(){
+  var inp=document.getElementById('clinicalNotesInput');
+  var notes=localStorage.getItem('pt_clinical_notes')||'';
+  if(inp) inp.value=notes;
+  var status=document.getElementById('clinicalNotesStatus');
+  if(status) status.textContent=notes?'Notes saved ✓ — APEX will reference these in every report':'';
 }
 
 function saveApexApiKey(){
