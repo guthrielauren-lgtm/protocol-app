@@ -1319,17 +1319,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div>
         <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Oura Ring</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Sleep, readiness &amp; HRV auto-sync</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Sleep, readiness &amp; HRV · via iOS Shortcut</div>
       </div>
-      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="ouraBadge">Not connected</span>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="ouraBadge">Not synced</span>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:10px">Connect your Oura ring to automatically pull sleep scores, readiness, HRV balance, and resting HR into your Coach APEX reports. Requires a Personal Access Token from <span style="color:var(--p1)">cloud.ouraring.com/personal-access-tokens</span>.</div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="password" id="ouraPatInput" placeholder="Paste your Personal Access Token" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
-    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:12px">Sync via the <strong style="color:var(--text)">Oura Protocol Sync</strong> iOS Shortcut. Run it once to pull your last 30 days — JSON is copied to clipboard automatically. Then tap <strong style="color:var(--text)">Paste Sync Data</strong> in Claude Health Sync to import.</div>
     <div style="display:flex;gap:8px">
-      <button class="btn sm" style="background:var(--p1);border-color:var(--p1);color:var(--bg)" onclick="connectOura()">Connect &amp; Sync</button>
-      <button class="btn sm" id="ouraDisconnectBtn" style="display:none" onclick="disconnectOura()">Disconnect</button>
+      <button class="btn sm" style="background:var(--p1);border-color:var(--p1);color:var(--bg)" onclick="openModal('healthSyncModal')">Paste Sync Data</button>
+      <button class="btn sm" id="ouraDisconnectBtn" style="display:none" onclick="disconnectOura()">Clear Data</button>
     </div>
     <div id="ouraStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.6"></div>
   </div>
@@ -1355,13 +1352,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div>
       <div class="settings-label">Withings</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Body composition auto-sync</div>
-    </div>
-    <span style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">Coming soon</span>
-  </div>
-  <div class="settings-row">
-    <div>
-      <div class="settings-label">Oura Ring</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Sleep &amp; readiness sync</div>
     </div>
     <span style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">Coming soon</span>
   </div>
@@ -6408,8 +6398,6 @@ function finishInit(){
   loadProfile();
   updateHealthSyncUI();
   updateOuraUI();
-  // Auto re-sync Oura if connected
-  if(ouraData&&ouraData.pat) setTimeout(resyncOura,2000);
   // One-time cleanup of any tour_ keys from old versions
   cleanupTourData();
   // iOS Files backup reminder — show if last save was >3 days ago
@@ -8030,78 +8018,42 @@ function dismissNewCompounds(){
   closeModal('newCompoundsModal');
 }
 
-async function connectOura(){
-  var pat=document.getElementById('ouraPatInput').value.trim();
-  if(!pat){toast('Paste your Personal Access Token first');return;}
-  var btn=document.querySelector('#ouraCard .btn.sm');
-  if(btn){btn.textContent='Syncing\u2026';btn.disabled=true;}
-  try{
-    var today=new Date().toISOString().slice(0,10);
-    var thirtyDaysAgo=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
-    var headers={'Authorization':'Bearer '+pat};
-    var [sleepRes,readinessRes,activityRes,hrRes]=await Promise.all([
-      fetch('https://api.ouraring.com/v2/usercollection/daily_sleep?start_date='+thirtyDaysAgo+'&end_date='+today,{headers:headers}),
-      fetch('https://api.ouraring.com/v2/usercollection/daily_readiness?start_date='+thirtyDaysAgo+'&end_date='+today,{headers:headers}),
-      fetch('https://api.ouraring.com/v2/usercollection/daily_activity?start_date='+thirtyDaysAgo+'&end_date='+today,{headers:headers}),
-      fetch('https://api.ouraring.com/v2/usercollection/heartrate?start_datetime='+thirtyDaysAgo+'T00:00:00&end_datetime='+today+'T23:59:59',{headers:headers}),
-    ]);
-    if(!sleepRes.ok) throw new Error('Auth failed ('+sleepRes.status+') — check your token');
-    var sleepJson=await sleepRes.json();
-    var readinessJson=await readinessRes.json();
-    var activityJson=await activityRes.json();
-    var hrJson=await hrRes.json();
-    // Process sleep: last 7d avg score, deep/REM/light avg, total sleep avg
-    var sleepData=sleepJson.data||[];
-    var recent7Sleep=sleepData.slice(-7);
-    function avg7(arr,key){return arr.length?Math.round(arr.reduce(function(s,d){return s+(d[key]||0);},0)/arr.length):null;}
-    // Resting HR from heartrate endpoint (min overnight)
-    var hrData=hrJson.data||[];
-    var nightlyHR=hrData.filter(function(h){var hr=new Date(h.timestamp).getHours();return hr>=0&&hr<=6;}).map(function(h){return h.bpm;});
-    var avgRHR=nightlyHR.length?Math.round(nightlyHR.reduce(function(s,v){return s+v;},0)/nightlyHR.length):null;
-    // Readiness
-    var readData=readinessJson.data||[];
-    var recent7Read=readData.slice(-7);
-    var avgReadiness=avg7(recent7Read,'score');
-    var avgHRVBalance=recent7Read.length?Math.round(recent7Read.reduce(function(s,d){return s+((d.contributors&&d.contributors.hrv_balance)||0);},0)/recent7Read.length):null;
-    // Activity
-    var actData=activityJson.data||[];
-    var recent7Act=actData.slice(-7);
-    var avgActivity=avg7(recent7Act,'score');
-    var avgCalories=recent7Act.length?Math.round(recent7Act.reduce(function(s,d){return s+(d.active_calories||0);},0)/recent7Act.length):null;
-    ouraData={
-      connectedAt:new Date().toISOString(),
-      syncDate:today,
-      pat:pat, // stored for re-sync
-      sleep:{
-        avgScore7d:avg7(recent7Sleep,'score'),
-        avgTotal7d_hrs:recent7Sleep.length?Math.round(recent7Sleep.reduce(function(s,d){return s+((d.contributors&&d.contributors.total_sleep)||0);},0)/recent7Sleep.length/3600*10)/10:null,
-        avgDeep7d_hrs:recent7Sleep.length?Math.round(recent7Sleep.reduce(function(s,d){return s+((d.contributors&&d.contributors.deep_sleep)||0);},0)/recent7Sleep.length/3600*10)/10:null,
-        avgREM7d_hrs:recent7Sleep.length?Math.round(recent7Sleep.reduce(function(s,d){return s+((d.contributors&&d.contributors.rem_sleep)||0);},0)/recent7Sleep.length/3600*10)/10:null,
-      },
-      readiness:{
-        avgScore7d:avgReadiness,
-        avgHRVBalance7d:avgHRVBalance,
-      },
-      activity:{
-        avgScore7d:avgActivity,
-        avgActiveCalories7d:avgCalories,
-      },
-      restingHR:{avg7d:avgRHR},
-    };
-    persist(KEYS.oura,ouraData);
-    localStorage.setItem('pt_oura_pat',pat);
-    updateOuraUI();
-    if(document.getElementById('insightsWrap')) renderInsights();
-    toast('Oura synced \u2713');
-  } catch(err){
-    var statusEl=document.getElementById('ouraStatus');
-    if(statusEl) statusEl.innerHTML='<span style="color:var(--p5)">\u26a0 '+err.message+'</span>';
-    toast('Oura sync failed');
-  } finally {
-    var btn2=document.querySelector('#ouraCard .btn.sm');
-    if(btn2){btn2.textContent='Connect & Sync';btn2.disabled=false;}
+function generateOuraSyncPrompt(){
+  var prompt='Please generate my Oura sync JSON. Pull my last 30 days of Oura data and return ONLY this JSON structure, no other text:\n{\n  "syncDate": "'+new Date().toISOString().slice(0,10)+'",\n  "oura": {\n    "sleep": {\n      "avgScore7d": X,\n      "avgTotal7d_hrs": X,\n      "avgDeep7d_hrs": X,\n      "avgREM7d_hrs": X\n    },\n    "readiness": {\n      "avgScore7d": X,\n      "avgHRVBalance7d": X\n    },\n    "restingHR": {\n      "avg7d": X\n    },\n    "activity": {\n      "avgScore7d": X,\n      "avgActiveCalories7d": X\n    }\n  }\n}';
+  // Try clipboard first, fall back to prompt modal
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(prompt).then(function(){
+      toast('Oura prompt copied ✔ — paste into Claude');
+    }).catch(function(){
+      showPromptFallback(prompt);
+    });
+  } else {
+    showPromptFallback(prompt);
   }
 }
+
+function showPromptFallback(text){
+  // Show in a modal with a selectable textarea
+  var existing=document.getElementById('promptFallbackModal');
+  if(existing){existing.remove();}
+  var overlay=document.createElement('div');
+  overlay.id='promptFallbackModal';
+  overlay.className='modal-overlay';
+  overlay.style.cssText='display:flex;z-index:9999';
+  overlay.innerHTML='<div class="modal" style="display:flex;flex-direction:column;gap:10px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between">'
+      +'<div style="font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text)">Copy this prompt</div>'
+      +'<button class="modal-close" onclick="document.getElementById(\'promptFallbackModal\').remove()">✕</button>'
+    +'</div>'
+    +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6">Select all text below and copy, then paste into Claude.</div>'
+    +'<textarea style="font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);min-height:160px;resize:none;line-height:1.5" onclick="this.select()" readonly>'+text+'</textarea>'
+    +'<button class="btn" onclick="document.getElementById(\'promptFallbackModal\').remove()" style="justify-content:center">Done</button>'
+  +'</div>';
+  document.body.appendChild(overlay);
+  // Auto-select text
+  setTimeout(function(){var ta=overlay.querySelector('textarea');if(ta)ta.select();},100);
+}
+
 
 function disconnectOura(){
   ouraData=null;
@@ -8133,7 +8085,7 @@ function updateOuraUI(){
   }
   if(badge){badge.textContent='Connected \u2713';badge.style.background='var(--p1d)';badge.style.color='var(--p1)';badge.style.borderColor='var(--p1)';}
   if(disconnectBtn) disconnectBtn.style.display='inline-flex';
-  if(inp) inp.value='';
+  var inp=document.getElementById('ouraPatInput');if(inp) inp.value='';
   var s=ouraData.sleep||{},r=ouraData.readiness||{},a=ouraData.activity||{};
   if(status){
     var parts=[];
@@ -8156,6 +8108,19 @@ function importHealthSync(){
     return;
   }
   if(!data.syncDate){document.getElementById('healthSyncPreview').innerHTML='<span style="color:var(--p5)">Missing syncDate field</span>';return;}
+  // Handle Oura data if present in pasted JSON
+  if(data.oura){
+    ouraData={
+      syncDate:data.syncDate,
+      sleep:data.oura.sleep||{},
+      readiness:data.oura.readiness||{},
+      restingHR:data.oura.restingHR||{},
+      activity:data.oura.activity||{},
+    };
+    persist(KEYS.oura,ouraData);
+    updateOuraUI();
+    if(document.getElementById('insightsWrap')) renderInsights();
+  }
   healthSync=data;
   persist(KEYS.healthSync,healthSync);
   document.getElementById('healthSyncInput').value='';
@@ -8180,8 +8145,10 @@ function updateHealthSyncUI(){
 }
 
 function generateHealthSyncPrompt(){
-  var prompt='Please generate my Protocol health sync JSON now. Pull:\n1. Apple Health: HRV 7-day avg (ms), HRV 30-day avg (ms), resting HR 7-day avg (bpm), resting HR 30-day avg (bpm), most recent weight in lbs, active calories 7-day avg (kcal), blood oxygen avg (%), sleep hours 7-day avg\n2. Function Health: all out-of-range biomarkers plus hs-CRP, cortisol, testosterone total, testosterone free, glucose, HbA1c, insulin, TSH, eGFR, ferritin, vitamin D, homocysteine, LDL, HDL, triglycerides\n\nFormat as JSON exactly like this:\n{\n  "syncDate": "YYYY-MM-DD",\n  "appleHealth": {\n    "hrv_7day_avg_ms": X,\n    "hrv_30day_avg_ms": X,\n    "restingHR_7day_avg_bpm": X,\n    "restingHR_30day_avg_bpm": X,\n    "weight_lbs": X,\n    "activeCalories_7day_avg_kcal": X,\n    "spo2_avg_pct": X,\n    "sleepHours_7day_avg": X\n  },\n  "functionHealth": [\n    {"name": "...", "value": X, "units": "...", "inRange": true/false, "date": "YYYY-MM-DD"}\n  ]\n}\n\nOnly include the JSON, no other text.';
-  navigator.clipboard.writeText(prompt).then(function(){toast('Prompt copied ✔ — paste into Claude to generate your sync JSON');});
+  var prompt='Please generate my Protocol health sync JSON now. Pull:\n1. Apple Health: HRV 7-day avg (ms), HRV 30-day avg (ms), resting HR 7-day avg (bpm), resting HR 30-day avg (bpm), most recent weight in lbs, active calories 7-day avg (kcal), blood oxygen avg (%), sleep hours 7-day avg\n2. Function Health: all out-of-range biomarkers plus hs-CRP, cortisol, testosterone total, testosterone free, glucose, HbA1c, insulin, TSH, eGFR, ferritin, vitamin D, homocysteine, LDL, HDL, triglycerides\n\nFormat as JSON exactly like this:\n{\n  "syncDate": "YYYY-MM-DD",\n  "appleHealth": {\n    "hrv_7day_avg_ms": X,\n    "hrv_30day_avg_ms": X,\n    "restingHR_7day_avg_bpm": X,\n    "restingHR_30day_avg_bpm": X,\n    "weight_lbs": X,\n    "activeCalories_7day_avg_kcal": X,\n    "spo2_avg_pct": X,\n    "sleepHours_7day_avg": X\n  },\n  "functionHealth": [\n    {"name": "...", "value": X, "units": "...", "inRange": true/false, "date": "YYYY-MM-DD"}\n  ]\n}\n\nOnly include the JSON, no other text. If you also have Oura data available, include an \'oura\' key with sleep/readiness/restingHR/activity 7-day averages.';
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(prompt).then(function(){toast('Prompt copied ✔ — paste into Claude');}).catch(function(){showPromptFallback(prompt);});
+  } else { showPromptFallback(prompt); }
 }
 
 function openReportPreview(title,contentHtml){
