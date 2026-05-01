@@ -7051,10 +7051,9 @@ async function runProtocolReview(key,detailId,btnId){
       +'If a section has no data, say so briefly with a light touch. '
       +'When data is strong, celebrate it. When it needs work, be direct but warm. '
       +'If Apple Health or Function Health data is included, reference specific numbers and trends from it. '
-      +'Respond ONLY with JSON: {"whats_working":"paragraph","needs_attention":"paragraph","id_adjust":"paragraph","watch_for":"paragraph","realistic_outlook":"one energizing sentence grounded in observed trends","questions_for_doctor":["question 1","question 2","question 3"]}. '
-      +'For questions_for_doctor: generate 3-5 specific, data-grounded questions the patient should ask their PCP or relevant specialist based on flagged labs, trends, or protocol interactions. '
-      +'Reference actual values where relevant (e.g. "My cortisol is 24.2 mcg/dL — what lifestyle or protocol factors could be driving this?"). '
-      +'No markdown, no backticks. Start with { end with }.';
+      +'CRITICAL: Your entire response must be a single valid JSON object. No text before or after. No markdown. No backticks. Start your response with { and end with }. '
+      +'Required keys: whats_working (paragraph), needs_attention (paragraph), id_adjust (paragraph), watch_for (paragraph), realistic_outlook (one sentence), questions_for_doctor (array of 3-5 strings). '
+      +'For questions_for_doctor: specific questions grounded in actual values from the data that the patient should ask their doctor.';
 
     // ── Build user prompt ────────────────────────────────────────────────────
     var clinicalNotes=localStorage.getItem('pt_clinical_notes')||'';
@@ -7150,7 +7149,7 @@ async function runProtocolReview(key,detailId,btnId){
     if(apiKey) headers['x-api-key']=apiKey;
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:headers,
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2500,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,
         system:system,
         messages:[{role:'user',content:userPrompt}]})
     });
@@ -7162,10 +7161,16 @@ async function runProtocolReview(key,detailId,btnId){
     var data=JSON.parse(rawText);
     if(data.error) throw new Error(data.error.type+': '+data.error.message);
     var text=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
-    // Strip markdown fences if present
-    text=text.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    // Strip markdown fences
+    if(text.indexOf('```')!==-1){
+      text=text.replace('```json','').replace('```','').trim();
+    }
     var start=text.indexOf('{'),end=text.lastIndexOf('}');
-    if(start===-1||end===-1) throw new Error('No JSON in response — model returned: '+text.slice(0,120));
+    if(start===-1||end===-1){
+      // Log full response for diagnosis
+      console.log('APEX raw response:',text);
+      throw new Error('No JSON found. Response starts with: '+text.slice(0,200));
+    }
     var reviewRaw=text.slice(start,end+1);
     var review;
     try{
