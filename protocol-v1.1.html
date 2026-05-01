@@ -1296,6 +1296,24 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="settings-row"><div class="settings-label">Pre-Sleep compounds</div><input type="time" id="notifSleep" value="22:00" onchange="saveNotifPrefs()" style="font-family:var(--mono);font-size:11px;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--text);padding:4px 8px"></div>
   </div>
 
+  <!-- COACH APEX API KEY -->
+  <div class="sec-lbl" style="margin-top:18px">Coach APEX</div>
+  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:3px">Protocol Pro</div>
+        <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Anthropic API Key</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="apexKeyBadge">Not set</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Required to run Coach APEX reports. Get your key at <span style="color:var(--p1)">console.anthropic.com/api-keys</span>. Stored locally on your device only — never transmitted anywhere except Anthropic.</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <input type="password" id="apexApiKeyInput" placeholder="sk-ant-..." autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
+      <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveApexApiKey()">Save</button>
+    </div>
+    <div id="apexKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></div>
+  </div>
+
   <!-- INTEGRATIONS -->
   <div class="sec-lbl" style="margin-top:18px">Integrations</div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6">Import biometric and lab data to enrich your Coach APEX reports.</div>
@@ -6398,6 +6416,7 @@ function finishInit(){
   loadProfile();
   updateHealthSyncUI();
   updateOuraUI();
+  updateApexKeyUI();
   // One-time cleanup of any tour_ keys from old versions
   cleanupTourData();
   // iOS Files backup reminder — show if last save was >3 days ago
@@ -8094,6 +8113,32 @@ function updateOuraUI(){
     if(a.avgScore7d) parts.push('Activity '+a.avgScore7d);
     status.textContent='Synced '+ouraData.syncDate+(parts.length?' \u00b7 '+parts.join(' \u00b7 '):'');
   }
+}
+
+function saveApexApiKey(){
+  var key=document.getElementById('apexApiKeyInput').value.trim();
+  if(!key){toast('Paste your API key first');return;}
+  if(!key.startsWith('sk-')){
+    document.getElementById('apexKeyStatus').innerHTML='<span style="color:var(--p5)">Key should start with sk-ant-... — check and try again</span>';
+    return;
+  }
+  localStorage.setItem('rp_anthropic_key',key);
+  document.getElementById('apexApiKeyInput').value='';
+  updateApexKeyUI();
+  toast('API key saved ✓');
+}
+
+function updateApexKeyUI(){
+  var badge=document.getElementById('apexKeyBadge');
+  var status=document.getElementById('apexKeyStatus');
+  var hasKey=!!(localStorage.getItem('rp_anthropic_key'));
+  if(badge){
+    badge.textContent=hasKey?'Set ✓':'Not set';
+    badge.style.background=hasKey?'var(--p1d)':'var(--sf)';
+    badge.style.color=hasKey?'var(--p1)':'var(--dim)';
+    badge.style.borderColor=hasKey?'var(--p1)':'var(--bd)';
+  }
+  if(status) status.textContent=hasKey?'Key saved — Coach APEX is ready to run':'No key set — APEX reports will not run';
 }
 
 function importHealthSync(){
