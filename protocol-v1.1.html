@@ -1229,6 +1229,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
   </div>
 
+  <!-- CLINICAL NOTES -->
+  <div class="sec-lbl" style="margin-top:18px">Clinical Notes</div>
+  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2)">Protocol Pro</div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2)">Pro feature</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Context that Coach APEX always considers when interpreting your labs and protocol. Add clinician clarifications, known conditions, or reference range adjustments.</div>
+    <textarea id="clinicalNotesInput" placeholder="e.g. eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist." style="width:100%;min-height:80px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6;box-sizing:border-box"></textarea>
+    <button class="btn sm" style="margin-top:8px" onclick="saveClinicalNotes()">Save Notes</button>
+    <div id="clinicalNotesStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
+  </div>
+
   <!-- PRO LICENSE -->
   <div class="sec-lbl">Protocol Pro</div>
   <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:4px">
@@ -1331,14 +1344,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div id="healthSyncStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
   </div>
 
-  <!-- Clinical Notes -->
-  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
-    <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Clinical Notes</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:10px">Context that Coach APEX should always consider when interpreting your lab results. Example: known conditions, clinician clarifications, race-based reference range adjustments.</div>
-    <textarea id="clinicalNotesInput" placeholder="e.g. eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist." style="width:100%;min-height:80px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6;box-sizing:border-box"></textarea>
-    <button class="btn sm" style="margin-top:8px" onclick="saveClinicalNotes()">Save Notes</button>
-    <div id="clinicalNotesStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
-  </div>
 
 
   <!-- Oura Ring Integration -->
@@ -7157,9 +7162,23 @@ async function runProtocolReview(key,detailId,btnId){
     var data=JSON.parse(rawText);
     if(data.error) throw new Error(data.error.type+': '+data.error.message);
     var text=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+    // Strip markdown fences if present
+    text=text.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var start=text.indexOf('{'),end=text.lastIndexOf('}');
-    if(start===-1||end===-1) throw new Error('No JSON in response');
-    var review=JSON.parse(text.slice(start,end+1));
+    if(start===-1||end===-1) throw new Error('No JSON in response — model returned: '+text.slice(0,120));
+    var reviewRaw=text.slice(start,end+1);
+    var review;
+    try{
+      review=JSON.parse(reviewRaw);
+    } catch(parseErr){
+      // Try to salvage by removing any trailing comma before }
+      var cleaned=reviewRaw.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      try{
+        review=JSON.parse(cleaned);
+      } catch(e2){
+        throw new Error('JSON parse error: '+parseErr.message+'. Raw: '+reviewRaw.slice(0,200));
+      }
+    }
 
     // ── Render APEX coach note ─────────────────────────────────────────────────
     var reportDate=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -7174,7 +7193,7 @@ async function runProtocolReview(key,detailId,btnId){
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
     +(review.watch_for?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p4);margin-bottom:6px">◎ What to watch for</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.watch_for+'</div></div>':'')
     +(review.realistic_outlook?'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-bottom:5px;letter-spacing:.1em;text-transform:uppercase">Realistic Outlook</div><div style="font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.7;font-style:italic">'+review.realistic_outlook+'</div></div>':'')
-        +(review.questions_for_doctor&&review.questions_for_doctor.length
+        +(review.questions_for_doctor&&Array.isArray(review.questions_for_doctor)&&review.questions_for_doctor.length
       ?'<div style="margin-bottom:16px">'
         +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:8px">❓ Questions for your doctor</div>'
         +'<div style="background:var(--sf);border-radius:8px;padding:12px 14px">'
