@@ -7052,12 +7052,18 @@ async function runProtocolReview(key,detailId,btnId){
       +'When data is strong, celebrate it. When it needs work, be direct but warm. '
       +'If Apple Health or Function Health data is included, reference specific numbers and trends from it. '
       +'CRITICAL: Your entire response must be a single valid JSON object. No text before or after. No markdown. No backticks. Start your response with { and end with }. '
-      +'Required keys: whats_working (paragraph), needs_attention (paragraph), id_adjust (paragraph), watch_for (paragraph), realistic_outlook (one sentence), questions_for_doctor (array of 3-5 strings). '
-      +'For questions_for_doctor: specific questions grounded in actual values from the data that the patient should ask their doctor.';
+      +'Required keys and value types (all strings): '
+      +'whats_working (encouraging paragraph), '
+      +'needs_attention (honest constructive paragraph), '
+      +'id_adjust (specific actionable paragraph), '
+      +'watch_for (forward-looking paragraph), '
+      +'realistic_outlook (one energizing sentence), '
+      +'questions_for_doctor (3-5 numbered questions as a single string, each on its own line starting with 1. 2. 3. etc, grounded in actual values from the data).';
 
     // ── Build user prompt ────────────────────────────────────────────────────
     var clinicalNotes=localStorage.getItem('pt_clinical_notes')||'';
     var userPrompt='CLIENT CONTEXT\n'
+      +(profile.firstName?'Client name: '+profile.firstName+'\n':'')
       +'Goals: '+(JSON.parse(localStorage.getItem('pt_goals')||'[]').join(', ')||'not specified')+'\n'
       +(profile.sex?'Biological sex: '+profile.sex+'\n':'')
       +(profile.dob?'Age: '+Math.floor((now-new Date(profile.dob))/(365.25*24*3600*1000))+'\n':'')
@@ -7198,17 +7204,23 @@ async function runProtocolReview(key,detailId,btnId){
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
     +(review.watch_for?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p4);margin-bottom:6px">◎ What to watch for</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.watch_for+'</div></div>':'')
     +(review.realistic_outlook?'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-bottom:5px;letter-spacing:.1em;text-transform:uppercase">Realistic Outlook</div><div style="font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.7;font-style:italic">'+review.realistic_outlook+'</div></div>':'')
-        +(review.questions_for_doctor&&Array.isArray(review.questions_for_doctor)&&review.questions_for_doctor.length
-      ?'<div style="margin-bottom:16px">'
-        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:8px">❓ Questions for your doctor</div>'
-        +'<div style="background:var(--sf);border-radius:8px;padding:12px 14px">'
-        +review.questions_for_doctor.map(function(q,i){
-          return '<div style="display:flex;gap:10px;'+(i>0?'margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)':'')+'">'
-            +'<span style="font-family:var(--mono);font-size:11px;color:var(--p3);flex-shrink:0;font-weight:700">'+(i+1)+'.</span>'
-            +'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.6">'+q+'</div>'
-          +'</div>';
-        }).join('')
-        +'</div></div>'
+        +(review.questions_for_doctor
+      ?(function(){
+        // Split numbered questions into individual items
+        var lines=review.questions_for_doctor.split(/\n/).map(function(l){return l.trim();}).filter(Boolean);
+        var items=lines.map(function(l){return l.replace(/^\d+\.\s*/,'');}).filter(Boolean);
+        if(!items.length) return '';
+        return '<div style="margin-bottom:16px">'
+          +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:8px">❓ Questions for your doctor</div>'
+          +'<div style="background:var(--sf);border-radius:8px;padding:12px 14px">'
+          +items.map(function(q,i){
+            return '<div style="display:flex;gap:10px;'+(i>0?'margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)':'')+'">'
+              +'<span style="font-family:var(--mono);font-size:11px;color:var(--p3);flex-shrink:0;font-weight:700">'+(i+1)+'.</span>'
+              +'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.6">'+q+'</div>'
+            +'</div>';
+          }).join('')
+          +'</div></div>';
+      })()
       :'')
     +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:8px;border-top:1px solid var(--bd)">Coach APEX is an AI tool in Protocol Pro. Generated from your logged data only. Not medical advice. '+reportDate+'</div>'
     ;
