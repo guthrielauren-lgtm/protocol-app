@@ -2006,16 +2006,7 @@ const COMPOUND_DB=[
    category:'healing',
    goals:['healing','recovery','tissue repair','inflammation','immune support','skin','gut health','musculoskeletal'],
    rationale:'Synergistic blend of GHK-Cu, BPC-157, TB-500 and KPV for comprehensive tissue regeneration, anti-inflammatory action, and gut barrier support.',
-   notes:'50mg/10mg/10mg/10mg per vial. Reconstitute with 2ml BAC water. 10 units per dose. 8-12 weeks on, 8-12 weeks off.',cycleOnWeeks:8,cycleOffWeeks:12},
-  {name:'SS-31',route:'Subcutaneous',form:'vial',
-   dose:'500mcg',site:'Abdomen',fasting:false,
-   timingWindow:'am',frequency:'5 days on, 2 days off',
-   daysOfWeek:[1,2,3,4,5],
-   category:'longevity',
-   goals:['longevity','recovery','energy','mitochondrial support','cellular health'],
-   rationale:'Mitochondrial-targeted peptide that improves cellular energy production, reduces oxidative stress, and supports tissue repair at the cellular level.',
-   notes:'Typical dose 500mcg-1mg daily. SubQ or IV administration.',
-   cycleOnWeeks:6,cycleOffWeeks:8}];
+   notes:'50mg/10mg/10mg/10mg per vial. Reconstitute with 2ml BAC water. 10 units per dose. 8-12 weeks on, 8-12 weeks off.',cycleOnWeeks:8,cycleOffWeeks:12}];
 
 const CAT_COLORS={gh:'var(--p1)',metabolic:'var(--p2)',healing:'#60a5fa',longevity:'var(--p4)',immune:'#34d399',cognitive:'#f472b6',performance:'var(--p3)',sleep:'var(--p4)',mood:'#f472b6',other:'var(--mid)'};
 
@@ -6126,29 +6117,37 @@ function renderLibraryBrowser(q){
 
 function addFromLibrary(name){
   // Look in COMPOUND_DB first, then DEFAULT_PANTRY
-  var dbItem=COMPOUND_DB.find(function(c){return c.name===name;})
-    ||DEFAULT_PANTRY.find(function(d){return d.name===name;});
-  if(!dbItem) return;
+  var dbItem=COMPOUND_DB.find(function(c){return c&&c.name&&c.name===name;})
+    ||DEFAULT_PANTRY.find(function(d){return d&&d.name&&d.name===name;});
+  if(!dbItem){
+    // fallback: create minimal entry so user can still add
+    dbItem={name:name,form:'vial',route:'Subcutaneous',site:'Abdomen',dose:'—',fasting:false,timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]};
+  }
   if(pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
     toast(name+' is already in your pantry');
     return;
   }
   var entry=Object.assign({},dbItem,{
     id:'usr_'+Date.now(),
-    vialMg:null,vials:0,capsRemaining:null,capDose:null,
-    reconVol:null,openVialMg:null,
+    // Preserve vialMg/reconVol from COMPOUND_DB — don't null them out
+    vials:0,capsRemaining:null,capDose:null,
+    openVialMg:null,
     reorderDays:10,stockLog:[],
     active:false,
-    notes:dbItem.rationale||''
+    notes:dbItem.rationale||dbItem.notes||''
   });
-  pantry.push(entry);
-  persist(KEYS.pantry,pantry);
-  toast(name+' added to pantry — tap Edit to fill in stock details ✓','var(--p1)',4000);
-  // Re-render the modal list (it will now exclude this compound)
-  var searchEl=document.getElementById('libraryBrowserSearch');
-  var q=searchEl?((searchEl.querySelector('input')||{}).value||''):'';
-  renderLibraryBrowser(q);
-  renderPantry();
+  try{
+    pantry.push(entry);
+    persist(KEYS.pantry,pantry);
+    toast(name+' added to pantry ✓ — tap Edit to add stock details','var(--p1)',4000);
+    var searchEl=document.getElementById('libraryBrowserSearch');
+    var q=searchEl?((searchEl.querySelector('input')||searchEl||{}).value||''):'';
+    try{renderLibraryBrowser(q);}catch(re){console.error('library re-render:',re);}
+    try{renderPantry();}catch(pe){console.error('pantry re-render:',pe);}
+  } catch(e){
+    console.error('addFromLibrary error:',e);
+    toast(name+' added ✓ — reload if pantry looks wrong','var(--p1)',4000);
+  }
 }
 
 function addToWantList(name){
