@@ -1112,20 +1112,27 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <button class="goal-btn" onclick="toggleBuildGoal(this)" data-goal="Cognitive focus and motivation">🧠 Cognitive Focus</button>
       </div>
       <div class="field" style="margin-bottom:14px"><label>Additional Context</label><textarea id="builderContext" placeholder="e.g. training 4x/week, prefer oral where possible, currently on tirzepatide, want 12-week cycle..." style="min-height:56px"></textarea></div>
-      <div class="btn-row"><button class="btn" id="buildBtn" onclick="runBuildStep1()">Generate Suggestions →</button></div>
+      <div class="btn-row" style="align-items:center;gap:10px">
+        <button class="btn" id="buildBtn" onclick="runBuildStep1()" style="flex:1;justify-content:center">Generate Suggestions →</button>
+        <div id="buildLoading" style="display:none;align-items:center;gap:8px">
+          <div class="spinner" style="width:18px;height:18px;flex-shrink:0"></div>
+          <div id="buildLoadingMsg" style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;white-space:nowrap">Analyzing…</div>
+        </div>
+      </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:14px;margin-bottom:2px">
         <div style="flex:1;height:1px;background:var(--bd)"></div>
         <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em">or</div>
         <div style="flex:1;height:1px;background:var(--bd)"></div>
       </div>
       <button class="btn ghost" onclick="startBuildFromScratch()" style="width:100%;justify-content:center;margin-top:8px">Start from scratch →</button>
-      <div id="buildLoading" style="display:none;text-align:center;padding:18px 0 4px">
-        <div class="spinner" style="margin:0 auto 10px"></div>
-        <div id="buildLoadingMsg" style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em">Analyzing your pantry…</div>
-      </div>
     </div>
     <!-- Step 2 -->
     <div class="build-step" id="bstep-1">
+      <div id="suggNoKeyNudge" style="display:none;background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:10px 14px;margin-bottom:14px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:4px">⚡ Protocol Pro</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.6;margin-bottom:8px">These suggestions are based on your pantry. Add an Anthropic API key in Settings to unlock AI-powered protocol building.</div>
+        <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg)" onclick="switchTab('settings');closeModal && closeModal()">Go to Settings →</button>
+      </div>
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:4px">From your pantry</div>
       <div id="suggPantry" style="margin-bottom:16px"></div>
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:4px">Not in pantry — add to consider</div>
@@ -1555,9 +1562,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div class="modal">
     <div class="modal-title">Edit Entry <button class="modal-close" onclick="closeModal('editLogModal')">✕</button></div>
     <input type="hidden" id="editLogId">
-    <div class="g2">
-      <div class="field"><label>Compound</label><input type="text" id="editCompound"></div>
-      <div class="field"><label>Dose</label><input type="text" id="editDose"></div>
+    <div class="field" style="margin-bottom:10px">
+      <label>Compound</label>
+      <select id="editCompound" onchange="onLogCompoundSelect(this.value)" style="font-family:var(--mono);font-size:13px">
+        <option value="">— select compound —</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:10px">
+      <label>Dose</label>
+      <input type="text" id="editDose" placeholder="e.g. 500mcg" style="font-family:var(--mono);font-size:13px">
     </div>
     <div class="g3">
       <div class="field"><label>Date</label><input type="date" id="editDate"></div>
@@ -1929,6 +1942,7 @@ var healthSync=null;
 var ouraData=null;
 let chartPeriod={fat:0,wt:0}; // days to show; 0 = all
 let selectedGoals=[];
+let buildScratchMode=false;
 let selectedTemplateId=null;
 let tcScrolled=false;
 let isPro=false;
@@ -2860,12 +2874,29 @@ function renderChecklist(){
       html+='<div class="cr'+(logged?' logged':'')+(low?' low-stock':'')+'" id="cr-'+uid+'">'
         +'<div class="cr-main" onclick="toggleCR(\''+uid+'\')"><div class="cr-dot" style="background:'+color+'"></div>'
         +'<div class="cr-info"><div class="cr-name">'+c.name+'</div>'
-        +'<div class="cr-meta">'+dose
-        +(displayPrefs.showRoute!==false&&c.route?' \u00b7 '+c.route:'')
-        +(displayPrefs.showFasted!==false&&c.fasting?' \u00b7 Fasted':'')
-        +(conflictNote?' · <span style="color:var(--p2)">'+conflictNote+'</span>':'')
-        +(notStocked?' · <span style="color:var(--p2)">⚠ not in stock</span>':'')
-        +'</div></div>'
+        +(function(){
+          // Inline units-to-draw in collapsed view
+          var _units='';
+          if(pItem&&(pItem.form==='vial'||pItem.form==='prefilled')&&pItem.vialMg&&pItem.reconVol){
+            var _dmg=parseDoseMg(dose);
+            if(_dmg>0){
+              var _conc=pItem.vialMg/pItem.reconVol;
+              var _u=Math.round((_dmg/_conc)*100);
+              if(_u) _units=' \u00b7 <span style="color:var(--p3);font-weight:600">'+_u+' units</span>';
+            }
+          } else if(pItem&&pItem.form==='oral'&&pItem.capDose){
+            var _dmg2=parseDoseMg(dose);
+            var _caps=_dmg2>0?Math.round(_dmg2/pItem.capDose):null;
+            if(_caps) _units=' \u00b7 <span style="color:var(--p3);font-weight:600">'+_caps+' cap'+(caps>1?'s':'')+'</span>';
+          }
+          return '<div class="cr-meta">'+dose+_units
+            +(displayPrefs.showRoute!==false&&c.route?' \u00b7 '+c.route:'')
+            +(displayPrefs.showFasted!==false&&c.fasting?' \u00b7 Fasted':'')
+            +(conflictNote?' · <span style="color:var(--p2)">'+conflictNote+'</span>':'')
+            +(notStocked?' · <span style="color:var(--p2)">⚠ not in stock</span>':'')
+            +'</div>';
+        }())
+        +'</div>'
         +'<div class="cr-right">'+(low?'<span style="font-family:var(--mono);font-size:10px;color:var(--warn);display:flex;align-items:center;gap:4px;white-space:nowrap">\u26a0 '+(daysLeft===0?'Out of stock':'~'+daysLeft+'d left')+'</span>':'')
         +'<div class="cr-check">'+(logged?'\u2713':'\u25cb')+'</div></div></div>'
         +'<div class="cr-expand" id="cre-'+uid+'">'
@@ -3409,14 +3440,107 @@ function openBackfillDose(){
   if(title) title.firstChild.textContent = 'Log Dose \u2014 '+fmtBackfillLabel(date)+' ';
   var saveBtn = document.getElementById('editLogSaveBtn');
   if(saveBtn){ saveBtn.textContent = 'Save dose'; saveBtn.onclick = saveBackfillDose; }
+  populateLogCompoundDropdown();
   openModal('editLogModal');
+}
+
+function populateLogCompoundDropdown(){
+  var sel=document.getElementById('editCompound');
+  if(!sel) return;
+  var currentVal=sel.value;
+  sel.innerHTML='<option value="">— select compound —</option>';
+
+  // Group 1: Active protocol compounds
+  var proto=getActiveProtocol();
+  var protoCpds=proto?(proto.compounds||[]).map(function(c){return c.name;}):[];
+  if(protoCpds.length){
+    var grp1=document.createElement('optgroup');
+    grp1.label='Active Protocol';
+    protoCpds.forEach(function(name){
+      var opt=document.createElement('option');
+      opt.value=name;opt.textContent=name;
+      grp1.appendChild(opt);
+    });
+    sel.appendChild(grp1);
+  }
+
+  // Group 2: Pantry items not already in protocol
+  var pantryOthers=pantry.filter(function(p){return protoCpds.indexOf(p.name)===-1;});
+  if(pantryOthers.length){
+    var grp2=document.createElement('optgroup');
+    grp2.label='Pantry';
+    pantryOthers.forEach(function(p){
+      var opt=document.createElement('option');
+      opt.value=p.name;opt.textContent=p.name;
+      grp2.appendChild(opt);
+    });
+    sel.appendChild(grp2);
+  }
+
+  // Group 3: Historical compounds not in pantry or protocol
+  var knownNames=new Set(protoCpds.concat(pantry.map(function(p){return p.name;})));
+  var historicalNames=[...new Set(logs.map(function(l){return l.compound;}))].filter(function(n){return !knownNames.has(n);});
+  if(historicalNames.length){
+    var grp3=document.createElement('optgroup');
+    grp3.label='Past Logs';
+    historicalNames.forEach(function(name){
+      var opt=document.createElement('option');
+      opt.value=name;opt.textContent=name;
+      grp3.appendChild(opt);
+    });
+    sel.appendChild(grp3);
+  }
+
+  // Restore selection if still valid
+  if(currentVal) sel.value=currentVal;
+}
+
+function onLogCompoundSelect(name){
+  if(!name) return;
+  // Auto-fill dose from doseMem, then protocol compound, then pantry
+  var dose='';
+  var route='Subcutaneous';
+  var site='Abdomen';
+
+  // doseMem first (most recent logged dose)
+  var mem=doseMem[name];
+  if(mem&&mem.dose) dose=mem.dose;
+
+  // Protocol compound defaults
+  var proto=getActiveProtocol();
+  if(proto){
+    var pc=(proto.compounds||[]).find(function(c){return c.name===name;});
+    if(pc){
+      if(!dose&&pc.dose) dose=pc.dose;
+      if(pc.route) route=pc.route;
+      if(pc.site) site=pc.site;
+    }
+  }
+
+  // Pantry defaults
+  var pItem=pantry.find(function(p){return p.name===name;});
+  if(pItem){
+    if(!dose&&pItem.dose) dose=pItem.dose;
+    if(pItem.route) route=pItem.route;
+    if(pItem.site) site=pItem.site;
+  }
+
+  // Historical fallback
+  if(!dose){
+    var lastLog=logs.find(function(l){return l.compound===name;});
+    if(lastLog) dose=lastLog.dose;
+  }
+
+  var doseEl=document.getElementById('editDose');if(doseEl) doseEl.value=dose;
+  var routeEl=document.getElementById('editRoute');if(routeEl) routeEl.value=route;
+  var siteEl=document.getElementById('editSite');if(siteEl) siteEl.value=site;
 }
 
 function saveBackfillDose(){
   var compound = document.getElementById('editCompound').value.trim();
   var dose = document.getElementById('editDose').value.trim();
   var date = document.getElementById('editDate').value;
-  if(!compound){ toast('Enter a compound name \u2717','var(--p5)'); return; }
+  if(!compound||compound==='— select compound —'){ toast('Select a compound \u2717','var(--p5)'); return; }
   if(!dose){ toast('Enter a dose \u2717','var(--p5)'); return; }
   if(!date){ toast('Date is required \u2717','var(--p5)'); return; }
   var proto = getActiveProtocol();
@@ -3700,6 +3824,7 @@ function toggleDayCard(hdr){
 }
 function openEditLog(id){
   const l=logs.find(function(l){return l.id===id;});if(!l) return;
+  populateLogCompoundDropdown();
   document.getElementById('editLogId').value=id;
   document.getElementById('editCompound').value=l.compound;
   document.getElementById('editDose').value=l.dose;
@@ -5511,6 +5636,9 @@ function renderBuild(){
 }
 
 function goToStep(n){
+  // In scratch mode, back from step 2 goes to step 0 (goals screen), not step 1
+  if(n===1&&buildScratchMode) n=0;
+  if(n===0) buildScratchMode=false;
   if(n===1&&!selectedGoals.length){toast('Select at least one goal first ✗','var(--p5)');return;}
   if(n===2) buildCustomizeStep();
   if(n===3){
@@ -5539,6 +5667,7 @@ function updateStepIndicators(){
 function startBuildFromScratch(){
   buildCompounds=[];
   selectedGoals=[];
+  buildScratchMode=true;
   document.querySelectorAll('#goalGrid .goal-btn').forEach(function(btn){btn.classList.remove('on');});
   document.querySelectorAll('.build-step').forEach(function(el,i){el.classList.toggle('on',i===2);});
   currentBuildStep=2;
@@ -5566,13 +5695,14 @@ function toggleBuildGoal(el){
 }
 
 async function runBuildStep1(){
+  buildScratchMode=false;
   if(!selectedGoals.length){toast('Select at least one goal ✗','var(--p5)');return;}
   var btn=document.getElementById('buildBtn');
   var loadingEl=document.getElementById('buildLoading');
   var loadingMsg=document.getElementById('buildLoadingMsg');
-  btn.textContent='Generating…';btn.disabled=true;
-  if(loadingEl) loadingEl.style.display='block';
-  var loadingPhrases=['Analyzing your pantry…','Matching to your goals…','Building your stack…','Almost there…'];
+  btn.style.display='none';
+  if(loadingEl) loadingEl.style.display='flex';
+  var loadingPhrases=['Analyzing pantry…','Matching goals…','Building stack…','Almost there…'];
   var phraseIdx=0;
   var phraseTimer=setInterval(function(){
     phraseIdx=(phraseIdx+1)%loadingPhrases.length;
@@ -5598,8 +5728,11 @@ async function runBuildStep1(){
       +'\nReturn ONLY a JSON array, no markdown:\n'
       +'[{"name":"exact name","inPantry":true,"dose":"dose","route":"route","form":"oral or vial","fasting":true,"site":"Abdomen","timing":"Upon Waking","timingWindow":"am","frequency":"daily","daysOfWeek":[0,1,2,3,4,5,6],"rationale":"1 sentence explaining why this compound for these goals","priority":1}]\n'
       +'timingWindow options: am/midday/preworkout/pm/other. Priority 1=highest. Return 3-5 compounds maximum.';
+    var _bApiKey=localStorage.getItem('rp_anthropic_key')||'';
+    if(!_bApiKey) throw new Error('NO_API_KEY');
+    var _bHeaders={'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','x-api-key':_bApiKey};
     const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:_bHeaders,
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
     const data=await resp.json();
     if(data.error) throw new Error(data.error.message);
@@ -5617,15 +5750,29 @@ async function runBuildStep1(){
       return Object.assign({},c,{inPantry:actuallyInPantry,selected:false});
     });
   }catch(err){
+    console.error('Builder API error:',err);
     buildCompounds=buildStaticSuggestions(selectedGoals,pantry);
+    if(err.message==='NO_API_KEY'){
+      window._builderNoKey=true;
+    } else {
+      window._builderNoKey=false;
+      toast('AI unavailable — showing pantry suggestions','var(--p2)',3000);
+    }
   }
   clearInterval(phraseTimer);
   if(loadingEl) loadingEl.style.display='none';
+  btn.style.display='';
+  if(!buildCompounds.length){
+    toast('No compounds found for these goals — try different goals ✗','var(--p5)',3000);
+    return;
+  }
   renderSuggestions();goToStep(1);
-  btn.textContent='Generate Suggestions →';btn.disabled=false;
 }
 
 function renderSuggestions(){
+  // Amber nudge if no API key
+  var nudgeEl=document.getElementById('suggNoKeyNudge');
+  if(nudgeEl) nudgeEl.style.display=window._builderNoKey?'block':'none';
   var pantryEl=document.getElementById('suggPantry');
   var otherEl=document.getElementById('suggOther');
   // Preserve original buildCompounds index so toggleSuggestion targets the right item
