@@ -1094,6 +1094,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div class="step-sep"></div>
       <div class="step" id="step-ind-3"><div class="step-num">4</div><div class="step-label">Review</div></div>
     </div>
+    <div id="archivedProtosWrap"></div>
     <!-- Step 1 -->
     <div class="build-step on" id="bstep-0">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Select your primary goal</div>
@@ -1251,11 +1252,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <div style="font-family:var(--sans);font-size:15px;font-weight:600;margin-bottom:2px">Protocol Pro</div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">AI reviews · BodySpec sync · Withings sync</div>
       </div>
-      <span class="pro-badge" id="proBadge">FREE</span>
+      <span style="font-family:var(--mono);font-size:9px;padding:3px 10px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2);font-weight:600">PRO</span>
     </div>
-    <div class="field" style="margin-bottom:8px"><label>License Key</label><input type="text" id="proKeyInput" placeholder="PRO-XXXX-XXXX-XXXX" style="font-family:var(--mono)"></div>
-    <button class="btn sm" onclick="validateProKey()">Activate Pro</button>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px">Get a key at protocol.app/pro</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:8px">Coach APEX reports, health sync, clinical notes, and protocol Pro features. Requires an Anthropic API key — usage billed directly to your Anthropic account.</div>
+    <a href="https://console.anthropic.com/api-keys" style="font-family:var(--mono);font-size:10px;color:var(--p2);text-decoration:none" target="_blank">Get your API key →</a>
   </div>
 
   <!-- THEME -->
@@ -1938,6 +1938,7 @@ let chartPeriod={fat:0,wt:0}; // days to show; 0 = all
 let selectedGoals=[];
 let buildScratchMode=false;
 let buildProtocolType='standard';
+var insightsPeriod='30';
 let selectedTemplateId=null;
 let tcScrolled=false;
 let isPro=false;
@@ -2159,7 +2160,7 @@ function hasConcentrationConflict(name){
 }
 
 function getActiveProtocols(){
-  return protocols.filter(function(p){return activeProtoIds.indexOf(p.id)>-1;});
+  return protocols.filter(function(p){return activeProtoIds.indexOf(p.id)>-1&&p.status!=='archived';});
 }
 
 // ════════════ NAV ════════════
@@ -2250,24 +2251,22 @@ function updateMobHeader(){
 function renderInsights(){
   var wrap=document.getElementById('insightsWrap');
   if(!wrap) return;
-  var proto=getActiveProtocol();
-  var hasBodyData=bodyLogs.length>0;
-  var hasLogData=logs.length>0;
-  var hasCheckinData=checkins.length>0;
-
-  // Always render full architecture — empty states per section
-  wrap.innerHTML=buildInsightsHTML(proto,insightsPeriod||'30');
-  if(hasBodyData||hasLogData) initInsightsChart(proto,insightsPeriod||'30');
-  attachInsightsChipListeners();
+  try{
+    var proto=getActiveProtocol();
+    var hasBodyData=(bodyLogs||[]).length>0;
+    var hasLogData=(logs||[]).length>0;
+    wrap.innerHTML=buildInsightsHTML(proto,insightsPeriod||'30');
+    if(hasBodyData||hasLogData){
+      try{if(typeof initInsightsChart==='function') initInsightsChart(proto,insightsPeriod||'30');}catch(e){console.error('chart:',e);}
+    }
+    if(typeof attachInsightsChipListeners==='function') attachInsightsChipListeners();
+  }catch(e){
+    console.error('renderInsights error:',e);
+    if(wrap) wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:30px;text-align:center">Insights unavailable<br><span style="font-size:9px">'+(e.message||'unknown error')+'</span></div>';
+  }
 }
 
 // ════════════ INSIGHTS ════════════
-function renderInsights(){
-  var wrap=document.getElementById('insightsWrap');
-  if(!wrap) return;
-  var proto=getActiveProtocol();
-  wrap.innerHTML=buildInsightsHTML(proto);
-}
 
 function buildInsightsHTML(proto){
   var profile=userProfile||{};
@@ -2276,7 +2275,7 @@ function buildInsightsHTML(proto){
     var elapsed=proto.startDate?Math.floor((new Date()-new Date(proto.startDate))/(7*86400000)):0;
     protoHdr='<div style="padding:12px 0 8px;margin-bottom:2px">'
       +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px">Active protocol</div>'
-      +'<div style="font-family:var(--serif);font-size:22px;color:var(--text);margin-bottom:2px">'+proto.name+'</div>'
+      +'<div style="font-family:var(--serif);font-size:22px;color:var(--text);margin-bottom:2px">'+(proto.name||'Active Protocol')+'</div>'
       +'<div style="font-family:var(--mono);font-size:10px;color:var(--mid)">Week '+elapsed+' of '+(proto.durationWeeks||'?')+' · '+(proto.compounds||[]).length+' compound'+((proto.compounds||[]).length!==1?'s':'')+'</div>'
     +'</div>';
   }
@@ -2310,10 +2309,15 @@ function buildInsightsHTML(proto){
       +'</div>'
     +'</div>';
   }
-  return protoHdr+syncStrip+buildInsightsReviewCard(proto)+buildGoalProgressSection(proto,profile)
-    +buildHeatmapSection(proto)
-    +buildTrendSection()
-    +buildCheckinSection();
+  try{
+    return protoHdr+syncStrip+buildInsightsReviewCard(proto)+buildGoalProgressSection(proto,profile)
+      +buildHeatmapSection(proto)
+      +buildTrendSection()
+      +buildCheckinSection();
+  }catch(e){
+    console.error('buildInsightsHTML error:',e);
+    return protoHdr+'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:20px;text-align:center">Insights unavailable — '+e.message+'</div>';
+  }
 }
 
 function buildGoalProgressSection(proto,profile){
@@ -2393,9 +2397,9 @@ function buildHeatmapSection(proto){
       var ds=cd.toISOString().split('T')[0];
       if(cd>todayD){html+='<div style="flex:1;aspect-ratio:1;border-radius:2px;background:var(--sf)"></div>';continue;}
       var dow=cd.getDay();
-      var sched=proto.compounds.filter(function(c){return !c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1;}).length;
+      var sched=proto.compounds.filter(function(c){return c&&(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1);}).length;
       if(!sched){html+='<div style="flex:1;aspect-ratio:1;border-radius:2px;background:var(--sf);opacity:.3"></div>';continue;}
-      var logged=proto.compounds.filter(function(c){return logs.some(function(l){return l.date===ds&&l.compound===c.name;});}).length;
+      var logged=proto.compounds.filter(function(c){return c&&c.name&&logs.some(function(l){return l.date===ds&&l.compound===c.name;});}).length;
       var p=Math.round((logged/sched)*100);
       var bg=p===100?'var(--p1)':p>=50?'var(--p2)':p>0?'rgba(245,166,35,.35)':'var(--sf)';
       html+='<div style="flex:1;aspect-ratio:1;border-radius:2px;background:'+bg+'" title="'+ds+': '+logged+'/'+sched+'"></div>';
@@ -2423,7 +2427,7 @@ function calcCompliancePrior(proto){
   var sc=0,lg=0;
   for(var d=new Date(s);d<e;d.setDate(d.getDate()+1)){
     var dow=d.getDay(),ds=d.toISOString().slice(0,10);
-    proto.compounds.forEach(function(c){if(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1){sc++;if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;}});
+    proto.compounds.forEach(function(c){if(!c||!c.name) return; if(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1){sc++;if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;}});
   }
   return sc?Math.round((lg/sc)*100):null;
 }
@@ -2517,7 +2521,7 @@ function calcCompliance(proto,period){
   var sc=0,lg=0;
   for(var d=new Date(cutoff);d<=new Date();d.setDate(d.getDate()+1)){
     var dow=d.getDay(),ds=d.toISOString().slice(0,10);
-    proto.compounds.forEach(function(c){if(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1){sc++;if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;}});
+    proto.compounds.forEach(function(c){if(!c||!c.name) return; if(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1){sc++;if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;}});
   }
   return sc?Math.round((lg/sc)*100):null;
 }
@@ -2531,6 +2535,7 @@ function getWeightData(period){
 
 
 function renderToday(){
+  if(typeof checkProtocolCompletion==='function') checkProtocolCompletion();
   // Time-aware greeting
   var gEl=document.getElementById('todayGreeting');
   if(gEl){
@@ -2544,7 +2549,12 @@ function renderToday(){
       gEl.style.display='none';
     }
   }
-  renderProtoHeader();renderBodyStrip();renderChecklist();renderCheckinState();renderTomorrow();renderFutureCompounds();
+  try{renderProtoHeader();}catch(e){console.error('renderProtoHeader:',e);}
+  try{renderBodyStrip();}catch(e){console.error('renderBodyStrip:',e);}
+  try{renderChecklist();}catch(e){console.error('renderChecklist:',e);}
+  try{renderCheckinState();}catch(e){console.error('renderCheckinState:',e);}
+  try{renderTomorrow();}catch(e){console.error('renderTomorrow:',e);}
+  try{renderFutureCompounds();}catch(e){console.error('renderFutureCompounds:',e);}
 }
 
 
@@ -2561,11 +2571,12 @@ function renderTomorrow(){
   activeProtos.forEach(function(proto){
     if(!proto.compounds) return;
     proto.compounds.forEach(function(c){
+      if(!c||!c.name) return;
       var dow=c.daysOfWeek||[0,1,2,3,4,5,6];
       if(dow.indexOf(tmrDOW)===-1) return;
       var key=c.name.toLowerCase();
-      if(!tmrMap[key]) tmrMap[key]={c:c,protos:[proto.name]};
-      else tmrMap[key].protos.push(proto.name);
+      if(!tmrMap[key]) tmrMap[key]={c:c,protos:[proto&&proto.name?proto.name:'Protocol']};
+      else tmrMap[key].protos.push(proto&&proto.name?proto.name:'Protocol');
     });
   });
   var compounds=Object.values(tmrMap);
@@ -2573,7 +2584,7 @@ function renderTomorrow(){
   wrap.style.display='block';
   wrap.innerHTML='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Tomorrow</div>'    +compounds.map(function(entry){
       var c=entry.c;
-      var pItem=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+      var pItem=pantry.find(function(p){return p&&p.name&&c&&c.name&&p.name.toLowerCase()===c.name.toLowerCase();});
       var inStock=pItem?isInStock(pItem):false;
       return'<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;margin-bottom:5px;opacity:.75">'        +'<div style="width:7px;height:7px;border-radius:50%;background:'+getPColor(c.name)+';flex-shrink:0"></div>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+c.name+'</div>'          +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:1px">'+c.dose          +(c.timingWindow&&c.timingWindow!=='other'?' · '+c.timingWindow:'')          +(!inStock?' · <span style="color:var(--p2)">⚠ no stock</span>':'')          +'</div>'        +'</div>'        +'</div>';
     }).join('');
@@ -2648,7 +2659,7 @@ function renderProtoHeader(){
         var w2=Math.max(1,Math.min(rawW2,p.durationWeeks||999));
         weekStr='Week '+w2+(p.durationWeeks?' of '+p.durationWeeks:'');
       }
-      return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+p.name+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +'<button class="apd-btn" onclick="activateProtocol(\''+p.id+'\')" style="border-color:var(--bd2);color:var(--mid)">Pause</button>'        +'</div>';
+      return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+(p&&p.name?p.name:'—')+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +'<button class="apd-btn" onclick="activateProtocol(\''+p.id+'\')" style="border-color:var(--bd2);color:var(--mid)">Pause</button>'        +'</div>';
     }).join('');
   }
 }
@@ -2901,7 +2912,10 @@ function renderFutureCompounds(){
   protos.forEach(function(proto){
     if(!proto.compounds) return;
     proto.compounds.forEach(function(c){
-      if(!c.introWeek||c.introWeek===1) return;
+      if(!c||!c.name) return;
+      // Show week-1 compounds as future if protocol itself hasn't started
+      var protoNotStarted=proto.startDate&&new Date(proto.startDate).getTime()>Date.now();
+      if(!protoNotStarted&&(!c.introWeek||c.introWeek===1)) return;
       var status=getCompoundActiveStatus(proto,c);
       if(status.status==='future'){
         futureItems.push({c:c,status:status,protoName:proto.name});
@@ -2911,13 +2925,18 @@ function renderFutureCompounds(){
   if(!futureItems.length){ wrap.innerHTML=''; return; }
   var html='<div style="margin-top:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;padding:0 4px">⏳ Coming up</div>';
   futureItems.sort(function(a,b){return a.status.daysUntilStart-b.status.daysUntilStart;}).forEach(function(item){
+    // Guard first — before any HTML is written
+    if(!item||!item.c||!item.c.name||item.status==null) return;
     var d=item.status.daysUntilStart;
-    var label=d===0?'tomorrow':d===1?'in 1 day':'in '+d+' days';
+    var label=d<=0?'tomorrow':d===1?'in 1 day':'in '+d+' days';
     var startDate=new Date(item.status.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    html+='<div style="background:var(--sf);border:1px dashed var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:6px;opacity:.75">';
+    var dose=item.c.titrationSchedule&&item.c.titrationSchedule.length
+      ?(item.c.titrationSchedule[0].dose+' → '+item.c.titrationSchedule[item.c.titrationSchedule.length-1].dose)
+      :(item.c.dose||'—');
+    html+='<div style="background:var(--sf);border:1px dashed var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:6px;opacity:.8">';
     html+='<div style="display:flex;align-items:center;justify-content:space-between">';
     html+='<div><div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+item.c.name+'</div>';
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+(item.c.dose||'')+' · '+(item.c.timing||'')+'</div></div>';
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">'+dose+(item.c.frequency?' · '+item.c.frequency:'')+'</div></div>';
     html+='<div style="text-align:right"><div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Starts</div>';
     html+='<div style="font-family:var(--mono);font-size:11px;color:var(--p2)">'+startDate+'</div>';
     html+='<div style="font-family:var(--mono);font-size:8px;color:var(--dim)">'+label+'</div></div>';
@@ -2932,8 +2951,25 @@ function renderChecklist(){
   var wrap=document.getElementById('checklistWrap');
   if(!wrap) return;
   renderConflictBanners(activeProtos[0]||null);
-  var hasAny=activeProtos.some(function(p){return p.compounds&&p.compounds.length;});
-  if(!activeProtos.length||!hasAny){wrap.innerHTML='';return;}
+  // Completion banner for finished-but-not-archived protocols
+  var _now=new Date();_now.setHours(0,0,0,0);
+  var _bannerHtml='';
+  activeProtos.forEach(function(p){
+    if(!p.startDate||!p.durationWeeks||p.status==='archived') return;
+    var _ed=new Date(p.startDate);_ed.setDate(_ed.getDate()+p.durationWeeks*7);_ed.setHours(0,0,0,0);
+    if(_now>=_ed){
+      _bannerHtml+='<div style="background:var(--p1d);border:1px solid var(--p1);border-radius:10px;padding:14px;margin-bottom:12px">'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p1);margin-bottom:4px">✓ Protocol Complete</div>'
+        +'<div style="font-family:var(--serif);font-size:16px;color:var(--text);margin-bottom:10px">'+p.name+'</div>'
+        +'<div style="display:flex;gap:8px">'
+        +'<button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg)" onclick="_completionProtoId=\''+p.id+'\';showCompletionCongrats()">View Results →</button>'
+        +'<button class="btn sm ghost" onclick="_completionProtoId=\''+p.id+'\';archiveCompletedProtocol()">Archive</button>'
+        +'</div></div>';
+    }
+  });
+  if(_bannerHtml) wrap.innerHTML=_bannerHtml;
+  var hasAny=activeProtos.some(function(p){return p.compounds&&p.compounds.length&&p.status!=='archived';});
+  if(!activeProtos.length||!hasAny){if(!_bannerHtml) wrap.innerHTML='';return;}
 
   // Build deduped compound map across all active protocols
   var twOrder=['am','midday','preworkout','pm','weekly','other'];
@@ -2942,6 +2978,7 @@ function renderChecklist(){
     if(!proto.compounds) return;
     var protoWeek=getProtocolCurrentWeek(proto);
     proto.compounds.forEach(function(c){
+      if(!c||!c.name) return;
       if(!isCompoundDueToday(c,proto)) return;
       // Use titration-aware dose if applicable
       var effectiveDose=getCompoundCurrentDose(c,protoWeek);
@@ -2964,7 +3001,38 @@ function renderChecklist(){
 
   var dueKeys=Object.keys(compMap);
   if(!dueKeys.length){
-    wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:16px;text-align:center">No compounds scheduled for today.</div>';
+    // Still need to check for ad-hoc logs today before returning
+    var _adHocToday=logs.filter(function(l){return l.date===today();});
+    var _adHocSeen=new Set();
+    var _adHocItems=[];
+    _adHocToday.forEach(function(l){
+      if(!l.compound) return;
+      var k=l.compound.toLowerCase();
+      if(!_adHocSeen.has(k)){_adHocSeen.add(k);_adHocItems.push(l);}
+    });
+    if(!_adHocItems.length){
+      wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:16px;text-align:center">No compounds scheduled for today.</div>';
+      return;
+    }
+    // Render just the ad-hoc items
+    var _adHocHtml='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">Logged Today</div>';
+    _adHocItems.forEach(function(l){
+      var _pi=pantry.find(function(p){return p.name===l.compound;});
+      var _rt=l.route||(_pi&&_pi.route)||'Subcutaneous';
+      var _fa=l.fedState==='fasted'||(_pi&&_pi.fasting);
+      var _cutoff=new Date();_cutoff.setDate(_cutoff.getDate()-14);
+      var _rc=logs.filter(function(r){return r.compound===l.compound&&new Date(r.date)>=_cutoff;}).length;
+      _adHocHtml+='<div class="cr logged" style="border-color:var(--p2)">'
+        +'<div class="cr-main"><div class="cr-dot" style="background:'+getPColor(l.compound)+'"></div>'
+        +'<div class="cr-info"><div class="cr-name">'+l.compound+'</div>'
+        +'<div class="cr-meta">'+l.dose+' \u00b7 '+_rt+(_fa?' \u00b7 Fasted':'')+'</div>'
+        +(_rc>=3?'<div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-top:3px">Logged '+_rc+'x recently \u2014 <span style="text-decoration:underline;cursor:pointer" onclick="nav(\'build\')">add to protocol?</span></div>':'')
+        +'</div><div class="cr-right">'
+        +'<span style="font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--p2);color:var(--p2)">outside protocol</span>'
+        +'<div class="cr-check" style="background:var(--p2);border-color:var(--p2);color:var(--bg)">✓</div>'
+        +'</div></div></div>';
+    });
+    wrap.innerHTML=_adHocHtml;
     return;
   }
 
@@ -2975,7 +3043,8 @@ function renderChecklist(){
     html+='<div class="timing-group"><div class="timing-group-hdr">'+tw.icon+' '+tw.label+'</div>';
     group.forEach(function(k,i){
       var entry=compMap[k];
-      var c=entry.c;
+      var c=entry&&entry.c;
+      if(!c||!c.name) return '';
       var uid=tw.key+'-'+i;
       var logged=isLoggedToday(c.name);
       var color=getPColor(c.name);
@@ -2984,7 +3053,7 @@ function renderChecklist(){
       var daysLeft=calcDaysLeft(pItem,c);
       var low=daysLeft!==null&&daysLeft<(pItem?pItem.reorderDays||10:14);
       var conflictNote=entry.protos.length>1?(entry.protos.length+' protocols'+(entry.doseConflict?' · highest dose shown':'')):'';
-      var _si=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+      var _si=pantry.find(function(p){return p&&p.name&&c&&c.name&&p.name.toLowerCase()===c.name.toLowerCase();});
       var notStocked=!_si||!isInStock(_si);
       var sites=['Abdomen','Thigh','Glute','N/A'];
       var sitePills=sites.map(function(s){return'<button class="chip'+(c.site===s?' on':'')+'" onclick="chipOneRow(this)">'+s+'</button>';}).join('');
@@ -3076,13 +3145,16 @@ function renderChecklist(){
   });
   wrap.innerHTML=html;
   // Ad-hoc compounds logged today (outside protocol)
-  var todayAdHoc=logs.filter(function(l){return l.date===today()&&l.adHoc===true;});
-  var protoNamesSet=new Set(dueKeys.map(function(k){return compMap[k].c.name;}));
-  var protoNames=protoNamesSet;
+  // Show any compound logged today that isn't already shown in the protocol checklist
+  var todayAdHoc=logs.filter(function(l){return l.date===today();});
+  // Exclude compounds already shown in the protocol checklist
+  var protoNamesSet=new Set(dueKeys.map(function(k){return compMap[k]&&compMap[k].c&&compMap[k].c.name?compMap[k].c.name.toLowerCase():'';}).filter(Boolean));
   var adHocUnique=[];
   var seen=new Set();
   todayAdHoc.forEach(function(l){
-    if(!seen.has(l.compound)&&!protoNames.has(l.compound)){seen.add(l.compound);adHocUnique.push(l);}
+    if(!l.compound) return;
+    var key=l.compound.toLowerCase();
+    if(!seen.has(key)&&!protoNamesSet.has(key)){seen.add(key);adHocUnique.push(l);}
   });
   if(adHocUnique.length){
     var adHocHtml='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-top:14px;margin-bottom:6px">Added Today</div>';
@@ -3090,16 +3162,21 @@ function renderChecklist(){
       var _adPItem=pantry.find(function(p){return p.name===l.compound;});
       var _adRoute=l.route||(_adPItem&&_adPItem.route)||'Subcutaneous';
       var _adFast=l.fedState==='fasted'||(_adPItem&&_adPItem.fasting);
+      // Count recent logs for this compound (last 14 days)
+      var _cutoff=new Date();_cutoff.setDate(_cutoff.getDate()-14);
+      var _recentCount=logs.filter(function(r){return r.compound===l.compound&&new Date(r.date)>=_cutoff;}).length;
+      var _showPrompt=_recentCount>=3;
       adHocHtml+='<div class="cr logged" style="border-color:var(--p2)">'
         +'<div class="cr-main">'
         +'<div class="cr-dot" style="background:'+getPColor(l.compound)+'"></div>'
         +'<div class="cr-info">'
         +'<div class="cr-name">'+l.compound+'</div>'
         +'<div class="cr-meta">'+l.dose+' \u00b7 '+_adRoute+(_adFast?' \u00b7 Fasted':'')+'</div>'
+        +(_showPrompt?'<div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-top:3px">Logged '+_recentCount+'x recently — <span style="text-decoration:underline;cursor:pointer" onclick="nav(\'build\');">add to protocol?</span></div>':'')
         +'</div>'
         +'<div class="cr-right">'
         +'<span style="font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--p2);color:var(--p2)">+ outside protocol</span>'
-        +'<div class="cr-check" style="background:var(--p2);border-color:var(--p2);color:var(--bg)">\u2713</div>'
+        +'<div class="cr-check" style="background:var(--p2);border-color:var(--p2);color:var(--bg)">✓</div>'
         +'</div></div></div>';
     });
     wrap.innerHTML+=adHocHtml;
@@ -3730,6 +3807,8 @@ function saveBackfillDose(){
   closeModal('editLogModal');
   toast('Dose logged for '+fmtBackfillLabel(date)+' \u2713');
   renderHistory();
+  // Update Today tab if the log is for today
+  if(date===today()) renderChecklist();
 }
 
 function openBackfillBody(){
@@ -4665,7 +4744,7 @@ function calcDaysLeft(pItem,protoCmp){
   var doseMgVal=parseDoseMg(rawDose);
   // Titration-aware: if protoCmp has titrationSchedule, compute average remaining dose
   if(protoCmp&&protoCmp.titrationSchedule&&protoCmp.titrationSchedule.length){
-    var _proto=protocols.find(function(p){return (p.compounds||[]).some(function(c){return c===protoCmp||c.name===protoCmp.name;});});
+    var _proto=protocols.find(function(p){return p&&(p.compounds||[]).some(function(c){return c&&(c===protoCmp||(c.name&&protoCmp.name&&c.name===protoCmp.name));});});
     if(_proto&&_proto.startDate&&_proto.durationWeeks){
       var _curWeek=getProtocolCurrentWeek(_proto);
       var _endWeek=(protoCmp.introWeek||1)+(protoCmp.compoundDurationWeeks||_proto.durationWeeks)-1;
@@ -4720,7 +4799,8 @@ function calcDaysLeft(pItem,protoCmp){
     return remG>0?Math.floor(remG/(gPerDose*dosesPerDay)):0;
   }
   // Vial — sum across ALL same-name pantry entries for combined days of supply
-  var allEntries=pantry.filter(function(p){return p.name.toLowerCase()===pItem.name.toLowerCase()&&p.form==='vial';});
+  if(!pItem.name) return null;
+  var allEntries=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===pItem.name.toLowerCase()&&p.form==='vial';});
   var totalMg=allEntries.reduce(function(sum,p){
     return sum+((p.vials||0)*(p.vialMg||0))+(p.openVialMg||0);
   },0);
@@ -4745,7 +4825,7 @@ function promptConcentrationPick(name,remaining){
 }
 function setActiveConcentration(id,name){
   pantry.forEach(function(p){
-    if(p.name.toLowerCase()===name.toLowerCase()) p.activeConcentration=(p.id===id);
+    if(p&&p.name&&p.name.toLowerCase()===name.toLowerCase()) p.activeConcentration=(p.id===id);
   });
   persist(KEYS.pantry,pantry);
   closeModal('concPickerModal');
@@ -4852,7 +4932,7 @@ function renderRestockSection(){
   var activeProtos=getActiveProtocols();
   var allProtoNames=new Set();
   activeProtos.forEach(function(p){
-    if(p.compounds) p.compounds.forEach(function(c){allProtoNames.add(c.name.toLowerCase());});
+    if(p&&p.compounds) p.compounds.forEach(function(c){if(c&&c.name) allProtoNames.add(c.name.toLowerCase());});
   });
   var proto=getActiveProtocol();
   const protoNames=allProtoNames;
@@ -4891,7 +4971,7 @@ function renderRestockSection(){
       +needsOrdering.map(function(c){
         var ordKey='proto_ord_'+c.id;
         var ordered=localStorage.getItem(ordKey)==='1';
-        var db=COMPOUND_DB.find(function(d){return d.name===c.name;});
+        var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===c.name;});
         var desc=(c.notes)||(db&&db.rationale)||'';
         return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
           +'<span data-oid="'+c.id+'" onclick="toggleProtoOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p5);background:'+(ordered?'var(--p5)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
@@ -4945,7 +5025,7 @@ function renderRestockSection(){
       +want.map(function(name){
         var ordKey='rp_want_ordered_'+name.replace(/\s+/g,'_');
         var ordered=localStorage.getItem(ordKey)==='1';
-        var db=COMPOUND_DB.find(function(d){return d.name===name;});
+        var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===name;});
         var desc=db&&db.rationale?db.rationale.split('.')[0]+'.':'';
         return'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--bd);opacity:'+(ordered?'0.45':'1')+'">'
           +'<span data-name="'+name+'" onclick="toggleWantOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--p3);background:'+(ordered?'var(--p3)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">'+(ordered?'<span style="color:var(--bg);font-size:13px;font-weight:700;line-height:1">✓</span>':'')+'</span>'
@@ -5189,6 +5269,7 @@ function applyPantryFilters(items){
 
 function renderPantry(){
   const grid=document.getElementById('pantryGrid');if(!grid) return;
+  try{
   renderRestockSection();
   // Show welcome banner if not dismissed
   var banner=document.getElementById('pantryWelcomeBanner');
@@ -5207,11 +5288,12 @@ function renderPantry(){
   const proto=getActiveProtocol();
   // Sort + filter items
   // Sort: In protocol first → In stock only → Library
-  var sorted=[...pantry].sort(function(a,b){
-    var ap=isInProtocol(a.name)?2:isInStock(a)?1:0;
-    var bp=isInProtocol(b.name)?2:isInStock(b)?1:0;
+  // Filter invalid entries into local sorted copy — don't mutate global pantry
+  var sorted=pantry.filter(function(p){return p&&p.name&&typeof p.name==='string';}).sort(function(a,b){
+    var ap=(a&&a.name)?isInProtocol(a.name)?2:isInStock(a)?1:0:0;
+    var bp=(b&&b.name)?isInProtocol(b.name)?2:isInStock(b)?1:0:0;
     if(bp!==ap) return bp-ap;
-    return a.name.localeCompare(b.name);
+    return (a.name||'').localeCompare(b.name||'');
   });
   if(pantrySort==='search'){
     var searchEl=document.getElementById('pantrySearchInput');
@@ -5220,20 +5302,21 @@ function renderPantry(){
     if(q){
       sorted=sorted.filter(function(c){
         var tags=(c.tags||[]).join(' ').toLowerCase();
-        return c.name.toLowerCase().indexOf(q)>-1||tags.indexOf(q)>-1||(c.notes||'').toLowerCase().indexOf(q)>-1;
+        return (c.name||'').toLowerCase().indexOf(q)>-1||tags.indexOf(q)>-1||(c.notes||'').toLowerCase().indexOf(q)>-1;
       });
     }
     sorted.sort(function(a,b){return a.name.localeCompare(b.name);});
   } else if(pantrySort==='az'){
-    sorted.sort(function(a,b){return a.name.localeCompare(b.name);});
+    sorted.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
   } else {
     sorted.sort(function(a,b){
       const oi=CAT_ORDER.indexOf(a.cat||'other'),oj=CAT_ORDER.indexOf(b.cat||'other');
       if(oi!==oj) return oi-oj;
-      return a.name.localeCompare(b.name);
+      return (a.name||'').localeCompare(b.name||'');
     });
   }
   function renderCard(c){
+    if(!c||!c.name) return ''; // Guard against invalid entries
     var pcmp=proto&&proto.compounds?proto.compounds.find(function(p){return p.name===c.name;}):null;
     // Pull frequency and fasting from protocol if available, else use pantry
     var displayFreq=(pcmp&&pcmp.frequency)||c.frequency||'daily';
@@ -5411,6 +5494,7 @@ function renderPantry(){
   } else {
     grid.innerHTML=sorted.map(renderCard).join('');
   }
+  }catch(e){console.error('renderPantry error:',e);}
 }
 
 function togglePantry(id){
@@ -5799,10 +5883,10 @@ function renderBuild(){
     if(!protocols.length){
       saved.innerHTML='<div class="empty-state"><div class="empty-icon">◑</div><div class="empty-title">No protocols yet</div><div class="empty-sub">Build your first protocol below — choose your compounds, set your doses, and activate it to start logging.</div></div>';
     } else {
-      saved.innerHTML=protocols.map(function(p){
+      saved.innerHTML=protocols.filter(function(p){return p&&p.id;}).map(function(p){
         return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?' active':'')+'">'
           +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
-          +'<div class="spc-info"><div class="spc-name">'+p.name+'</div>'
+          +'<div class="spc-info"><div class="spc-name">'+(p.name||'Unnamed Protocol')+'</div>'
           +'<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+(activeProtoIds.indexOf(p.id)>-1?' · ✓ Active':'')+'</div></div>'
           +'<div class="spc-actions">'
           +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">View</button>'
@@ -5814,6 +5898,7 @@ function renderBuild(){
     }
   }
   updateStepIndicators();
+  if(typeof renderArchivedProtocols==='function') renderArchivedProtocols();
 }
 
 function goToStep(n){
@@ -6004,7 +6089,7 @@ function toggleSuggestion(i){
 function addAllUnstockedToWantList(){
   var selected=buildCompounds.filter(function(c){return c.selected;});
   var unstocked=selected.filter(function(c){
-    var p=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+    var p=pantry.find(function(p){return p&&p.name&&c&&c.name&&p.name.toLowerCase()===c.name.toLowerCase();});
     return !p||!isInStock(p);
   });
   var want=[];
@@ -6047,6 +6132,7 @@ function renderLibraryBrowser(q){
     }
   });
   DEFAULT_PANTRY.forEach(function(d){
+    if(!d||!d.name) return;
     if(!seen.has(d.name.toLowerCase())){
       seen.add(d.name.toLowerCase());
       // Normalize DEFAULT_PANTRY entry to match COMPOUND_DB shape
@@ -6116,14 +6202,17 @@ function renderLibraryBrowser(q){
 }
 
 function addFromLibrary(name){
+  try{
+  if(!name){toast('No compound name');return;}
   // Look in COMPOUND_DB first, then DEFAULT_PANTRY
   var dbItem=COMPOUND_DB.find(function(c){return c&&c.name&&c.name===name;})
     ||DEFAULT_PANTRY.find(function(d){return d&&d.name&&d.name===name;});
   if(!dbItem){
-    // fallback: create minimal entry so user can still add
     dbItem={name:name,form:'vial',route:'Subcutaneous',site:'Abdomen',dose:'—',fasting:false,timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]};
   }
-  if(pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
+  // Safe check — guard against pantry items with missing name
+  var alreadyIn=pantry.some(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();});
+  if(alreadyIn){
     toast(name+' is already in your pantry');
     return;
   }
@@ -6136,17 +6225,16 @@ function addFromLibrary(name){
     active:false,
     notes:dbItem.rationale||dbItem.notes||''
   });
-  try{
-    pantry.push(entry);
-    persist(KEYS.pantry,pantry);
-    toast(name+' added to pantry ✓ — tap Edit to add stock details','var(--p1)',4000);
-    var searchEl=document.getElementById('libraryBrowserSearch');
-    var q=searchEl?((searchEl.querySelector('input')||searchEl||{}).value||''):'';
-    try{renderLibraryBrowser(q);}catch(re){console.error('library re-render:',re);}
-    try{renderPantry();}catch(pe){console.error('pantry re-render:',pe);}
-  } catch(e){
-    console.error('addFromLibrary error:',e);
-    toast(name+' added ✓ — reload if pantry looks wrong','var(--p1)',4000);
+  pantry.push(entry);
+  persist(KEYS.pantry,pantry);
+  toast(name+' added to pantry ✓ — tap Edit to add stock details','var(--p1)',4000);
+  var searchEl=document.getElementById('libraryBrowserSearch');
+  var q=searchEl?((searchEl.querySelector('input')||searchEl||{}).value||''):'';
+  try{renderLibraryBrowser(q);}catch(re){console.error('library re-render:',re);}
+  try{renderPantry();}catch(pe){console.error('pantry re-render:',pe);}
+  }catch(err){
+    console.error('addFromLibrary failed:',err);
+    toast('Could not add '+name+' — '+err.message,'var(--p5)',4000);
   }
 }
 
@@ -6234,7 +6322,7 @@ function renderCustomizeCompounds(compounds){
         +'</div>'
         +(function(){
           var pItem=pantry.find(function(p){return p.name===c.name;});
-          var db=COMPOUND_DB.find(function(d){return d.name===c.name;});
+          var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===c.name;});
           var freq=(pItem&&pItem.frequency)||(db&&db.frequency)||'daily';
           var fast=(pItem!=null)?pItem.fasting:!!(db&&db.fasting);
           return '<div class="g2">'
@@ -6548,7 +6636,7 @@ function filterAddProtoLibrary(q,ctx){
 
 function addLibCompoundToProto(name,ctx){
   if(!pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
-    var db=COMPOUND_DB.find(function(d){return d.name===name;});
+    var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===name;});
     if(db){
       pantry.push(Object.assign({},db,{
         id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
@@ -6627,7 +6715,7 @@ function buildReviewStep(){
 
   // Unstocked compounds — prompt to add to restock list
   var unstocked=selectedComps.filter(function(c){
-    var p=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+    var p=pantry.find(function(p){return p&&p.name&&c&&c.name&&p.name.toLowerCase()===c.name.toLowerCase();});
     return !p||!isInStock(p);
   });
   var unstockedSection=document.getElementById('unstockedSection');
@@ -7079,7 +7167,7 @@ function buildStaticSuggestions(goals,allPantry){
   // 1. Score stocked pantry items against goals — include top 5 only
   var scoredPantry=allPantry.filter(function(p){return isInStock(p)&&!isBlendItem(p.name,p.notes);}).map(function(p){
     var key=p.name.toLowerCase();
-    var db=COMPOUND_DB.find(function(c){return c.name.toLowerCase()===key;})||DEFAULT_PANTRY.find(function(d){return d.name.toLowerCase()===key;});
+    var db=COMPOUND_DB.find(function(c){return c.name.toLowerCase()===key;})||DEFAULT_PANTRY.find(function(d){return d&&d.name&&d.name.toLowerCase()===key;});
     var compGoals=(db&&db.goals)||[];
     var score=0;
     if(wantsFat&&compGoals.some(function(g){return/fat|appetite|weight|metabol/i.test(g);})) score+=3;
@@ -7168,6 +7256,8 @@ function importData(input){
       if(b.wantList){localStorage.setItem('pt_restock_want',JSON.stringify(b.wantList));}
       if(b.healthSync){healthSync=b.healthSync;await persist(KEYS.healthSync,healthSync);}
       if(b.ouraData){ouraData=b.ouraData;await persist(KEYS.oura,ouraData);}
+      if(b.clinicalNotes){localStorage.setItem('pt_clinical_notes',b.clinicalNotes);}
+      if(b.anthropicKey){localStorage.setItem('rp_anthropic_key',b.anthropicKey);}
       if(b.libraryVersion){localStorage.setItem('pt_library_version',b.libraryVersion);}
       if(b.pantry){pantry=b.pantry;await persist(KEYS.pantry,pantry);}
       if(b.protocols){protocols=b.protocols;await persist(KEYS.protocols,protocols);}
@@ -7192,9 +7282,14 @@ async function restoreFromPrompt(input){
   await importData(input);
 }
 async function seedDefaults(){
-  // Commercial version — no hardcoded personal data
-  // User starts fresh; data built through logging and imports
-  if(!pantry) pantry=[];  // Initialize in memory only — don't persist empty pantry
+  // Ensure all globals initialized for fresh start
+  if(!Array.isArray(pantry)) pantry=[];
+  if(!Array.isArray(logs)) logs=[];
+  if(!Array.isArray(bodyLogs)) bodyLogs=[];
+  if(!Array.isArray(checkins)) checkins=[];
+  if(!Array.isArray(protocols)) protocols=[];
+  if(!Array.isArray(activeProtoIds)) activeProtoIds=[];
+  if(!doseMem) doseMem={};
   if(!activeProtoIds.length&&protocols.length){
     activeProtoIds=[protocols[0].id];activeProtoId=protocols[0].id;
     await persist(KEYS.activeProtoIds,activeProtoIds);
@@ -7205,6 +7300,15 @@ async function seedDefaults(){
 
 
 function finishInit(){
+  // Normalize COMPOUND_DB — filter out any entries without a name property
+  // This permanently fixes the 'd.name' class of errors from mixed-format entries
+  if(Array.isArray(COMPOUND_DB)){
+    for(var _i=COMPOUND_DB.length-1;_i>=0;_i--){
+      if(!COMPOUND_DB[_i]||typeof COMPOUND_DB[_i].name!=='string'||!COMPOUND_DB[_i].name){
+        COMPOUND_DB.splice(_i,1);
+      }
+    }
+  }
   // Migrate: normalize legacy goal values to unified format
   var _goalMap={
     'Fat Loss':'Fat loss and visceral fat reduction',
@@ -7233,6 +7337,8 @@ function finishInit(){
   pantry.forEach(function(p){if(_twMap[p.timingWindow]){p.timingWindow=_twMap[p.timingWindow];_ptwMig=true;}});
   if(_ptwMig) persist(KEYS.pantry,pantry);
 
+  // Migrate: clean up any invalid pantry entries
+  pantry=(Array.isArray(pantry)?pantry:[]).filter(function(p){return p&&p.name&&typeof p.name==='string';});
   // Migrate: assign ids to any pantry items missing them
   var idFixed=false;
   pantry.forEach(function(p,i){
@@ -7262,8 +7368,12 @@ function finishInit(){
   var blankNames=['My Protocol','My First Protocol'];
   var before=protocols.length;
   protocols=protocols.filter(function(p){
+    if(!p||!p.id) return false; // remove null protocols
     var isBlank=blankNames.indexOf(p.name)>-1&&(!p.compounds||!p.compounds.length);
-    return !isBlank;
+    if(!isBlank) return true;
+    // Only remove blank protocols older than 60s (not freshly created during onboarding)
+    var age=p.id?Date.now()-parseInt(p.id.replace('proto_',''))||60001:60001;
+    return age<60000; // keep if freshly created
   });
   if(protocols.length!==before){
     activeProtoIds=activeProtoIds.filter(function(id){
@@ -7302,8 +7412,6 @@ function finishInit(){
   takeAutoSnapshot();
   registerServiceWorker();
   updateMobHeader();
-  // Check for new library compounds
-  checkNewLibraryCompounds();
   // Post-onboarding routing: if first run, open protocol editor for setup
   var justOnboarded=localStorage.getItem('pt_just_onboarded');
   if(justOnboarded==='1'){
@@ -7330,8 +7438,12 @@ function finishInit(){
         nav('today');
       }
     },200);
+    // Check for new library compounds after UI settles
+    setTimeout(function(){checkNewLibraryCompounds();},2000);
   } else {
     nav('today');
+    // Check for new library compounds after UI settles
+    setTimeout(function(){checkNewLibraryCompounds();},2000);
   }
 }
 
@@ -7625,7 +7737,7 @@ function restoreSnapshot(idx){
       });
       pantry.forEach(function(p){
         // If it's a default pantry compound not in any protocol, ensure it's inactive
-        var isDpItem=(p.id||'').indexOf('dp_')===0||DEFAULT_PANTRY.some(function(d){return d.name.toLowerCase()===p.name.toLowerCase();});
+        var isDpItem=(p.id||'').indexOf('dp_')===0||DEFAULT_PANTRY.some(function(d){return d&&d.name&&p&&p.name&&d.name.toLowerCase()===p.name.toLowerCase();});
         if(isDpItem&&!activeNames.has(p.name.toLowerCase())){
           p.active=false;
         }
@@ -8657,9 +8769,16 @@ function toggleGoal(el,goal){
 
 function matchTemplateFromGoals(){
   var goalMap={
-    'Fat Loss':'tmpl_fatloss','Muscle':'tmpl_recomp','Longevity':'tmpl_longevity',
-    'Healing':'tmpl_healing','Performance':'tmpl_performance','Sleep':'tmpl_sleep',
-    'Immunity':'tmpl_immunity','Mood':'tmpl_mood','Recovery':'tmpl_recovery','Cognitive':'tmpl_cognitive',
+    'Fat loss and visceral fat reduction':'tmpl_fatloss',
+    'Lean mass and muscle preservation':'tmpl_recomp',
+    'Longevity and anti-aging':'tmpl_longevity',
+    'Recovery and injury healing':'tmpl_healing',
+    'Strength and athletic performance':'tmpl_performance',
+    'Sleep quality and GH optimization':'tmpl_sleep',
+    'Immune support and resilience':'tmpl_immunity',
+    'Mood, anxiety, and emotional resilience':'tmpl_mood',
+    'Post-training recovery and repair':'tmpl_recovery',
+    'Cognitive focus and motivation':'tmpl_cognitive'
   };
   for(var i=0;i<selectedGoals.length;i++){
     var id=goalMap[selectedGoals[i]];
@@ -8675,9 +8794,16 @@ function renderMatchedProto(){
     return;
   }
   var goalMap={
-    'Fat Loss':'tmpl_fatloss','Muscle':'tmpl_recomp','Longevity':'tmpl_longevity',
-    'Healing':'tmpl_healing','Performance':'tmpl_performance','Sleep':'tmpl_sleep',
-    'Immunity':'tmpl_immunity','Mood':'tmpl_mood','Recovery':'tmpl_recovery','Cognitive':'tmpl_cognitive',
+    'Fat loss and visceral fat reduction':'tmpl_fatloss',
+    'Lean mass and muscle preservation':'tmpl_recomp',
+    'Longevity and anti-aging':'tmpl_longevity',
+    'Recovery and injury healing':'tmpl_healing',
+    'Strength and athletic performance':'tmpl_performance',
+    'Sleep quality and GH optimization':'tmpl_sleep',
+    'Immune support and resilience':'tmpl_immunity',
+    'Mood, anxiety, and emotional resilience':'tmpl_mood',
+    'Post-training recovery and repair':'tmpl_recovery',
+    'Cognitive focus and motivation':'tmpl_cognitive'
   };
   var matchedIds=[];
   selectedGoals.slice(0,3).forEach(function(g){
@@ -8721,6 +8847,14 @@ function obImportBodySpecCSV(input){
 
 async function finishOnboarding(){
   try{
+    // Ensure all globals are initialized for new users
+    if(!Array.isArray(pantry)) pantry=[];
+    if(!Array.isArray(logs)) logs=[];
+    if(!Array.isArray(bodyLogs)) bodyLogs=[];
+    if(!Array.isArray(checkins)) checkins=[];
+    if(!Array.isArray(protocols)) protocols=[];
+    if(!Array.isArray(activeProtoIds)) activeProtoIds=[];
+    if(!doseMem) doseMem={};
     var proto;
     if(selectedTemplateId){
       var tmpl=PROTOCOL_TEMPLATES.find(function(t){return t.id===selectedTemplateId;});
@@ -8728,7 +8862,8 @@ async function finishOnboarding(){
         proto={id:'proto_'+Date.now(),name:tmpl.name,durationWeeks:tmpl.weeks,
           startDate:today(),compounds:JSON.parse(JSON.stringify(tmpl.compounds)),color:tmpl.color};
         tmpl.compounds.forEach(function(c){
-          var pItem=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+          if(!c||!c.name) return;
+          var pItem=pantry.find(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase();});
           if(pItem) pItem.active=true;
         });
       }
@@ -8737,9 +8872,10 @@ async function finishOnboarding(){
     protocols=[proto];activeProtoIds=[proto.id];activeProtoId=proto.id;
     // Auto-create pantry entries for each protocol compound with no existing record
     proto.compounds.forEach(function(c){
-      var exists=pantry.find(function(p){return p.name.toLowerCase()===c.name.toLowerCase();});
+      if(!c||!c.name) return;
+      var exists=pantry.find(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase();});
       if(!exists){
-        var db=COMPOUND_DB.find(function(d){return d.name.toLowerCase()===c.name.toLowerCase();});
+        var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name.toLowerCase()===c.name.toLowerCase();});
         pantry.push({
           id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
           name:c.name,
@@ -8854,8 +8990,9 @@ function validateProKey(){
 function mergeDefaultPantry(){
   var added=[];
   DEFAULT_PANTRY.forEach(function(def){
+    if(!def||!def.name) return;
     var exists=pantry.some(function(p){
-      return p.name.toLowerCase()===def.name.toLowerCase();
+      return p&&p.name&&p.name.toLowerCase()===def.name.toLowerCase();
     });
     if(!exists){
       // All pre-loaded pantry items are inactive by default
@@ -8889,7 +9026,7 @@ function setupPantry(mode){
     var activeNames=new Set();
     var proto=getActiveProtocol();
     if(proto&&proto.compounds) proto.compounds.forEach(function(c){activeNames.add(c.name.toLowerCase());});
-    pantry=pantry.filter(function(p){return activeNames.has(p.name.toLowerCase());});
+    pantry=pantry.filter(function(p){return p&&p.name&&activeNames.has(p.name.toLowerCase());});
     persist(KEYS.pantry,pantry);
     localStorage.setItem('pt_pantry_setup','lean');
     toast('Pantry set up with your protocol compounds ✓');
@@ -8963,7 +9100,7 @@ function checkNewLibraryCompounds(){
   var stored=localStorage.getItem('pt_library_version');
   if(stored===LIBRARY_VERSION) return; // already seen this version
   // Find new compounds not already in pantry
-  var pantryNames=new Set(pantry.map(function(p){return p.name.toLowerCase();}));
+  var pantryNames=new Set(pantry.filter(function(p){return p&&p.name;}).map(function(p){return p.name.toLowerCase();}));
   var toShow=NEW_COMPOUNDS.filter(function(name){
     return !pantryNames.has(name.toLowerCase());
   });
@@ -8976,7 +9113,7 @@ function checkNewLibraryCompounds(){
   var list=document.getElementById('newCompoundsList');
   if(list){
     list.innerHTML=toShow.map(function(name){
-      var db=COMPOUND_DB.find(function(d){return d.name===name;});
+      var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===name;});
       var color=db?(CAT_COLORS[db.cat]||'var(--mid)'):'var(--mid)';
       return'<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd)">'        +'<input type="checkbox" data-name="'+name+'" checked'        +' style="-webkit-appearance:checkbox;appearance:checkbox;width:20px;height:20px;min-width:20px;flex-shrink:0;margin-top:3px;border:2px solid var(--p1);border-radius:4px;accent-color:var(--p1);cursor:pointer">'        +'<div style="flex:1;min-width:0">'          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'            +'<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0"></div>'            +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+name+'</div>'          +'</div>'          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5">'            +(db?db.dose+' · '+db.route:'')+'</div>'          +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:2px">'            +(db&&db.rationale?db.rationale.split('.')[0]+'.':'')+'</div>'        +'</div>'        +'</div>';
     }).join('');
@@ -8992,7 +9129,7 @@ function addSelectedNewCompounds(){
   checked.forEach(function(cb){
     var name=cb.dataset.name;
     if(pantry.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})) return;
-    var db=COMPOUND_DB.find(function(d){return d.name===name;});
+    var db=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===name;});
     if(!db) return;
     pantry.push(Object.assign({},db,{
       id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
@@ -9158,6 +9295,182 @@ function closeInfoModal(){
   if(m) m.remove();
 }
 
+var _completionProtoId=null;
+
+function checkProtocolCompletion(){
+  var now=new Date();now.setHours(0,0,0,0);
+  for(var i=0;i<activeProtoIds.length;i++){
+    var _p=protocols.find(function(x){return x.id===activeProtoIds[i];});
+    if(!_p||!_p.startDate||!_p.durationWeeks||_p.status==='archived') continue;
+    var endDate=new Date(_p.startDate);endDate.setDate(endDate.getDate()+_p.durationWeeks*7);endDate.setHours(0,0,0,0);
+    if(now>=endDate&&!localStorage.getItem('pt_completion_shown_'+_p.id)){
+      _completionProtoId=_p.id;
+      setTimeout(function(){triggerCompletionFlow();},800);
+      return;
+    }
+  }
+}
+
+function triggerCompletionFlow(){
+  var sevenAgo=new Date();sevenAgo.setDate(sevenAgo.getDate()-7);
+  var recentWt=bodyLogs.filter(function(b){return new Date(b.date)>=sevenAgo&&b.weight;});
+  if(!recentWt.length){
+    document.getElementById('completionDataMsg').textContent='No weight logged in the last 7 days. A final measurement makes your completion stats more meaningful.';
+    openModal('completionDataModal');
+  } else { showCompletionCongrats(); }
+}
+
+function saveCompletionData(){
+  var wt=parseFloat(document.getElementById('cdWeight').value)||null;
+  var fp=parseFloat(document.getElementById('cdFatPct').value)||null;
+  var lm=parseFloat(document.getElementById('cdLean').value)||null;
+  if(wt){
+    var entry={id:Date.now(),date:today(),source:'manual',weight:wt,fatPct:fp,lean:lm,muscle:lm,
+      fat:wt&&fp?Math.round(wt*fp/100*10)/10:null,leanPct:lm&&wt?Math.round(lm/wt*100*10)/10:null,
+      waterPct:null,bone:null,notes:'Protocol completion entry'};
+    bodyLogs.push(entry);
+    bodyLogs.sort(function(a,b){return a.date>b.date?-1:1;});
+    persist(KEYS.bodyLogs,bodyLogs);
+  }
+  closeModal('completionDataModal');
+  showCompletionCongrats();
+}
+
+function skipCompletionData(){closeModal('completionDataModal');showCompletionCongrats();}
+
+function _get7DayAvgStart(startIso,field){
+  var s=new Date(startIso),e=new Date(s.getTime()+7*86400000);
+  var v=bodyLogs.filter(function(b){var d=new Date(b.date);return d>=s&&d<e&&b[field]!=null;}).map(function(b){return b[field];});
+  return v.length?Math.round(v.reduce(function(a,b){return a+b;},0)/v.length*10)/10:null;
+}
+
+function _get7DayAvgEnd(endIso,field){
+  var e=new Date(endIso),s=new Date(e.getTime()-7*86400000);
+  var v=bodyLogs.filter(function(b){var d=new Date(b.date);return d>=s&&d<=e&&b[field]!=null;}).map(function(b){return b[field];});
+  return v.length?Math.round(v.reduce(function(a,b){return a+b;},0)/v.length*10)/10:null;
+}
+
+function showCompletionCongrats(){
+  var p=protocols.find(function(x){return x.id===_completionProtoId;});
+  if(!p) return;
+  var startDate=new Date(p.startDate);
+  var endMs=startDate.getTime()+p.durationWeeks*7*86400000;
+  var endDate=new Date(endMs);
+  var startIso=p.startDate;
+  var endIso=endDate.toISOString().slice(0,10);
+  var startStr=startDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  var endStr=endDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  // Adherence
+  var totalSched=0,totalLogged=0;
+  (p.compounds||[]).forEach(function(c){
+    var iw=c.introWeek||1,dur=c.compoundDurationWeeks||p.durationWeeks;
+    var cs=new Date(startDate.getTime()+(iw-1)*7*86400000);
+    var ce=new Date(startDate.getTime()+(iw-1+dur)*7*86400000);
+    var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
+    for(var d=0;d<(ce-cs)/86400000;d++){var dd=new Date(cs.getTime()+d*86400000);if(dows.indexOf(dd.getDay())!==-1)totalSched++;}
+    totalLogged+=logs.filter(function(l){var ld=new Date(l.date);return l.compound===c.name&&ld>=cs&&ld<=ce;}).length;
+  });
+  var adh=totalSched>0?Math.round(totalLogged/totalSched*100):null;
+  // 7-day averages
+  var sw=_get7DayAvgStart(startIso,'weight'),ew=_get7DayAvgEnd(endIso,'weight');
+  var sf=_get7DayAvgStart(startIso,'fatPct'),ef=_get7DayAvgEnd(endIso,'fatPct');
+  var sl=_get7DayAvgStart(startIso,'lean')||_get7DayAvgStart(startIso,'muscle');
+  var el=_get7DayAvgEnd(endIso,'lean')||_get7DayAvgEnd(endIso,'muscle');
+  // Stats HTML
+  function statCard(lbl,sv,ev,unit,lib){
+    if(sv==null&&ev==null) return '';
+    var d=sv!=null&&ev!=null?Math.round((ev-sv)*10)/10:null;
+    var dc=d==null?'var(--dim)':d===0?'var(--dim)':(lib?d<0:d>0)?'var(--p1)':'var(--p5)';
+    return '<div style="background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px">'
+      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">'+lbl+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-end">'
+      +'<div><div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Start</div><div style="font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text)">'+(sv!=null?sv+unit:'—')+'</div></div>'
+      +(d!=null?'<div style="font-family:var(--mono);font-size:20px;font-weight:700;color:'+dc+'">'+(d>0?'+':'')+d+unit+'</div>':'')
+      +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:9px;color:var(--dim)">End</div><div style="font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text)">'+(ev!=null?ev+unit:'—')+'</div></div>'
+      +'</div></div>';
+  }
+  var statsHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  statsHtml+=statCard('Weight',sw,ew,'lbs',true);
+  statsHtml+=statCard('Body Fat',sf,ef,'%',true);
+  statsHtml+=statCard('Lean Mass',sl,el,'lbs',false);
+  if(adh!=null) statsHtml+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px">'
+    +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Adherence</div>'
+    +'<div style="font-family:var(--sans);font-size:28px;font-weight:700;color:'+(adh>=80?'var(--p1)':adh>=60?'var(--p2)':'var(--p5)')+'">' +adh+'%</div>'
+    +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+totalLogged+' of '+totalSched+' doses</div></div>';
+  statsHtml+='</div>';
+  // DEXA reference
+  var dexaLogs=bodyLogs.filter(function(b){return b.source==='dexa';}).sort(function(a,b){return a.date>b.date?-1:1;});
+  var dexa=dexaLogs.find(function(b){var d=new Date(b.date);return d>=new Date(startDate.getTime()-90*86400000)&&d<=endDate;});
+  // Populate
+  document.getElementById('congProtoName').textContent=p.name;
+  document.getElementById('congDuration').textContent=startStr+' – '+endStr+' · '+p.durationWeeks+' weeks';
+  document.getElementById('congMessage').textContent='You showed up, stayed consistent, and finished what you started. That\'s the work. The data confirms what your discipline already knew.';
+  document.getElementById('congStats').innerHTML=statsHtml;
+  var dexaEl=document.getElementById('congDexaRef');
+  if(dexaEl&&dexa){
+    dexaEl.style.display='block';
+    dexaEl.innerHTML='🦾 DEXA reference ('+dexa.date+'): '+(dexa.weight?dexa.weight+'lbs':'')
+      +(dexa.fatPct?' · '+dexa.fatPct+'% body fat':'')+(dexa.lean||dexa.muscle?' · '+(dexa.lean||dexa.muscle)+'lbs lean':'')
+      +'<br><span style="opacity:.7">Reference only — scan timing may not align with protocol dates</span>';
+  } else if(dexaEl){dexaEl.style.display='none';}
+  localStorage.setItem('pt_completion_shown_'+p.id,'1');
+  openModal('completionCongratModal');
+}
+
+function launchCompletionApex(){
+  closeModal('completionCongratModal');
+  switchTab('insights');
+  setTimeout(function(){var b=document.getElementById('apexReportBtn');if(b)b.click();},400);
+}
+
+function archiveCompletedProtocol(){
+  if(!_completionProtoId) return;
+  var p=protocols.find(function(x){return x.id===_completionProtoId;});
+  if(!p) return;
+  p.status='archived';p.archivedDate=today();
+  activeProtoIds=activeProtoIds.filter(function(id){return id!==_completionProtoId;});
+  if(activeProtoId===_completionProtoId){activeProtoId=activeProtoIds[0]||null;persist(KEYS.activeProtoId,activeProtoId);}
+  persist(KEYS.activeProtoIds,activeProtoIds);persist(KEYS.protocols,protocols);
+  closeModal('completionCongratModal');
+  renderToday();renderBuild();
+  toast(p.name+' archived ✓');
+}
+
+function renderArchivedProtocols(){
+  var archiveEl=document.getElementById('archivedProtosWrap');
+  if(!archiveEl) return;
+  var archived=protocols.filter(function(p){return p.status==='archived';});
+  if(!archived.length){archiveEl.innerHTML='';return;}
+  var collapsed=localStorage.getItem('pt_archive_collapsed')==='1';
+  var h='<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--bd)">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px" onclick="toggleArchiveCollapse()">';
+  h+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)">✓ Completed ('+archived.length+')</div>';
+  h+='<span style="font-family:var(--mono);font-size:12px;color:var(--dim)">'+(collapsed?'▾':'▴')+'</span></div>';
+  if(!collapsed){
+    archived.forEach(function(p){
+      var ed=p.startDate&&p.durationWeeks?new Date(new Date(p.startDate).getTime()+p.durationWeeks*7*86400000):null;
+      var es=ed?ed.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      h+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-bottom:8px;opacity:.85">';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+      h+='<div><div style="font-family:var(--serif);font-size:15px;color:var(--text)">'+p.name+'</div>';
+      h+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">Completed '+es+' · '+p.durationWeeks+' weeks</div></div>';
+      h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">✓ done</span></div>';
+      h+='<div style="display:flex;gap:8px">';
+      h+='<button class="btn sm ghost" onclick="openProtoEditor(\''+p.id+'\')" style="font-size:10px">View</button>';
+      h+='<button class="btn sm ghost" onclick="dupProtocol(\''+p.id+'\')" style="font-size:10px">Run again →</button>';
+      h+='</div></div>';
+    });
+  }
+  h+='</div>';
+  archiveEl.innerHTML=h;
+}
+
+function toggleArchiveCollapse(){
+  var c=localStorage.getItem('pt_archive_collapsed')==='1';
+  localStorage.setItem('pt_archive_collapsed',c?'0':'1');
+  renderArchivedProtocols();
+}
+
 function importProtocol(){
   var raw=document.getElementById('protocolImportInput').value.trim();
   var preview=document.getElementById('protocolImportPreview');
@@ -9319,7 +9632,7 @@ function dismissBackupBanner(){
 
 function exportToFiles(){
   localStorage.setItem('pt_last_files_save', Date.now().toString());
-  var backup={version:11,exported:new Date().toISOString(),
+  var backup={version:12,exported:new Date().toISOString(),
     logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
     pantry:pantry,protocols:protocols,activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,
     userProfile:userProfile,
@@ -9327,7 +9640,9 @@ function exportToFiles(){
     wantList:JSON.parse(localStorage.getItem('pt_restock_want')||'[]'),
     libraryVersion:localStorage.getItem('pt_library_version')||'',
     healthSync:healthSync,
-    ouraData:ouraData};
+    ouraData:ouraData,
+    clinicalNotes:localStorage.getItem('pt_clinical_notes')||'',
+    anthropicKey:localStorage.getItem('rp_anthropic_key')||''};
   var jsonStr=JSON.stringify(backup,null,2);
   var filename='protocol-backup-'+today()+'.json';
   // iOS PWA: use Web Share API to trigger Files picker
@@ -10455,6 +10770,44 @@ document.addEventListener('DOMContentLoaded', initApp);
 </div>
 
 <!-- ═══════════ LIBRARY BROWSER MODAL ═══════════ -->
+<div class="modal-overlay" id="completionDataModal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <div style="text-align:center;padding:8px 0 14px">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      <div style="font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:6px">Almost done!</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7" id="completionDataMsg">Let's capture your final stats before we celebrate.</div>
+    </div>
+    <div class="g2" style="margin-bottom:10px">
+      <div class="field"><label>Final weight (lbs)</label><input type="number" inputmode="decimal" id="cdWeight" placeholder="e.g. 165.2" step="0.1"></div>
+      <div class="field"><label>Body fat % (optional)</label><input type="number" inputmode="decimal" id="cdFatPct" placeholder="e.g. 19.5" step="0.1"></div>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Lean mass (lbs, optional)</label>
+      <input type="number" inputmode="decimal" id="cdLean" placeholder="e.g. 128.0" step="0.1">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;justify-content:center;background:var(--p2);border-color:var(--p2);color:var(--bg)" onclick="saveCompletionData()">Save &amp; Continue</button>
+      <button class="btn ghost" style="flex:1;justify-content:center" onclick="skipCompletionData()">Skip →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="completionCongratModal">
+  <div class="modal" style="max-height:92vh;overflow-y:auto">
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:40px;margin-bottom:8px">🏆</div>
+      <div style="font-family:var(--serif);font-size:22px;color:var(--text);margin-bottom:4px" id="congProtoName">Protocol Complete</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="congDuration"></div>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--mid);line-height:1.8;text-align:center;margin-bottom:18px;padding:0 4px" id="congMessage"></div>
+    <div id="congStats" style="margin-bottom:18px"></div>
+    <div id="congDexaRef" style="display:none;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.7"></div>
+    <button class="btn" style="width:100%;justify-content:center;background:var(--p2);border-color:var(--p2);color:var(--bg);margin-bottom:10px;font-size:15px" onclick="launchCompletionApex()">📊 View Final APEX Report →</button>
+    <button class="btn ghost" style="width:100%;justify-content:center" onclick="archiveCompletedProtocol()">Archive Protocol &amp; Continue</button>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;margin-top:8px">Your protocol data is preserved in the Build tab</div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="protocolImportModal">
   <div class="modal" style="max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
