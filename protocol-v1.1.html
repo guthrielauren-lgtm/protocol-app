@@ -2631,12 +2631,16 @@ function renderProtoHeader(){
     if(nameEl){nameEl.textContent=proto.name;nameEl.style.color='';nameEl.style.cursor='default';nameEl.onclick=null;}
     var parts=[];
     if(proto.durationWeeks) parts.push(proto.durationWeeks+' weeks');
-    if(proto.startDate) parts.push('Started '+fmtDate(proto.startDate));
+    if(proto.startDate){
+      var _isFuture=new Date(proto.startDate)>new Date();
+      parts.push((_isFuture?'⏳ Starts ':'Started ')+fmtDate(proto.startDate));
+    }
     if(metaEl) metaEl.textContent=parts.join(' · ');
     if(proto.startDate){
+      var _notStarted=new Date(proto.startDate)>new Date();
       var rawW=weeksBetween(proto.startDate,today())+1;
       var w=Math.max(1,Math.min(rawW,proto.durationWeeks||999));
-      if(weekEl) weekEl.textContent='Week '+w+(proto.durationWeeks?' of '+proto.durationWeeks:'');
+      if(weekEl) weekEl.textContent=_notStarted?'⏳ On Deck':('Week '+w+(proto.durationWeeks?' of '+proto.durationWeeks:''));
       var pct=proto.durationWeeks?Math.min(100,((w-1)/proto.durationWeeks)*100):0;
       if(fill) fill.style.width=pct+'%';
     } else {
@@ -2668,9 +2672,13 @@ function renderProtoHeader(){
     dropdown.innerHTML=activeProtos.map(function(p){
       var weekStr='';
       if(p.startDate){
-        var rawW2=weeksBetween(p.startDate,today())+1;
-        var w2=Math.max(1,Math.min(rawW2,p.durationWeeks||999));
-        weekStr='Week '+w2+(p.durationWeeks?' of '+p.durationWeeks:'');
+        if(new Date(p.startDate)>new Date()){
+          weekStr='⏳ Starts '+fmtDate(p.startDate);
+        } else {
+          var rawW2=weeksBetween(p.startDate,today())+1;
+          var w2=Math.max(1,Math.min(rawW2,p.durationWeeks||999));
+          weekStr='Week '+w2+(p.durationWeeks?' of '+p.durationWeeks:'');
+        }
       }
       return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+(p&&p.name?p.name:'—')+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +(p.startDate&&new Date(p.startDate)>new Date()
           ?'<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3)">⏳ On Deck</span>'
