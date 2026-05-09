@@ -2197,6 +2197,13 @@ function nav(tab){
 
 // ════════════ PROTOCOL MANAGEMENT ════════════
 function activateProtocol(id){
+  var _p=protocols.find(function(p){return p.id===id;});
+  // If protocol hasn't started yet and is already active, block pause — it's On Deck
+  if(_p&&_p.startDate&&new Date(_p.startDate)>new Date()&&activeProtoIds.indexOf(id)>-1){
+    var _startStr=new Date(_p.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    toast('⏳ On Deck — starts '+_startStr+'. Remove from active protocols in Build tab if needed.');
+    return;
+  }
   var idx=activeProtoIds.indexOf(id);
   if(idx>-1){
     activeProtoIds.splice(idx,1);
@@ -2233,7 +2240,7 @@ function openProtoSwap(){
         <div style="font-family:var(--serif);font-size:15px">${p.name}</div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.durationWeeks||'—'} weeks · ${(p.compounds||[]).length} compounds${p.startDate?' · Started '+fmtDate(p.startDate):''}</div>
       </div>
-      <button onclick="activateProtocol('${p.id}')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:${activeProtoIds.indexOf(p.id)>-1?'var(--p1)':'var(--p1d)'};border:1px solid var(--p1);border-radius:4px;color:${activeProtoIds.indexOf(p.id)>-1?'var(--bg)':'var(--p1)'};cursor:pointer">${activeProtoIds.indexOf(p.id)>-1?'✓ Active':'Activate'}</button>
+      <button onclick="activateProtocol('${p.id}')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:${activeProtoIds.indexOf(p.id)>-1?'var(--p1)':'var(--p1d)'};border:1px solid var(--p1);border-radius:4px;color:${activeProtoIds.indexOf(p.id)>-1?'var(--bg)':'var(--p1)'};cursor:pointer">${activeProtoIds.indexOf(p.id)>-1?(new Date(p.startDate)>new Date()?'⏳ On Deck':'✓ Active'):'Activate'}</button>
     </div>`).join('');
   openModal('protoSwapModal');
 }
@@ -2572,6 +2579,12 @@ function renderTomorrow(){
     if(!proto.compounds) return;
     proto.compounds.forEach(function(c){
       if(!c||!c.name) return;
+      // Check compound is within its active stagger window for tomorrow
+      var tmrDateStr=tmrDate.toISOString().slice(0,10);
+      if(c.introWeek||c.compoundDurationWeeks){
+        var status=getCompoundActiveStatus(proto,c);
+        if(status.status!=='active') return;
+      }
       var dow=c.daysOfWeek||[0,1,2,3,4,5,6];
       if(dow.indexOf(tmrDOW)===-1) return;
       var key=c.name.toLowerCase();
@@ -2659,7 +2672,9 @@ function renderProtoHeader(){
         var w2=Math.max(1,Math.min(rawW2,p.durationWeeks||999));
         weekStr='Week '+w2+(p.durationWeeks?' of '+p.durationWeeks:'');
       }
-      return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+(p&&p.name?p.name:'—')+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +'<button class="apd-btn" onclick="activateProtocol(\''+p.id+'\')" style="border-color:var(--bd2);color:var(--mid)">Pause</button>'        +'</div>';
+      return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+(p&&p.name?p.name:'—')+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +(p.startDate&&new Date(p.startDate)>new Date()
+          ?'<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3)">⏳ On Deck</span>'
+          :'<button class="apd-btn" onclick="activateProtocol(\''+p.id+'\')" style="border-color:var(--bd2);color:var(--mid)">Pause</button>')        +'</div>';
     }).join('');
   }
 }
@@ -5887,10 +5902,10 @@ function renderBuild(){
         return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?' active':'')+'">'
           +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
           +'<div class="spc-info"><div class="spc-name">'+(p.name||'Unnamed Protocol')+'</div>'
-          +'<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+(activeProtoIds.indexOf(p.id)>-1?' · ✓ Active':'')+'</div></div>'
+          +'<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' · ⏳ On Deck':' · ✓ Active'):'')+'</div></div>'
           +'<div class="spc-actions">'
           +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">View</button>'
-          +'<button class="spc-btn activate-btn'+(activeProtoIds.indexOf(p.id)>-1?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Pause':'Activate')+'</button>'
+          +'<button class="spc-btn activate-btn'+(activeProtoIds.indexOf(p.id)>-1?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?'⏳ On Deck':'Pause'):'Activate')+'</button>'
           +'<button class="spc-btn dup-btn" onclick="dupProtocol(\''+p.id+'\')">Dup</button>'
           +'<button class="spc-btn del-btn" onclick="deleteProtocol(\''+p.id+'\')">Del</button>'
           +'</div></div></div>';
@@ -9099,6 +9114,11 @@ function showFilesBackupReminder(){
 function checkNewLibraryCompounds(){
   var stored=localStorage.getItem('pt_library_version');
   if(stored===LIBRARY_VERSION) return; // already seen this version
+  // Skip for new users with empty pantry — they should just use the full library
+  if(!pantry||!pantry.length){
+    localStorage.setItem('pt_library_version',LIBRARY_VERSION);
+    return;
+  }
   // Find new compounds not already in pantry
   var pantryNames=new Set(pantry.filter(function(p){return p&&p.name;}).map(function(p){return p.name.toLowerCase();}));
   var toShow=NEW_COMPOUNDS.filter(function(name){
