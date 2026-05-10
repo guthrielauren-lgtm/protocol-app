@@ -331,6 +331,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .conflict-text{font-family:var(--mono);font-size:11px;color:var(--p5);line-height:1.6;flex:1}
 .spc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;margin-bottom:6px}
 .spc.active{border-color:var(--p1)}
+.spc.on-deck{border-color:var(--p2);border-style:dashed}
 .spc-top{display:flex;align-items:center;gap:11px;margin-bottom:8px}
 .spc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .spc-info{flex:1;min-width:0}
@@ -338,8 +339,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .spc-meta{font-family:var(--mono);font-size:10px;color:var(--dim)}
 .spc-actions{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap}
 .spc-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid;cursor:pointer;background:none;-webkit-tap-highlight-color:transparent;transition:all .15s}
+/* activate = outline green (not yet active) */
 .spc-btn.activate-btn{border-color:var(--p1);color:var(--p1)}
-.spc-btn.activate-btn:hover,.spc-btn.activate-btn.is-active{background:var(--p1);color:var(--bg)}
+/* pause = amber (active, tap to pause) */
+.spc-btn.activate-btn.is-active{background:var(--p2d);border-color:var(--p2);color:var(--p2)}
+.spc-btn.activate-btn.is-active:hover{background:var(--p2);color:var(--bg)}
+.spc-btn.activate-btn:hover:not(.is-active){background:var(--p1);color:var(--bg)}
 .spc-btn.edit-btn{border-color:var(--bd);color:var(--mid)}.spc-btn.edit-btn:hover{border-color:var(--bd2);color:var(--text)}
 .spc-btn.dup-btn{border-color:var(--p3);color:var(--p3)}
 .spc-btn.del-btn{border-color:var(--p5);color:var(--p5)}.spc-btn.del-btn:hover{background:var(--p5);color:#fff}
@@ -724,21 +729,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div style="font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding:4px 16px 4px;display:block;border-bottom:1px solid var(--bd);margin-bottom:0" id="phdr-today">TODAY</div>
   <div id="todayGreeting" style="display:none;padding:10px 16px 0;font-family:var(--serif);font-size:17px;color:var(--text)"></div>
   
-  <div class="proto-header" id="protoHeader">
-    <div class="proto-header-top">
-      <div class="proto-dot" id="protoDot" style="background:var(--p2)"></div>
-      <div class="proto-info">
-        <div class="proto-name" id="protoName">No active protocol</div>
-        <div class="proto-meta" id="protoMeta"></div>
-        <div class="proto-week" id="protoWeek"></div>
-      </div>
-      <div class="proto-actions">
-        <button class="proto-swap" onclick="openProtoSwap()">Switch ⌄</button>
-        <button class="proto-swap" onclick="nav('build')" style="color:var(--p1);border-color:var(--p1)">Edit</button>
-      </div>
-    </div>
-    <div class="proto-progress"><div class="proto-progress-fill" id="protoProgressFill" style="width:0%"></div></div>
-  </div>
+  <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);padding:10px 16px 4px">Active Protocols</div>
+  <div id="protoHeader" style="padding:0 16px 6px"></div>
   <div class="active-proto-dropdown" id="activeProtoDropdown" style="display:none"></div>
 
   <div class="bc-strip-outer">
@@ -858,6 +850,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <span style="font-size:16px">⟳</span>
     <span id="bodyspecSyncLabel">Sync from BodySpec</span>
   </button>
+  <div style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;margin-bottom:10px;opacity:.65">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:16px">⟳</span>
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text)">Oura Ring</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">Sleep, readiness, HRV &amp; activity</div>
+      </div>
+    </div>
+    <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)">⏳ Coming soon</span>
+  </div>
   <button onclick="syncWithings()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;background:var(--p1d);border:1px solid var(--p1);border-radius:8px;color:var(--p1);font-family:var(--mono);font-size:11px;letter-spacing:.06em;cursor:pointer;transition:all .15s;margin-bottom:14px;-webkit-tap-highlight-color:transparent">
     <span style="font-size:16px">⟳</span>
     <span>Sync from Withings</span>
@@ -1310,6 +1312,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="settings-row"><div class="settings-label">Pre-Sleep compounds</div><input type="time" id="notifSleep" value="22:00" onchange="saveNotifPrefs()" style="font-family:var(--mono);font-size:11px;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--text);padding:4px 8px"></div>
   </div>
 
+  <!-- PROTOCOL PRO KEY -->
+  <div class="sec-lbl" style="margin-top:18px">Protocol Pro</div>
+  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">License Key</div>
+      <span id="proKeyBadge" style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)">Not set</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Enter your Protocol Pro license key to activate Pro features. For your current build, this is pre-activated.</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <input type="text" id="proKeyInput" placeholder="PRO-XXXX-XXXX-XXXX" autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
+      <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveProKey()">Activate</button>
+    </div>
+    <div id="proKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></div>
+  </div>
+
   <!-- COACH APEX API KEY -->
   <div class="sec-lbl" style="margin-top:18px">Coach APEX</div>
   <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
@@ -1320,12 +1337,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
       <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="apexKeyBadge">Not set</span>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Required to run Coach APEX reports. Get your key at <span style="color:var(--p1)">console.anthropic.com/api-keys</span>. Stored locally on your device only — never transmitted anywhere except Anthropic.</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Required to run Coach APEX. Stored on your device only — included in backups automatically.</div>
     <div style="display:flex;gap:8px;margin-bottom:6px">
       <input type="password" id="apexApiKeyInput" placeholder="sk-ant-..." autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
       <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveApexApiKey()">Save</button>
     </div>
-    <div id="apexKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></div>
+    <div id="apexKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--mid)">Powered by Anthropic · Claude Opus 4.7</div>
   </div>
 
   <!-- INTEGRATIONS -->
@@ -1379,6 +1396,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <button class="btn sm" onclick="document.getElementById('bodyspecCsvInput').click()">Choose CSV file</button>
       <span id="bodyspecImportStatus" style="font-family:var(--mono);font-size:10px;color:var(--dim)">No file selected</span>
     </label>
+  </div>
+
+  <div class="settings-row">
+    <div>
+      <div class="settings-label">Oura Ring</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Sleep · Readiness · HRV · Activity</div>
+    </div>
+    <span style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">Coming soon</span>
   </div>
 
   <div class="settings-row">
@@ -1486,7 +1511,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- Modals -->
 <div class="modal-overlay" id="protoSwapModal">
   <div class="modal">
-    <div class="modal-title">Switch Protocol <button class="modal-close" onclick="closeModal('protoSwapModal')">✕</button></div>
+    <div class="modal-title">My Protocols <button class="modal-close" onclick="closeModal('protoSwapModal')">✕</button></div>
     <div id="protoSwapList"></div>
     <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:14px">Build or edit protocols in the Build tab.</div>
   </div>
@@ -2191,7 +2216,14 @@ function nav(tab){
     }
   }
   if(tab==='build')    renderBuild();
-  if(tab==='settings') renderSettings();
+  if(tab==='settings'){
+    renderSettings();
+    setTimeout(function(){
+      if(typeof loadClinicalNotesUI==='function') loadClinicalNotesUI();
+      if(typeof updateApexKeyUI==='function') updateApexKeyUI();
+      if(typeof loadProKeyUI==='function') loadProKeyUI();
+    },50);
+  }
   if(tab==='today') localStorage.setItem('pt_visited_today','1');
 }
 
@@ -2238,9 +2270,19 @@ function openProtoSwap(){
       <div style="width:9px;height:9px;border-radius:50%;background:${p.color||'var(--mid)'};flex-shrink:0"></div>
       <div style="flex:1">
         <div style="font-family:var(--serif);font-size:15px">${p.name}</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.durationWeeks||'—'} weeks · ${(p.compounds||[]).length} compounds${p.startDate?' · Started '+fmtDate(p.startDate):''}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.durationWeeks||'—'} weeks · ${(p.compounds||[]).length} compounds${p.startDate?' · '+(new Date(p.startDate)>new Date()?'⏳ Starts ':'Started ')+fmtDate(p.startDate):''}</div>
       </div>
-      <button onclick="activateProtocol('${p.id}')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:${activeProtoIds.indexOf(p.id)>-1?'var(--p1)':'var(--p1d)'};border:1px solid var(--p1);border-radius:4px;color:${activeProtoIds.indexOf(p.id)>-1?'var(--bg)':'var(--p1)'};cursor:pointer">${activeProtoIds.indexOf(p.id)>-1?(new Date(p.startDate)>new Date()?'⏳ On Deck':'✓ Active'):'Activate'}</button>
+      ${(function(){
+        var _inActive=activeProtoIds.indexOf(p.id)>-1;
+        var _isFuture=p.startDate&&new Date(p.startDate)>new Date();
+        if(_inActive&&_isFuture){
+          return '<span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;background:var(--sf2);border:1px solid var(--bd);color:var(--dim)">⏳ On Deck</span>';
+        } else if(_inActive){
+          return '<button onclick="activateProtocol(\''+p.id+'\')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--p1);border:1px solid var(--p1);border-radius:4px;color:var(--bg);cursor:pointer">✓ Active</button>';
+        } else {
+          return '<button onclick="activateProtocol(\''+p.id+'\')" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--p1d);border:1px solid var(--p1);border-radius:4px;color:var(--p1);cursor:pointer">Activate</button>';
+        }
+      }())}
     </div>`).join('');
   openModal('protoSwapModal');
 }
@@ -2604,88 +2646,57 @@ function renderTomorrow(){
 }
 
 function renderProtoHeader(){
+  var wrap=document.getElementById('protoHeader');
+  if(!wrap) return;
   var activeProtos=getActiveProtocols();
-  var dot=document.getElementById('protoDot');
-  var nameEl=document.getElementById('protoName');
-  var metaEl=document.getElementById('protoMeta');
-  var weekEl=document.getElementById('protoWeek');
-  var fill=document.getElementById('protoProgressFill');
   var dropdown=document.getElementById('activeProtoDropdown');
-  var hasAny=activeProtos.length&&activeProtos.some(function(p){return p.compounds&&p.compounds.length;});
 
-  // ── No active protocols ──
-  if(!hasAny){
-    if(dot){dot.style.background='var(--p2)';dot.innerHTML='';}
-    if(nameEl){nameEl.textContent='No active protocol';nameEl.style.color='var(--p2)';nameEl.style.cursor='default';nameEl.onclick=null;}
-    if(metaEl){metaEl.innerHTML='<span style="color:var(--p2)">⚠</span> Tap <strong style="cursor:pointer;color:var(--p1)" onclick="nav(\'build\')">Build</strong> to create and activate a protocol.';}
-    if(weekEl) weekEl.textContent='';
-    if(fill) fill.style.width='0%';
+  if(!activeProtos.length){
+    wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--p2);padding:4px 0 10px">No active protocol — <span style="text-decoration:underline;cursor:pointer;color:var(--p1)" onclick="nav(\'build\')">Build one →</span></div>';
     if(dropdown) dropdown.style.display='none';
     return;
   }
 
-  // ── Single active protocol ──
-  if(activeProtos.length===1){
-    var proto=activeProtos[0];
-    if(dot){dot.style.background=proto.color||'var(--p1)';dot.innerHTML='';}
-    if(nameEl){nameEl.textContent=proto.name;nameEl.style.color='';nameEl.style.cursor='default';nameEl.onclick=null;}
-    var parts=[];
-    if(proto.durationWeeks) parts.push(proto.durationWeeks+' weeks');
-    if(proto.startDate){
-      var _isFuture=new Date(proto.startDate)>new Date();
-      parts.push((_isFuture?'⏳ Starts ':'Started ')+fmtDate(proto.startDate));
-    }
-    if(metaEl) metaEl.textContent=parts.join(' · ');
-    if(proto.startDate){
-      var _notStarted=new Date(proto.startDate)>new Date();
-      var rawW=weeksBetween(proto.startDate,today())+1;
-      var w=Math.max(1,Math.min(rawW,proto.durationWeeks||999));
-      if(weekEl) weekEl.textContent=_notStarted?'⏳ On Deck':('Week '+w+(proto.durationWeeks?' of '+proto.durationWeeks:''));
-      var pct=proto.durationWeeks?Math.min(100,((w-1)/proto.durationWeeks)*100):0;
-      if(fill) fill.style.width=pct+'%';
-    } else {
-      if(weekEl) weekEl.textContent='';
-      if(fill) fill.style.width='0%';
-    }
-    if(dropdown) dropdown.style.display='none';
-    return;
-  }
+  // Show up to 2 inline, rest in overflow dropdown
+  var showInline=activeProtos.slice(0,2);
+  var overflow=activeProtos.slice(2);
+  var html='';
 
-  // ── Multiple active protocols ──
-  var count=activeProtos.length;
-  if(dot){
-    dot.style.background='transparent';
-    dot.innerHTML=activeProtos.slice(0,3).map(function(p){
-      return '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(p.color||'var(--p1)')+';margin-right:2px"></span>';
-    }).join('');
-  }
-  if(nameEl){
-    nameEl.innerHTML=count+' active protocols <span style="font-size:10px">&#9662;</span>';
-    nameEl.style.color='';nameEl.style.cursor='pointer';
-    nameEl.onclick=toggleActiveProtoDropdown;
-  }
-  if(metaEl) metaEl.textContent='';
-  if(weekEl) weekEl.textContent='';
-  if(fill) fill.style.width='0%';
-  // Populate dropdown
-  if(dropdown){
-    dropdown.innerHTML=activeProtos.map(function(p){
-      var weekStr='';
-      if(p.startDate){
-        if(new Date(p.startDate)>new Date()){
-          weekStr='⏳ Starts '+fmtDate(p.startDate);
-        } else {
-          var rawW2=weeksBetween(p.startDate,today())+1;
-          var w2=Math.max(1,Math.min(rawW2,p.durationWeeks||999));
-          weekStr='Week '+w2+(p.durationWeeks?' of '+p.durationWeeks:'');
-        }
+  showInline.forEach(function(proto){
+    var isFuture=proto.startDate&&new Date(proto.startDate)>new Date();
+    var weekStr='';
+    if(proto.startDate&&proto.durationWeeks){
+      if(isFuture){
+        weekStr='⏳ On Deck · Starts '+fmtDate(proto.startDate);
+      } else {
+        var w=Math.max(1,Math.min(weeksBetween(proto.startDate,today())+1,proto.durationWeeks));
+        var pct=Math.min(100,Math.round(((w-1)/proto.durationWeeks)*100));
+        weekStr='Week '+w+' of '+proto.durationWeeks+' · '+pct+'%';
       }
-      return '<div class="apd-row">'        +'<span class="apd-dot" style="background:'+(p.color||'var(--p1)')+'"></span>'        +'<div class="apd-info"><div class="apd-name">'+(p&&p.name?p.name:'—')+'</div>'        +(weekStr?'<div class="apd-week">'+weekStr+'</div>':'')+'</div>'        +(p.startDate&&new Date(p.startDate)>new Date()
-          ?'<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p3d);color:var(--p3);border:1px solid var(--p3)">⏳ On Deck</span>'
-          :'<button class="apd-btn" onclick="activateProtocol(\''+p.id+'\')" style="border-color:var(--bd2);color:var(--mid)">Pause</button>')        +'</div>';
-    }).join('');
+    }
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bd)">';
+    html+='<div style="width:8px;height:8px;border-radius:50%;background:'+(proto.color||'var(--p1)')+';flex-shrink:0"></div>';
+    html+='<div style="flex:1;min-width:0">';
+    html+='<div style="font-family:var(--serif);font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+proto.name+'</div>';
+    if(weekStr) html+='<div style="font-family:var(--mono);font-size:9px;color:'+(isFuture?'var(--p2)':'var(--dim)')+'">'+weekStr+'</div>';
+    if(!isFuture&&proto.startDate&&proto.durationWeeks){
+      var w2=Math.max(1,Math.min(weeksBetween(proto.startDate,today())+1,proto.durationWeeks));
+      var pct2=Math.min(100,Math.round(((w2-1)/proto.durationWeeks)*100));
+      html+='<div style="height:2px;background:var(--bd);border-radius:1px;margin-top:4px"><div style="height:2px;background:var(--p1);border-radius:1px;width:'+pct2+'%"></div></div>';
+    }
+    html+='</div>';
+    html+='<button class="proto-swap" onclick="openProtoEditor(\''+proto.id+'\')" style="flex-shrink:0;font-size:9px;padding:4px 10px">Edit</button>';
+    html+='</div>';
+  });
+
+  if(overflow.length){
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding:6px 0;cursor:pointer;text-align:center" onclick="toggleActiveProtoDropdown()">and '+overflow.length+' more ▾</div>';
   }
+
+  wrap.innerHTML=html;
+  if(dropdown) dropdown.style.display='none';
 }
+
 
 function toggleActiveProtoDropdown(){
   var dropdown=document.getElementById('activeProtoDropdown');
@@ -2861,7 +2872,7 @@ function isLoggedToday(name){
 function renderWeeklyTimeline(){
   var wrap=document.getElementById('weeklyTimelineWrap');
   if(!wrap) return;
-  var protos=getActiveProtocols().filter(function(p){return p.type==='staggered'&&p.compounds&&p.compounds.length;});
+  var protos=getActiveProtocols().filter(function(p){return p.type==='staggered'&&p.compounds&&p.compounds.length&&p.status!=='archived';});
   if(!protos.length){ wrap.innerHTML=''; return; }
   var proto=protos[0]; // Show timeline for first staggered protocol
   var totalWeeks=proto.durationWeeks||13;
@@ -2930,7 +2941,7 @@ function toggleTimelineCollapse(protoId){
 function renderFutureCompounds(){
   var wrap=document.getElementById('futureCompoundsWrap');
   if(!wrap) return;
-  var protos=getActiveProtocols();
+  var protos=getActiveProtocols().filter(function(p){return p.status!=='archived';});
   var futureItems=[];
   protos.forEach(function(proto){
     if(!proto.compounds) return;
@@ -2970,7 +2981,7 @@ function renderFutureCompounds(){
 }
 
 function renderChecklist(){
-  var activeProtos=getActiveProtocols();
+  var activeProtos=getActiveProtocols().filter(function(p){return p.status!=='archived';});
   var wrap=document.getElementById('checklistWrap');
   if(!wrap) return;
   renderConflictBanners(activeProtos[0]||null);
@@ -5906,16 +5917,25 @@ function renderBuild(){
     if(!protocols.length){
       saved.innerHTML='<div class="empty-state"><div class="empty-icon">◑</div><div class="empty-title">No protocols yet</div><div class="empty-sub">Build your first protocol below — choose your compounds, set your doses, and activate it to start logging.</div></div>';
     } else {
-      saved.innerHTML=protocols.filter(function(p){return p&&p.id;}).map(function(p){
-        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?' active':'')+'">'
-          +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
+      saved.innerHTML=protocols.filter(function(p){return p&&p.id&&p.status!=='archived';}).map(function(p){
+        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' on-deck':' active'):'')+'">'          +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
           +'<div class="spc-info"><div class="spc-name">'+(p.name||'Unnamed Protocol')+'</div>'
-          +'<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' · ⏳ On Deck':' · ✓ Active'):'')+'</div></div>'
+          +(function(){
+            var _isActive=activeProtoIds.indexOf(p.id)>-1;
+            var _isFuture=p.startDate&&new Date(p.startDate)>new Date();
+            var _endMs=p.startDate&&p.durationWeeks?new Date(p.startDate).getTime()+p.durationWeeks*7*86400000:null;
+            var _isDone=_endMs&&Date.now()>_endMs&&p.status!=='archived';
+            var _statusTag=_isDone?' · <span style="color:var(--p1)">✓ Complete</span>':_isActive?(_isFuture?' · <span style="color:var(--p2)">⏳ On Deck</span>':' · <span style="color:var(--p1)">✓ Active</span>'):'';
+            return '<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+_statusTag+'</div></div>';
+          }())
           +'<div class="spc-actions">'
-          +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">View</button>'
-          +'<button class="spc-btn activate-btn'+(activeProtoIds.indexOf(p.id)>-1?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?'⏳ On Deck':'Pause'):'Activate')+'</button>'
-          +'<button class="spc-btn dup-btn" onclick="dupProtocol(\''+p.id+'\')">Dup</button>'
-          +'<button class="spc-btn del-btn" onclick="deleteProtocol(\''+p.id+'\')">Del</button>'
+          +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Edit':'View')+'</button>'
+          +(activeProtoIds.indexOf(p.id)>-1&&p.startDate&&new Date(p.startDate)>new Date()
+            ?'' // On Deck — no button, meta line already shows it
+            :'<button class="spc-btn activate-btn'+(activeProtoIds.indexOf(p.id)>-1?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Pause':'Activate')+'</button>')
+          +'<button class="spc-btn dup-btn" onclick="dupProtocol(\''+p.id+'\')">Copy</button>'
+          +(p.status!=='archived'?'<button class="spc-btn" onclick="_completionProtoId=\''+p.id+'\';archiveCompletedProtocol()" style="border-color:var(--dim);color:var(--dim)">Archive</button>':'')
+          +'<button class="spc-btn del-btn" onclick="deleteProtocol(\''+p.id+'\')">Delete</button>'
           +'</div></div></div>';
       }).join('');
     }
@@ -6731,7 +6751,7 @@ function buildReviewStep(){
     +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
     +'<div style="width:12px;height:12px;border-radius:50%;background:'+color+';flex-shrink:0"></div>'
     +'<div><div style="font-family:var(--serif);font-size:20px">'+name+'</div>'
-    +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">'+dur+' weeks · Started '+fmtDate(start)+' · '+selectedComps.length+' compounds</div>'
+    +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">'+dur+' weeks · '+(new Date(start)>new Date()?'⏳ Starts ':'Started ')+fmtDate(start)+' · '+selectedComps.length+' compounds</div>'
     +'</div></div>'+compHtml
     +(notes?'<div style="font-family:var(--mono);font-size:11px;color:var(--mid);margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">'+notes+'</div>':'')
     +'</div>';
@@ -6902,8 +6922,12 @@ function renderProtoEditor(proto){
     +'<button class="btn sm" onclick="openAddCompoundToEditor(\''+proto.id+'\')">+ Add Compound</button>'
     +'<button class="btn ghost sm" onclick="dupProtocol(\''+proto.id+'\')">Duplicate Protocol</button></div>'
     +'<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd)">'
-    +'<button class="btn" style="width:100%;justify-content:center" onclick="saveAndGoToPantry()">Save &amp; Set Up Pantry →</button>'
-    +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;margin-top:8px">Changes save automatically — this takes you to the Pantry to add stock</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:8px">'
+    +'<button class="btn" style="flex:1;justify-content:center;background:var(--p1);border-color:var(--p1);color:var(--bg)" onclick="saveProtoEditorAndClose()">Save</button>'
+    +'<button class="btn" style="flex:1;justify-content:center;background:var(--p2);border-color:var(--p2);color:var(--bg)" onclick="saveProtoEditorAndGoToPantry()">Save + Review Pantry →</button>'
+    +'</div>'
+    +'<div id="editorStockWarning"></div>'
+    +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;margin-top:6px">Changes auto-save as you edit</div>'
     +'</div>';
 }
 
@@ -7103,6 +7127,49 @@ function _doAddCompoundToEditor(protoId,name){
   if(activeProtoId===protoId) renderChecklist();
   toast(name+' added ✓');
 }
+function _checkEditorStockRisk(proto){
+  var warnings=[];
+  (proto.compounds||[]).forEach(function(c){
+    if(!c||!c.name) return;
+    var pItem=pantry.find(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase();});
+    if(!pItem){
+      warnings.push('⚠ '+c.name+' is not in your pantry');
+    } else {
+      var pantryMg=parseDoseMg(pItem.dose||'0');
+      var protoMg=parseDoseMg(c.dose||'0');
+      if(protoMg>0&&pantryMg>0&&protoMg>pantryMg*1.1){
+        warnings.push('⚠ '+c.name+' dose increased — check stock will last the full protocol');
+      }
+    }
+  });
+  return warnings;
+}
+
+function saveProtoEditorAndClose(){
+  persist(KEYS.protocols,protocols);
+  var proto=protocols.find(function(p){return p.id===currentEditorProtoId;});
+  if(proto){
+    var warnings=_checkEditorStockRisk(proto);
+    if(warnings.length){
+      showConfirm('⚠ Stock risk',
+        warnings.join('\n')+'\n\nWould you like to review your pantry now?',
+        'Review Pantry',function(){closeProtoEditor();nav('pantry');},
+        'Close anyway',function(){closeProtoEditor();toast('Protocol saved ✓');}
+      );
+      return;
+    }
+  }
+  closeProtoEditor();
+  toast('Protocol saved ✓');
+}
+
+function saveProtoEditorAndGoToPantry(){
+  persist(KEYS.protocols,protocols);
+  closeProtoEditor();
+  nav('pantry');
+  toast('Protocol saved ✓');
+}
+
 function saveAndGoToPantry(){
   persist(KEYS.protocols,protocols);
   toast('Protocol saved ✓');
@@ -7281,6 +7348,15 @@ function importData(input){
       if(b.ouraData){ouraData=b.ouraData;await persist(KEYS.oura,ouraData);}
       if(b.clinicalNotes){localStorage.setItem('pt_clinical_notes',b.clinicalNotes);}
       if(b.anthropicKey){localStorage.setItem('rp_anthropic_key',b.anthropicKey);}
+      if(b.displayPrefs){localStorage.setItem('pt_display_prefs',b.displayPrefs);}
+      if(b.pantryFilters){localStorage.setItem('pt_pantry_filters',b.pantryFilters);}
+      if(b.theme){localStorage.setItem('pt_theme',b.theme);}
+      if(b.proKey){localStorage.setItem('pt_pro_key',b.proKey);}
+      // Refresh UI fields after restore
+      if(typeof loadClinicalNotesUI==='function') loadClinicalNotesUI();
+      if(typeof updateApexKeyUI==='function') updateApexKeyUI();
+      if(typeof loadProKeyUI==='function') loadProKeyUI();
+      if(typeof initTheme==='function') initTheme();
       if(b.libraryVersion){localStorage.setItem('pt_library_version',b.libraryVersion);}
       if(b.pantry){pantry=b.pantry;await persist(KEYS.pantry,pantry);}
       if(b.protocols){protocols=b.protocols;await persist(KEYS.protocols,protocols);}
@@ -9260,6 +9336,30 @@ function updateOuraUI(){
   }
 }
 
+function saveProKey(){
+  var key=(document.getElementById('proKeyInput')||{}).value||'';
+  key=key.trim().toUpperCase();
+  if(!key){toast('Enter a license key first');return;}
+  localStorage.setItem('pt_pro_key',key);
+  loadProKeyUI();
+  toast('Pro key saved ✓');
+}
+
+function loadProKeyUI(){
+  var badge=document.getElementById('proKeyBadge');
+  var status=document.getElementById('proKeyStatus');
+  var inp=document.getElementById('proKeyInput');
+  var stored=localStorage.getItem('pt_pro_key')||'';
+  if(badge){
+    badge.textContent=stored?'Active ✓':'Not set';
+    badge.style.background=stored?'var(--p1d)':'var(--sf)';
+    badge.style.color=stored?'var(--p1)':'var(--dim)';
+    badge.style.borderColor=stored?'var(--p1)':'var(--bd)';
+  }
+  if(status) status.textContent=stored?'Protocol Pro active — key: '+stored.slice(0,8)+'...':'No license key set';
+  if(inp) inp.value='';
+}
+
 function saveClinicalNotes(){
   var notes=document.getElementById('clinicalNotesInput').value.trim();
   localStorage.setItem('pt_clinical_notes',notes);
@@ -9485,12 +9585,29 @@ function renderArchivedProtocols(){
       h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">✓ done</span></div>';
       h+='<div style="display:flex;gap:8px">';
       h+='<button class="btn sm ghost" onclick="openProtoEditor(\''+p.id+'\')" style="font-size:10px">View</button>';
-      h+='<button class="btn sm ghost" onclick="dupProtocol(\''+p.id+'\')" style="font-size:10px">Run again →</button>';
+      h+='<button class="btn sm" onclick="reactivateProtocol(\''+p.id+'\')" style="font-size:10px;background:var(--p1);border-color:var(--p1);color:var(--bg)">↺ Reactivate</button>';
       h+='</div></div>';
     });
   }
   h+='</div>';
   archiveEl.innerHTML=h;
+}
+
+function reactivateProtocol(id){
+  var p=protocols.find(function(x){return x.id===id;});
+  if(!p) return;
+  showConfirm('Reactivate "'+p.name+'"?',
+    'This will move it back to your active protocols. You can update the start date in the editor.',
+    'Reactivate',function(){
+      delete p.status;delete p.archivedDate;
+      if(activeProtoIds.indexOf(id)===-1) activeProtoIds.push(id);
+      activeProtoId=id;
+      persist(KEYS.protocols,protocols);
+      persist(KEYS.activeProtoIds,activeProtoIds);
+      persist(KEYS.activeProtoId,activeProtoId);
+      renderBuild();renderToday();
+      toast(p.name+' reactivated ✓');
+    },'Cancel',null);
 }
 
 function toggleArchiveCollapse(){
@@ -9660,7 +9777,7 @@ function dismissBackupBanner(){
 
 function exportToFiles(){
   localStorage.setItem('pt_last_files_save', Date.now().toString());
-  var backup={version:12,exported:new Date().toISOString(),
+  var backup={version:13,exported:new Date().toISOString(),
     logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
     pantry:pantry,protocols:protocols,activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,
     userProfile:userProfile,
@@ -9670,7 +9787,11 @@ function exportToFiles(){
     healthSync:healthSync,
     ouraData:ouraData,
     clinicalNotes:localStorage.getItem('pt_clinical_notes')||'',
-    anthropicKey:localStorage.getItem('rp_anthropic_key')||''};
+    anthropicKey:localStorage.getItem('rp_anthropic_key')||'',
+    displayPrefs:localStorage.getItem('pt_display_prefs')||'',
+    pantryFilters:localStorage.getItem('pt_pantry_filters')||'',
+    theme:localStorage.getItem('pt_theme')||'',
+    proKey:localStorage.getItem('pt_pro_key')||''};
   var jsonStr=JSON.stringify(backup,null,2);
   var filename='protocol-backup-'+today()+'.json';
   // iOS PWA: use Web Share API to trigger Files picker
