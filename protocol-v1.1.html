@@ -1985,13 +1985,14 @@ const COMPOUND_DB=[
    notes:'10mg vial reconstituted with 2ml BAC water. 250mcg dose = 10 units on a 1ml insulin syringe. PM dosing fasted.',
    cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'BPC-157 + TB-500 Blend',contains:['BPC-157','TB-500'],route:'Subcutaneous',form:'vial',
-   dose:'500mcg',vialMg:10,reconVol:2,site:'Abdomen',fasting:false,
-   timingWindow:'am',frequency:'5 days on, 2 days off',
+   dose:'250mcg',vialMg:10,reconVol:2,site:'Abdomen',fasting:false,
+   timingWindow:'am',secondTimingWindow:'pm',dosesPerDay:2,
+   frequency:'5 days on, 2 days off',
    daysOfWeek:[0,1,2,5,6],
    category:'healing',
    goals:['recovery','healing','gut health','tissue repair','anti-inflammatory'],
-   rationale:'50/50 blend of BPC-157 and TB-500 for comprehensive tissue repair, gut barrier support, and systemic healing. 250mcg each per 10-unit injection.',
-   notes:'10mg vial (5mg BPC-157 + 5mg TB-500). Reconstitute with 2ml BAC water. 10 units = 250mcg BPC-157 + 250mcg TB-500 per injection. 20 injections per vial = 4 weeks at 5on/2off.',
+   rationale:'50/50 blend of BPC-157 and TB-500 for comprehensive tissue repair, gut barrier support, and systemic healing. 250mcg each per injection, twice daily.',
+   notes:'10mg vial (5mg BPC-157 + 5mg TB-500). Reconstitute with 2ml BAC water. 250mcg dose = 10 units. Twice daily: AM upon waking + PM pre-sleep. 20 injections per vial = 2 weeks at 5on/2off twice daily.',
    cycleOnWeeks:8,cycleOffWeeks:8},
 
   {name:'KLOW Blend',contains:['GHK-Cu','BPC-157','TB-500','KPV'],route:'Subcutaneous',form:'vial',
@@ -2554,6 +2555,7 @@ function getWeightData(period){
 
 function renderToday(){
   if(typeof checkProtocolCompletion==='function') checkProtocolCompletion();
+  if(typeof checkApexMilestones==='function') checkApexMilestones();
   // Time-aware greeting
   var gEl=document.getElementById('todayGreeting');
   if(gEl){
@@ -2872,9 +2874,17 @@ function isCompoundDueToday(c,proto){
   if(Array.isArray(dows)&&dows.length>0) return dows.indexOf(todayDOW())!==-1;
   return true;
 }
-function isLoggedToday(name){
-  const t=today();
-  return logs.some(l=>l.date===t&&l.compound===name);
+function isLoggedToday(name,doseSlot){
+  var t=today();
+  if(!doseSlot||doseSlot===1){
+    // For twice-daily, slot 1 = first log of the day
+    var todayLogs=logs.filter(function(l){return l.date===t&&l.compound===name;});
+    if(!doseSlot) return todayLogs.length>0;
+    return todayLogs.length>=1;
+  }
+  // Slot 2 = second log of the day
+  var todayLogs2=logs.filter(function(l){return l.date===t&&l.compound===name;});
+  return todayLogs2.length>=2;
 }
 
 function renderWeeklyTimeline(){
@@ -3024,9 +3034,12 @@ function renderChecklist(){
       if(!isCompoundDueToday(c,proto)) return;
       // Use titration-aware dose if applicable
       var effectiveDose=getCompoundCurrentDose(c,protoWeek);
-      var key=c.name.toLowerCase();
+      var _dosesPerDay=c.dosesPerDay||1;
+      var _tw1=c.timingWindow||'am';
+      var _tw2=c.secondTimingWindow||'pm';
+      var key=c.name.toLowerCase()+((_dosesPerDay>1)?'_dose1':'');
       if(!compMap[key]){
-        compMap[key]={c:Object.assign({},c,{dose:effectiveDose}),dose:effectiveDose,tw:c.timingWindow||'other',protos:[proto.name],doseConflict:false};
+        compMap[key]={c:Object.assign({},c,{dose:effectiveDose}),dose:effectiveDose,tw:_tw1,protos:[proto.name],doseConflict:false,doseSlot:1,dosesPerDay:_dosesPerDay};
       } else {
         var entry=compMap[key];
         entry.protos.push(proto.name);
@@ -3088,7 +3101,7 @@ function renderChecklist(){
       var c=entry&&entry.c;
       if(!c||!c.name) return '';
       var uid=tw.key+'-'+i;
-      var logged=isLoggedToday(c.name);
+      var logged=isLoggedToday(c.name,entry.doseSlot||null);
       var color=getPColor(c.name);
       var dose=getEffectiveDose(c.name)||entry.dose;
       var pItem=getActivePantryItem(c.name)||pantry.find(function(p){return p.name===c.name;});
@@ -3101,7 +3114,7 @@ function renderChecklist(){
       var sitePills=sites.map(function(s){return'<button class="chip'+(c.site===s?' on':'')+'" onclick="chipOneRow(this)">'+s+'</button>';}).join('');
       html+='<div class="cr'+(logged?' logged':'')+(low?' low-stock':'')+'" id="cr-'+uid+'">'
         +'<div class="cr-main" onclick="toggleCR(\''+uid+'\')"><div class="cr-dot" style="background:'+color+'"></div>'
-        +'<div class="cr-info"><div class="cr-name">'+c.name+'</div>'
+        +'<div class="cr-info"><div class="cr-name">'+c.name+(entry.dosesPerDay>1?' <span style="font-family:var(--mono);font-size:8px;color:var(--dim);background:var(--sf2);padding:1px 5px;border-radius:3px">'+(entry.doseSlot===1?'AM':'PM')+'</span>':'')+'</div>'
         +(function(){
           // Inline units-to-draw in collapsed view
           var _units='';
@@ -5376,15 +5389,16 @@ function renderShoppingList(){
       if(!remWks) return;
       var injWk=(c.daysOfWeek||[0,1,2,3,4,5,6]).length;
       var tit=c.titrationSchedule||[];
+      var _dpd=c.dosesPerDay||1;
       var totalMg=0;
       if(tit.length){
         for(var w=effStart;w<=ew;w++){
           var ds=tit[0].dose;
           for(var t=0;t<tit.length;t++){if(w>=tit[t].week) ds=tit[t].dose;}
-          totalMg+=parseDoseMgSL(ds)*injWk;
+          totalMg+=parseDoseMgSL(ds)*injWk*_dpd;
         }
       } else {
-        totalMg=parseDoseMgSL(c.dose)*injWk*remWks;
+        totalMg=parseDoseMgSL(c.dose)*injWk*remWks*_dpd;
       }
       if(!needMap[c.name]) needMap[c.name]={needed:0,pItem:null,vialMg:0,stock:0};
       needMap[c.name].needed+=totalMg;
@@ -9605,6 +9619,67 @@ function closeInfoModal(){
 
 var _completionProtoId=null;
 
+var _apexMilestoneProtoId=null;
+var _apexMilestonePct=null;
+
+function checkApexMilestones(){
+  var now=new Date();now.setHours(0,0,0,0);
+  var milestones=[25,50,75];
+  for(var i=0;i<activeProtoIds.length;i++){
+    var _p=protocols.find(function(x){return x.id===activeProtoIds[i];});
+    if(!_p||!_p.startDate||!_p.durationWeeks||_p.status==='archived') continue;
+    var startDate=new Date(_p.startDate);startDate.setHours(0,0,0,0);
+    if(now<startDate) continue; // not started yet
+    var totalDays=_p.durationWeeks*7;
+    var elapsedDays=Math.floor((now-startDate)/86400000);
+    var pct=Math.round(elapsedDays/totalDays*100);
+    for(var m=0;m<milestones.length;m++){
+      var milestone=milestones[m];
+      if(pct>=milestone){
+        var shownKey='pt_apex_milestone_'+_p.id+'_'+milestone;
+        if(!localStorage.getItem(shownKey)){
+          _apexMilestoneProtoId=_p.id;
+          _apexMilestonePct=milestone;
+          setTimeout(function(){showApexMilestone();},1200);
+          return;
+        }
+      }
+    }
+  }
+}
+
+function showApexMilestone(){
+  var p=protocols.find(function(x){return x.id===_apexMilestoneProtoId;});
+  if(!p) return;
+  var title=document.getElementById('apexMilestoneTitle');
+  var msg=document.getElementById('apexMilestoneMsg');
+  if(title) title.textContent=_apexMilestonePct+'% complete — '+p.name;
+  if(msg) msg.textContent="You’ve hit a milestone. Run a Coach APEX report to review your progress, check your biomarkers, and adjust your protocol if needed.";
+  openModal('apexMilestoneModal');
+}
+
+function launchMilestoneApex(){
+  if(_apexMilestoneProtoId&&_apexMilestonePct){
+    localStorage.setItem('pt_apex_milestone_'+_apexMilestoneProtoId+'_'+_apexMilestonePct,'1');
+  }
+  closeModal('apexMilestoneModal');
+  switchTab('insights');
+  setTimeout(function(){var b=document.getElementById('apexReportBtn');if(b)b.click();},400);
+}
+
+function dismissApexMilestone(){
+  closeModal('apexMilestoneModal');
+  // Remind again next session
+}
+
+function skipApexMilestone(){
+  if(_apexMilestoneProtoId&&_apexMilestonePct){
+    localStorage.setItem('pt_apex_milestone_'+_apexMilestoneProtoId+'_'+_apexMilestonePct,'1');
+  }
+  closeModal('apexMilestoneModal');
+  toast('Milestone reminder dismissed ✓');
+}
+
 function checkProtocolCompletion(){
   var now=new Date();now.setHours(0,0,0,0);
   for(var i=0;i<activeProtoIds.length;i++){
@@ -11113,6 +11188,21 @@ document.addEventListener('DOMContentLoaded', initApp);
 </div>
 
 <!-- ═══════════ LIBRARY BROWSER MODAL ═══════════ -->
+<div class="modal-overlay" id="apexMilestoneModal">
+  <div class="modal">
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:32px;margin-bottom:8px">📊</div>
+      <div style="font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:4px" id="apexMilestoneTitle">Time for a check-in</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7" id="apexMilestoneMsg"></div>
+    </div>
+    <button class="btn" style="width:100%;justify-content:center;background:var(--p2);border-color:var(--p2);color:var(--bg);margin-bottom:10px" onclick="launchMilestoneApex()">Run APEX Report →</button>
+    <button class="btn ghost" style="width:100%;justify-content:center" onclick="dismissApexMilestone()">Remind me later</button>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;margin-top:10px">
+      <span style="text-decoration:underline;cursor:pointer" onclick="skipApexMilestone()">Don’t remind me for this milestone</span>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="completionDataModal">
   <div class="modal" style="max-height:90vh;overflow-y:auto">
     <div style="text-align:center;padding:8px 0 14px">
