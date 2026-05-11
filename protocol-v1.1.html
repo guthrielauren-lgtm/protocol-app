@@ -341,7 +341,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .spc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .spc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:2px}
 .spc-info{flex:1;min-width:0}
-.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px;line-height:1.3;word-break:break-word}
 .spc-meta{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5}
 .spc-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
 .spc-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid;cursor:pointer;background:none;-webkit-tap-highlight-color:transparent;transition:all .15s}
@@ -5276,7 +5276,7 @@ function applyPantryFilters(items){
 }
 
 function parseDoseMgSL(dose){
-  if(!dose||dose==='—') return 0;
+  if(!dose||dose==='\u2014') return 0;
   var s=String(dose).toLowerCase().trim();
   var m=s.match(/([\d.]+)\s*(mg|mcg|ug)/);
   if(!m) return 0;
@@ -5284,96 +5284,152 @@ function parseDoseMgSL(dose){
   return m[2]==='mg'?v:v/1000;
 }
 
+function _slToggle(key,def){
+  var v=localStorage.getItem('sl_'+key);
+  return v===null?def:v==='1';
+}
+function _slSetToggle(key,val){
+  localStorage.setItem('sl_'+key,val?'1':'0');
+  renderShoppingList();
+}
+
+function _slActionRow(pItem){
+  if(!pItem||!pItem.id) return '';
+  var ordKey='proto_ord_'+pItem.id;
+  var ordered=localStorage.getItem(ordKey)==='1';
+  return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px">'
+    +'<span data-oid="'+pItem.id+'" onclick="toggleProtoOrderedUI(this)" class="rc-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid '+(ordered?'var(--p1)':'var(--bd)')+';background:'+(ordered?'var(--p1)':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center">'
+    +(ordered?'<span style="color:var(--bg);font-size:11px;font-weight:700">\u2713</span>':'')
+    +'</span>'
+    +'<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+(ordered?'Ordered':'Mark as ordered')+'</span>'
+    +'<button class="btn sm" onclick="openRestock(\''+pItem.id+'\')" style="margin-left:auto;font-size:9px;padding:4px 10px;background:var(--p2d);border-color:var(--p2);color:var(--p2)">Add to Stock</button>'
+    +'</div>';
+}
+
+function _slSection(key,def,title,count,color,inner){
+  var open=_slToggle(key,def);
+  var h='<div style="margin-bottom:8px">';
+  h+='<div onclick="_slSetToggle(\''+key+'\','+(open?'false':'true')+')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:'+(open?'8px 8px 0 0':'8px')+'">';
+  h+='<div style="display:flex;align-items:center;gap:8px">';
+  h+='<span style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:'+color+'">'+title+'</span>';
+  h+='<span style="font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:8px;background:'+color+'22;border:1px solid '+color+';color:'+color+'">'+count+'</span>';
+  h+='</div>';
+  h+='<span style="font-family:var(--mono);font-size:12px;color:var(--dim)">'+(open?'\u25b4':'\u25be')+'</span>';
+  h+='</div>';
+  if(open) h+='<div style="background:var(--sf);border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px;overflow:hidden">'+inner+'</div>';
+  h+='</div>';
+  return h;
+}
+
 function renderShoppingList(){
   var wrap=document.getElementById('shoppingListWrap');
   if(!wrap) return;
-
-  // Get active + on-deck protocols (not archived)
+  var todayMs=new Date().setHours(0,0,0,0);
   var relevantProtos=protocols.filter(function(p){
     return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1;
   });
-  if(!relevantProtos.length){wrap.innerHTML='';return;}
-
-  // Build compound → required mg map across all relevant protocols
-  var compMap={};
-
+  var needMap={};
   relevantProtos.forEach(function(proto){
     if(!proto.compounds||!proto.startDate||!proto.durationWeeks) return;
-    var protoStart=new Date(proto.startDate);
-
+    var ps=new Date(proto.startDate);
+    var isFuture=ps.getTime()>todayMs;
+    var curWk=isFuture?0:Math.floor((todayMs-ps.getTime())/(7*86400000));
     (proto.compounds||[]).forEach(function(c){
       if(!c||!c.name) return;
-      var introWeek=c.introWeek||1;
-      var durWeeks=c.compoundDurationWeeks||proto.durationWeeks;
-      var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
-      var injectionsPerWeek=dows.length;
+      var iw=c.introWeek||1,dw=c.compoundDurationWeeks||proto.durationWeeks,ew=iw+dw-1;
+      var effStart=isFuture?iw:Math.max(iw,curWk+1);
+      var remWks=Math.max(0,ew-effStart+1);
+      if(!remWks) return;
+      var injWk=(c.daysOfWeek||[0,1,2,3,4,5,6]).length;
       var tit=c.titrationSchedule||[];
       var totalMg=0;
-
       if(tit.length){
-        for(var w=introWeek;w<introWeek+durWeeks;w++){
-          var doseStr=tit[0].dose;
-          for(var t=0;t<tit.length;t++){if(w>=tit[t].week) doseStr=tit[t].dose;}
-          totalMg+=parseDoseMgSL(doseStr)*injectionsPerWeek;
+        for(var w=effStart;w<=ew;w++){
+          var ds=tit[0].dose;
+          for(var t=0;t<tit.length;t++){if(w>=tit[t].week) ds=tit[t].dose;}
+          totalMg+=parseDoseMgSL(ds)*injWk;
         }
       } else {
-        totalMg=parseDoseMgSL(c.dose)*injectionsPerWeek*durWeeks;
+        totalMg=parseDoseMgSL(c.dose)*injWk*remWks;
       }
-
-      if(!compMap[c.name]) compMap[c.name]={needed:0,protocols:[]};
-      compMap[c.name].needed+=totalMg;
-      compMap[c.name].protocols.push(proto.name);
+      if(!needMap[c.name]) needMap[c.name]={needed:0,pItem:null,vialMg:0,stock:0};
+      needMap[c.name].needed+=totalMg;
     });
   });
-
-  // Compare against pantry stock
-  var rows=[];
-  Object.keys(compMap).forEach(function(name){
-    var stockMg=0;
-    var vialMg=0;
-    pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();})
-      .forEach(function(p){
-        stockMg+=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
-        if(!vialMg&&p.vialMg) vialMg=parseFloat(p.vialMg)||0;
-      });
-    var gapMg=Math.max(0,compMap[name].needed-stockMg);
-    var vialsNeeded=vialMg>0?Math.ceil(gapMg/vialMg):0;
-    rows.push({name:name,needed:Math.round(compMap[name].needed*10)/10,
-      stock:Math.round(stockMg*10)/10,gap:Math.round(gapMg*10)/10,
-      vialMg:vialMg,vialsNeeded:vialsNeeded});
+  pantry.filter(function(p){return p&&p.name;}).forEach(function(p){
+    if(needMap[p.name]){
+      needMap[p.name].stock+=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
+      if(!needMap[p.name].vialMg&&p.vialMg) needMap[p.name].vialMg=parseFloat(p.vialMg)||0;
+      if(!needMap[p.name].pItem) needMap[p.name].pItem=p;
+    }
   });
-
-  if(!rows.length){wrap.innerHTML='';return;}
-
-  var needsOrder=rows.filter(function(r){return r.vialsNeeded>0;});
-  var sufficient=rows.filter(function(r){return r.vialsNeeded===0;});
-
-  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-  h+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)">Protocol Shopping List</div>';
-  if(needsOrder.length) h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2)">'+needsOrder.length+' to order</span>';
-  else h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1)">✓ Fully stocked</span>';
-  h+='</div>';
-
-  h+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:4px 14px 10px;margin-bottom:14px">';
-
-  // Header row
-  h+='<div class="sl-row sl-label"><div>Compound</div><div style="text-align:right">Need</div><div style="text-align:right">Have</div><div style="text-align:right">Order</div></div>';
-
-  // Order rows first
-  rows.sort(function(a,b){return b.vialsNeeded-a.vialsNeeded;}).forEach(function(r){
-    var orderColor=r.vialsNeeded>0?'var(--p2)':'var(--p1)';
-    var orderText=r.vialsNeeded>0?r.vialsNeeded+'×':'✓';
-    h+='<div class="sl-row">';
-    h+='<div><div class="sl-name">'+r.name+'</div>';
-    if(r.vialsNeeded>0&&r.vialMg) h+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+r.vialMg+'mg vials</div>';
-    h+='</div>';
-    h+='<div class="sl-num" style="color:var(--dim)">'+r.needed+'mg</div>';
-    h+='<div class="sl-num" style="color:var(--dim)">'+r.stock+'mg</div>';
-    h+='<div class="sl-order" style="color:'+orderColor+'">'+orderText+'</div>';
-    h+='</div>';
+  var needToOrder=[],sufficient=[];
+  Object.keys(needMap).sort().forEach(function(n){
+    (needMap[n].stock<needMap[n].needed?needToOrder:sufficient).push(n);
   });
-  h+='</div>';
-
+  var needSet=new Set(needToOrder.map(function(n){return n.toLowerCase();}));
+  var sufSet=new Set(sufficient.map(function(n){return n.toLowerCase();}));
+  var lowStock=pantry.filter(function(p){
+    if(!p||!p.name) return false;
+    var nl=p.name.toLowerCase();
+    if(needSet.has(nl)||sufSet.has(nl)) return false;
+    var dl=calcDaysLeft(p,null);
+    return dl!==null&&dl<=(p.reorderDays||10);
+  }).sort(function(a,b){return a.name.localeCompare(b.name);});
+  var wantRaw=[];
+  try{var ws=localStorage.getItem('pt_restock_want');if(ws)wantRaw=JSON.parse(ws);}catch(e){}
+  var wishlist=wantRaw.slice().sort();
+  if(!needToOrder.length&&!lowStock.length&&!wishlist.length&&!sufficient.length){
+    wrap.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--p1);padding:10px 0;text-align:center">\u2713 All protocols fully stocked</div>';
+    return;
+  }
+  function compRow(name,r,i,showCalc,color){
+    var h='<div style="padding:10px 14px;'+(i>0?'border-top:1px solid var(--bd)':'')+'">';
+    h+='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">';
+    h+='<div style="font-family:var(--sans);font-size:13px;color:var(--text)">'+name+'</div>';
+    if(showCalc&&r){
+      var gap=Math.max(0,r.needed-r.stock),vn=r.vialMg>0?Math.ceil(gap/r.vialMg):0;
+      h+='<div style="text-align:right;flex-shrink:0">';
+      if(vn>0) h+='<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+color+'">'+vn+'\u00d7 '+r.vialMg+'mg</div>';
+      h+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Need '+Math.round(r.needed*10)/10+'mg \u00b7 Have '+Math.round(r.stock*10)/10+'mg</div>';
+      h+='</div>';
+    }
+    h+='</div>'+_slActionRow(r&&r.pItem?r.pItem:null)+'</div>';
+    return h;
+  }
+  var h='';
+  if(needToOrder.length)
+    h+=_slSection('needorder',true,'Need to Order',needToOrder.length,'var(--p5)',
+      needToOrder.map(function(n,i){return compRow(n,needMap[n],i,true,'var(--p5)');}).join(''));
+  if(lowStock.length)
+    h+=_slSection('lowstock',true,'Low Stock',lowStock.length,'var(--p2)',
+      lowStock.map(function(p,i){
+        var dl=calcDaysLeft(p,null);
+        var r='<div style="padding:10px 14px;'+(i>0?'border-top:1px solid var(--bd)':'')+'">';
+        r+='<div style="display:flex;align-items:center;justify-content:space-between">';
+        r+='<div style="font-family:var(--sans);font-size:13px;color:var(--text)">'+p.name+'</div>';
+        r+='<div style="font-family:var(--mono);font-size:10px;color:var(--p2)">'+(dl!==null?dl+' day'+(dl===1?'':'s')+' left':'Low')+'</div>';
+        r+='</div>'+_slActionRow(p)+'</div>';
+        return r;
+      }).join(''));
+  if(wishlist.length)
+    h+=_slSection('wishlist',false,'Wishlist',wishlist.length,'var(--p3)',
+      wishlist.map(function(name,i){
+        var pItem=pantry.find(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();});
+        var r='<div style="padding:10px 14px;'+(i>0?'border-top:1px solid var(--bd)':'')+'">';
+        r+='<div style="display:flex;align-items:center;justify-content:space-between">';
+        r+='<div style="font-family:var(--sans);font-size:13px;color:var(--text)">'+name+'</div>';
+        r+='<div style="display:flex;align-items:center;gap:6px">';
+        r+='<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+(pItem?'In pantry':'Not in pantry')+'</span>';
+        r+='<button onclick="removeFromWantList(\''+name+'\')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px">\u00d7</button>';
+        r+='</div></div>';
+        if(pItem) r+=_slActionRow(pItem);
+        r+='</div>';
+        return r;
+      }).join(''));
+  if(sufficient.length)
+    h+=_slSection('sufficient',false,'Sufficient Stock',sufficient.length,'var(--p1)',
+      sufficient.map(function(n,i){return compRow(n,needMap[n],i,true,'var(--p1)');}).join(''));
   wrap.innerHTML=h;
 }
 
