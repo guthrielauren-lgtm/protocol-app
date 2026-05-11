@@ -338,11 +338,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .sl-order{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right}
 .spc.active{border-color:var(--p1)}
 .spc.on-deck{border-color:var(--p2);border-style:dashed}
-.spc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.spc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:2px}
-.spc-info{flex:1;min-width:0}
-.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px;line-height:1.3;word-break:break-word}
-.spc-meta{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5}
+/* spc card — full-width name layout */
+.spc-top{margin-bottom:6px}
+.spc-header{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.spc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.spc-info{min-width:0}
+.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;line-height:1.3;overflow-wrap:break-word}
+.spc-meta{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:2px}
 .spc-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
 .spc-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid;cursor:pointer;background:none;-webkit-tap-highlight-color:transparent;transition:all .15s}
 /* activate = outline green (not yet active) */
@@ -1016,14 +1018,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="field" style="margin-bottom:12px"><label>Notes / Mechanism</label><input type="text" id="newNotes" placeholder="Key mechanism, timing notes..."></div>
     <div class="btn-row"><button class="btn sm" onclick="addCompound()">Add to Pantry</button><button class="btn ghost sm" onclick="togglePantryAddForm()">Cancel</button></div>
   </div>
-  <!-- Restock section -->
-  <div id="restockSection" style="margin-bottom:12px">
-    <button onclick="toggleRestock()" id="restockToggleBtn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--dim)">
-      <span>Restock Needed <span id="restockBadge" style="display:none;background:var(--p2);color:var(--bg);border-radius:10px;padding:1px 7px;font-size:10px;margin-left:6px">0</span></span>
-      <span id="restockChev">v</span>
-    </button>
-    <div id="restockList" style="display:none;border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px;overflow:hidden"></div>
-  </div>
+  <!-- Shopping list injected by renderShoppingList -->
+  <div id="shoppingListWrap" style="margin-bottom:14px"></div>
   <!-- Sort control -->
   <div class="chart-period-tabs" id="pantrySortTabs" style="margin-bottom:8px">
     <button class="cpt on" data-sort="az" onclick="setPantrySort('az')">A–Z</button>
@@ -1079,7 +1075,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
     </div>
   </div>
-  <div id="shoppingListWrap" style="margin-bottom:18px"></div>
   <div id="pantryGrid"></div>
 </div>
 
@@ -2664,13 +2659,52 @@ function renderProtoHeader(){
   });
 
   if(overflow.length){
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding:6px 0;cursor:pointer;text-align:center" onclick="toggleActiveProtoDropdown()">and '+overflow.length+' more ▾</div>';
+    // Build overflow dropdown content
+    var dropHtml='';
+    overflow.forEach(function(proto){
+      var isFutureO=proto.startDate&&new Date(proto.startDate)>new Date();
+      var weekStrO='';
+      if(proto.startDate&&proto.durationWeeks){
+        if(isFutureO) weekStrO='⏳ Starts '+fmtDate(proto.startDate);
+        else{
+          var wO=Math.max(1,Math.min(weeksBetween(proto.startDate,today())+1,proto.durationWeeks));
+          weekStrO='Week '+wO+' of '+proto.durationWeeks;
+        }
+      }
+      dropHtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-top:1px solid var(--bd)">';
+      dropHtml+='<div style="width:8px;height:8px;border-radius:50%;background:'+(proto.color||'var(--p1)')+';flex-shrink:0"></div>';
+      dropHtml+='<div style="flex:1;min-width:0">';
+      dropHtml+='<div style="font-family:var(--serif);font-size:14px;color:var(--text);">'+proto.name+'</div>';
+      if(weekStrO) dropHtml+='<div style="font-family:var(--mono);font-size:9px;color:'+(isFutureO?'var(--p2)':'var(--dim)')+'">' +weekStrO+'</div>';
+      dropHtml+='</div>';
+      dropHtml+='<button class="proto-swap" onclick="closeOverflowProtos();openProtoEditor(\''+proto.id+'\')" style="flex-shrink:0;font-size:9px;padding:4px 10px">Edit</button>';
+      dropHtml+='</div>';
+    });
+    if(dropdown){
+      dropdown.innerHTML='<div style="background:var(--sf);border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px">'+ dropHtml+'</div>';
+      dropdown.style.display='none';
+    }
+    html+='<div id="overflowMoreBtn" style="font-family:var(--mono);font-size:9px;color:var(--dim);padding:6px 0;cursor:pointer;text-align:center;border-top:1px solid var(--bd)" onclick="toggleOverflowProtos()">and '+overflow.length+' more ▾</div>';
+  } else {
+    if(dropdown) dropdown.style.display='none';
   }
 
   wrap.innerHTML=html;
-  if(dropdown) dropdown.style.display='none';
 }
 
+
+function toggleOverflowProtos(){
+  var dropdown=document.getElementById('activeProtoDropdown');
+  var btn=document.getElementById('overflowMoreBtn');
+  if(!dropdown) return;
+  var open=dropdown.style.display!=='none'&&dropdown.style.display!=='';
+  dropdown.style.display=open?'none':'block';
+  if(btn) btn.innerHTML=open?'and more ▾':'hide ▴';
+}
+function closeOverflowProtos(){
+  var dropdown=document.getElementById('activeProtoDropdown');
+  if(dropdown) dropdown.style.display='none';
+}
 
 function toggleActiveProtoDropdown(){
   var dropdown=document.getElementById('activeProtoDropdown');
@@ -6051,9 +6085,12 @@ function renderBuild(){
       saved.innerHTML='<div class="empty-state"><div class="empty-icon">◑</div><div class="empty-title">No protocols yet</div><div class="empty-sub">Build your first protocol below — choose your compounds, set your doses, and activate it to start logging.</div></div>';
     } else {
       saved.innerHTML=protocols.filter(function(p){return p&&p.id&&p.status!=='archived';}).map(function(p){
-        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' on-deck':' active'):'')+'">'          +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
-          +'<div class="spc-info"><div class="spc-name" title="'+(p.name||'')+'">'
-          +(p.name||'Unnamed Protocol')+'</div>'
+        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' on-deck':' active'):'')+'">'          +'<div class="spc-top">'
+          +'<div class="spc-header">'
+          +'<div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
+          +'<div class="spc-name">'+(p.name||'Unnamed Protocol')+'</div>'
+          +'</div>'
+          +'<div class="spc-info">'
           +(function(){
             var _isActive=activeProtoIds.indexOf(p.id)>-1;
             var _isFuture=p.startDate&&new Date(p.startDate)>new Date();
