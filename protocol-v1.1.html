@@ -330,14 +330,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .conflict-check input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--p1)}
 .conflict-text{font-family:var(--mono);font-size:11px;color:var(--p5);line-height:1.6;flex:1}
 .spc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;margin-bottom:6px}
+.sl-row{display:grid;grid-template-columns:1fr 56px 56px 56px;gap:4px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
+.sl-row:last-child{border-bottom:none}
+.sl-label{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:6px 0}
+.sl-name{font-family:var(--sans);font-size:13px;color:var(--text)}
+.sl-num{font-family:var(--mono);font-size:11px;text-align:right}
+.sl-order{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right}
 .spc.active{border-color:var(--p1)}
 .spc.on-deck{border-color:var(--p2);border-style:dashed}
-.spc-top{display:flex;align-items:center;gap:11px;margin-bottom:8px}
-.spc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.spc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.spc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:2px}
 .spc-info{flex:1;min-width:0}
-.spc-name{font-family:var(--lora);font-style:normal;font-size:16px;margin-bottom:2px}
-.spc-meta{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.spc-actions{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap}
+.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spc-meta{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5}
+.spc-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
 .spc-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid;cursor:pointer;background:none;-webkit-tap-highlight-color:transparent;transition:all .15s}
 /* activate = outline green (not yet active) */
 .spc-btn.activate-btn{border-color:var(--p1);color:var(--p1)}
@@ -1073,6 +1079,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
     </div>
   </div>
+  <div id="shoppingListWrap" style="margin-bottom:18px"></div>
   <div id="pantryGrid"></div>
 </div>
 
@@ -1191,11 +1198,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- SETTINGS -->
 <div class="panel" id="panel-settings">
   <div style="font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding:4px 16px 4px;display:block;border-bottom:1px solid var(--bd);margin-bottom:0" id="phdr-settings">SETTINGS</div>
-  
 
-  
-
-  <!-- USER PROFILE -->
+  <!-- 1. YOUR PROFILE -->
   <div class="sec-lbl">Your Profile</div>
   <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:4px">
     <div class="g2" style="margin-bottom:12px">
@@ -1233,35 +1237,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
   </div>
 
-  <!-- CLINICAL NOTES -->
-  <div class="sec-lbl" style="margin-top:18px">Clinical Notes</div>
-  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:4px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2)">Protocol Pro</div>
-      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2)">Pro feature</span>
-    </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Context that Coach APEX always considers when interpreting your labs and protocol. Add clinician clarifications, known conditions, or reference range adjustments.</div>
-    <textarea id="clinicalNotesInput" placeholder="e.g. eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist." style="width:100%;min-height:80px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6;box-sizing:border-box"></textarea>
-    <button class="btn sm" style="margin-top:8px" onclick="saveClinicalNotes()">Save Notes</button>
-    <div id="clinicalNotesStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
-  </div>
-
-  <!-- PRO LICENSE -->
-  <div class="sec-lbl">Protocol Pro</div>
-  <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:4px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div>
-        <div style="font-family:var(--sans);font-size:15px;font-weight:600;margin-bottom:2px">Protocol Pro</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">AI reviews · BodySpec sync · Withings sync</div>
-      </div>
-      <span style="font-family:var(--mono);font-size:9px;padding:3px 10px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2);font-weight:600">PRO</span>
-    </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:8px">Coach APEX reports, health sync, clinical notes, and protocol Pro features. Requires an Anthropic API key — usage billed directly to your Anthropic account.</div>
-    <a href="https://console.anthropic.com/api-keys" style="font-family:var(--mono);font-size:10px;color:var(--p2);text-decoration:none" target="_blank">Get your API key →</a>
-  </div>
-
-  <!-- THEME -->
-  <div class="sec-lbl">Appearance</div>
+  <!-- 2. APPEARANCE & TODAY -->
+  <div class="sec-lbl" style="margin-top:18px">Appearance &amp; Today</div>
   <div class="settings-row">
     <div class="settings-label">Theme</div>
     <button id="themeToggle" onclick="toggleTheme()" class="btn ghost sm">Dark Mode</button>
@@ -1277,27 +1254,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
   </div>
 
-  <!-- TODAY DISPLAY -->
-  <div class="sec-lbl" style="margin-top:18px">Today Tab — Body Strip</div>
-  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:10px">Choose which metrics appear on the body comp strip.</div>
+  <div class="sec-lbl" style="margin-top:14px;font-size:9px;opacity:.7">Body Strip</div>
   <div id="bodyStripToggles">
     <div class="settings-row"><div class="settings-label">Weight</div><label class="toggle-sw"><input type="checkbox" id="showWeight" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
     <div class="settings-row"><div class="settings-label">Fat %</div><label class="toggle-sw"><input type="checkbox" id="showFat" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
     <div class="settings-row"><div class="settings-label">Muscle</div><label class="toggle-sw"><input type="checkbox" id="showMuscle" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
     <div class="settings-row"><div class="settings-label">Water</div><label class="toggle-sw"><input type="checkbox" id="showWater" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
     <div class="settings-row"><div class="settings-label">Bone</div><label class="toggle-sw"><input type="checkbox" id="showBone" onchange="saveDisplayPrefs()"><span class="toggle-track"></span></label></div>
-    
+  </div>
 
-  <!-- COMPOUND CARD META -->
-  <div class="sec-lbl" style="margin-top:18px">Today Tab — Compound Cards</div>
-  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:10px">Choose what shows on each compound card.</div>
+  <div class="sec-lbl" style="margin-top:14px;font-size:9px;opacity:.7">Compound Cards</div>
   <div id="cardMetaToggles">
     <div class="settings-row"><div class="settings-label">Route</div><label class="toggle-sw"><input type="checkbox" id="showRoute" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
     <div class="settings-row"><div class="settings-label">Fasted status</div><label class="toggle-sw"><input type="checkbox" id="showFasted" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
     <div class="settings-row"><div class="settings-label">Site</div><label class="toggle-sw"><input type="checkbox" id="showSite" onchange="saveDisplayPrefs()" checked><span class="toggle-track"></span></label></div>
   </div>
 
-  <!-- NOTIFICATIONS -->
+  <div class="sec-lbl" style="margin-top:14px;font-size:9px;opacity:.7">Pantry</div>
+  <div class="settings-row" style="cursor:pointer" onclick="openModal('pantryChoiceModal')">
+    <div><div class="settings-label">Pantry setup</div><div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Full library or lean starter list</div></div>
+    <span style="color:var(--dim)">&#x203A;</span>
+  </div>
+
+  <!-- 3. NOTIFICATIONS -->
   <div class="sec-lbl" style="margin-top:18px">Notifications</div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:10px">Reminders to log compounds and body readings.</div>
   <div class="settings-row">
@@ -1312,42 +1291,55 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="settings-row"><div class="settings-label">Pre-Sleep compounds</div><input type="time" id="notifSleep" value="22:00" onchange="saveNotifPrefs()" style="font-family:var(--mono);font-size:11px;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--text);padding:4px 8px"></div>
   </div>
 
-  <!-- PROTOCOL PRO KEY -->
+  <!-- 4. PROTOCOL PRO -->
   <div class="sec-lbl" style="margin-top:18px">Protocol Pro</div>
   <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">License Key</div>
-      <span id="proKeyBadge" style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)">Not set</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text)">Protocol Pro</div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2);font-weight:600">PRO</span>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Enter your Protocol Pro license key to activate Pro features. For your current build, this is pre-activated.</div>
-    <div style="display:flex;gap:8px;margin-bottom:6px">
-      <input type="text" id="proKeyInput" placeholder="PRO-XXXX-XXXX-XXXX" autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
-      <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveProKey()">Activate</button>
-    </div>
-    <div id="proKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></div>
-  </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:14px">Coach APEX reports, health sync, clinical notes, and protocol Pro features. Powered by Anthropic · Claude Opus 4.7.</div>
 
-  <!-- COACH APEX API KEY -->
-  <div class="sec-lbl" style="margin-top:18px">Coach APEX</div>
-  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:3px">Protocol Pro</div>
-        <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Anthropic API Key</div>
+    <!-- API Key — hidden once set -->
+    <div id="apexKeySetView" style="display:none;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--p1)">✓ Anthropic API Key set</div>
+        <button class="btn sm ghost" style="font-size:9px" onclick="document.getElementById('apexKeySetView').style.display='none';document.getElementById('apexKeyInputView').style.display='block'">Change</button>
       </div>
-      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="apexKeyBadge">Not set</span>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Required to run Coach APEX. Stored on your device only — included in backups automatically.</div>
-    <div style="display:flex;gap:8px;margin-bottom:6px">
-      <input type="password" id="apexApiKeyInput" placeholder="sk-ant-..." autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
-      <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveApexApiKey()">Save</button>
+    <div id="apexKeyInputView" style="margin-bottom:10px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Anthropic API Key</div>
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <input type="password" id="apexApiKeyInput" placeholder="sk-ant-..." autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
+        <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveApexApiKey()">Save</button>
+      </div>
+      <div id="apexKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim)">Required to run Coach APEX reports. Included in backups.</div>
     </div>
-    <div id="apexKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--mid)">Powered by Anthropic · Claude Opus 4.7</div>
+
+    <!-- License Key placeholder -->
+    <div style="border-top:1px solid var(--p2);padding-top:10px;margin-top:4px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">License Key</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="proKeyInput" placeholder="PRO-XXXX-XXXX-XXXX" autocomplete="off" style="flex:1;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--text)">
+        <button class="btn sm" style="background:var(--p2);border-color:var(--p2);color:var(--bg);flex-shrink:0" onclick="saveProKey()">Activate</button>
+      </div>
+      <div id="proKeyStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px"></div>
+    </div>
   </div>
 
-  <!-- INTEGRATIONS -->
+  <!-- 5. COACH APEX — CLINICAL NOTES -->
+  <div class="sec-lbl" style="margin-top:18px">Coach APEX — Clinical Notes</div>
+  <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:4px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:10px">Context APEX always considers when interpreting your labs and protocol. Add clinician clarifications, known conditions, or reference range adjustments.</div>
+    <textarea id="clinicalNotesInput" placeholder="e.g. eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg∕L — renal function confirmed normal by nephrologist." style="width:100%;min-height:80px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6;box-sizing:border-box"></textarea>
+    <button class="btn sm" style="margin-top:8px" onclick="saveClinicalNotes()">Save Notes</button>
+    <div id="clinicalNotesStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
+  </div>
+
+  <!-- 6. INTEGRATIONS -->
   <div class="sec-lbl" style="margin-top:18px">Integrations</div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6">Import biometric and lab data to enrich your Coach APEX reports.</div>
+
   <!-- Claude Health Sync -->
   <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -1362,26 +1354,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div id="healthSyncStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px"></div>
   </div>
 
-
-
-  <!-- Oura Ring Integration -->
-  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px" id="ouraCard">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div>
-        <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Oura Ring</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px">Sleep, readiness &amp; HRV · via iOS Shortcut</div>
-      </div>
-      <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--sf);color:var(--dim);border:1px solid var(--bd)" id="ouraBadge">Not synced</span>
-    </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:12px">Sync via the <strong style="color:var(--text)">Oura Protocol Sync</strong> iOS Shortcut. Run it once to pull your last 30 days — JSON is copied to clipboard automatically. Then tap <strong style="color:var(--text)">Paste Sync Data</strong> in Claude Health Sync to import.</div>
-    <div style="display:flex;gap:8px">
-      <button class="btn sm" style="background:var(--p1);border-color:var(--p1);color:var(--bg)" onclick="openModal('healthSyncModal')">Paste Sync Data</button>
-      <button class="btn sm" id="ouraDisconnectBtn" style="display:none" onclick="disconnectOura()">Clear Data</button>
-    </div>
-    <div id="ouraStatus" style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.6"></div>
-  </div>
-
-  <!-- BodySpec CSV Import -->
+  <!-- BodySpec -->
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:10px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div>
@@ -1398,6 +1371,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </label>
   </div>
 
+  <!-- Oura -->
   <div class="settings-row">
     <div>
       <div class="settings-label">Oura Ring</div>
@@ -1406,6 +1380,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <span style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">Coming soon</span>
   </div>
 
+  <!-- Withings -->
   <div class="settings-row">
     <div>
       <div class="settings-label">Withings</div>
@@ -1414,16 +1389,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <span style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:var(--sf2);color:var(--dim);border:1px solid var(--bd)">Coming soon</span>
   </div>
 
-  <!-- BACKUP -->
+  <!-- 7. BACKUP & DATA -->
   <div class="sec-lbl" style="margin-top:18px">Backup &amp; Data</div>
-
-  <!-- iOS Storage Warning -->
   <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:12px">
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ iOS Storage Notice</div>
     <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7">iOS may clear your data after 7 days of inactivity or when storage is low. Save a backup to Files regularly to protect your protocol history.</div>
   </div>
-
-  <!-- Primary: Save to Files (iCloud) -->
   <div style="background:var(--sf);border:1px solid var(--p1);border-radius:10px;padding:14px;margin-bottom:10px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div>
@@ -1436,8 +1407,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <button class="btn" style="width:100%;justify-content:center" onclick="exportToFiles()">↓ Save to Files</button>
     <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;text-align:center">Save after each session for best protection</div>
   </div>
-
-  <!-- Secondary: Restore from Files -->
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
     <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Restore from backup</div>
     <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6;margin-bottom:10px">Lost your data? Import a previously saved JSON backup to restore your full history.</div>
@@ -1446,8 +1415,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <input type="file" accept=".json" style="display:none" onchange="importData(this)">
     </label>
   </div>
-
-  <!-- Auto-snapshot toggle -->
   <div class="settings-row">
     <div>
       <div class="settings-label">Auto-snapshot (daily)</div>
@@ -1455,14 +1422,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <label class="toggle-sw"><input type="checkbox" id="autoBackupEnabled" onchange="saveBackupPrefs(this.checked)" checked><span class="toggle-track"></span></label>
   </div>
-  <div class="sec-lbl" style="margin-top:18px">Pantry</div>
-   <span style="color:var(--dim)">&#x203A;</span>
-  </div>
 
+  <!-- 8. SNAPSHOT HISTORY -->
   <div class="sec-lbl" style="margin-top:18px">Snapshot History</div>
   <div id="snapshotList" style="margin-top:6px"></div>
 
-  <!-- LEGAL -->
+  <!-- 9. ABOUT & LEGAL -->
   <div class="sec-lbl" style="margin-top:18px">Legal</div>
   <div class="settings-row" style="cursor:pointer" onclick="openModal('tosModal')">
     <div><div class="settings-label">Terms of Service</div><div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Usage, medical disclaimer, Pro subscription terms</div></div>
@@ -1473,13 +1438,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <span style="color:var(--dim)">›</span>
   </div>
 
-
-  <!-- ABOUT -->
   <div class="sec-lbl" style="margin-top:18px">About Protocol</div>
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:18px;text-align:center;margin-bottom:8px">
     <div style="font-family:var(--sans);font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px">Protocol</div>
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--dim);margin-bottom:14px">YOUR BODY. YOUR DATA. YOUR PROTOCOL.</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:14px">Version 1.0<br>For informational purposes only.<br>All data stored locally on your device.<br>We have no servers. We cannot see your data.</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:14px">Version 1.7<br>For informational purposes only.<br>All data stored locally on your device.<br>We have no servers. We cannot see your data.</div>
     <div id="factoryResetNormal">
       <button class="btn ghost sm" onclick="showFactoryConfirm()" style="font-size:10px;border-color:var(--p5);color:var(--p5)">Reset to factory settings</button>
     </div>
@@ -1491,6 +1454,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
     </div>
   </div>
+</div>
 </div>
 
 </main>
@@ -2002,7 +1966,7 @@ const COMPOUND_DB=[
   {name:'MOTS-c',cat:'metabolic',color:'#2dd4bf',dose:'5mg',route:'Subcutaneous',form:'vial',fasting:true,site:'Abdomen',goals:['Metabolic','Fat loss'],rationale:'Mitochondria-derived peptide — metabolic flexibility.',conflicts:[],timingWindow:'am',frequency:'3x/week',daysOfWeek:[1,3,5]},
   {name:'BPC-157',cat:'healing',color:'#60a5fa',dose:'250mcg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery'],rationale:'Body protection compound — systemic healing, gut health, tendon repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'TB-500',cat:'healing',color:'#34d399',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery'],rationale:'Systemic healing — tissue remodeling and inflammation reduction.',conflicts:[],timingWindow:'am',frequency:'2x/week',daysOfWeek:[1,4],cycleOnWeeks:8,cycleOffWeeks:8},
-  {name:'KLOW',cat:'healing',color:'#4ade80',dose:'—',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Recovery','Immune'],rationale:'Blend: GHK-Cu + TB-500 + BPC-157 + KPV — comprehensive repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
+  {name:'KLOW',contains:['GHK-Cu','TB-500','BPC-157','KPV'],cat:'healing',color:'#4ade80',dose:'2.5mg',vialMg:80,reconVol:3,route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',timingWindow:'am',frequency:'5 days on, 2 days off',daysOfWeek:[0,1,2,5,6],goals:['recovery','healing','anti-inflammatory','tissue repair','immune support'],rationale:'Comprehensive healing blend: GHK-Cu (angiogenesis, skin remodeling), TB-500 (systemic repair), BPC-157 (gut barrier, tissue protection), KPV (systemic and localized anti-inflammation). 80mg vial covers ~6 weeks at 5on/2off.',notes:'80mg vial. Reconstitute with 3ml BAC water. 2.5mg dose per injection = ~9 units on 1ml syringe. 32 injections per vial.',conflicts:[],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'SS-31',cat:'longevity',color:'var(--p4)',dose:'5mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity'],rationale:'Mitochondrial membrane protector — reduces oxidative stress.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
   {name:'GHK-Cu',cat:'longevity',color:'#f472b6',dose:'2mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity','Recovery'],rationale:'Copper peptide — collagen synthesis, tissue repair.',conflicts:[],timingWindow:'am',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6],cycleOnWeeks:8,cycleOffWeeks:8},
   {name:'Epithalon',cat:'longevity',color:'#818cf8',dose:'10mg',route:'Subcutaneous',form:'vial',fasting:false,site:'Abdomen',goals:['Longevity','Sleep / GH'],rationale:'Telomerase activator — longevity and sleep quality. 10-day cycle quarterly.',conflicts:[],timingWindow:'pm',frequency:'daily',daysOfWeek:[0,1,2,3,4,5,6]},
@@ -2025,6 +1989,16 @@ const COMPOUND_DB=[
    rationale:'GH secretagogue blend (Ipamorelin + CJC-1295 No DAC) for natural pulsatile GH release. Synergistic for sleep quality, lean mass, and recovery.',
    notes:'10mg vial reconstituted with 2ml BAC water. 250mcg dose = 10 units on a 1ml insulin syringe. PM dosing fasted.',
    cycleOnWeeks:8,cycleOffWeeks:8},
+  {name:'BPC-157 + TB-500 Blend',contains:['BPC-157','TB-500'],route:'Subcutaneous',form:'vial',
+   dose:'500mcg',vialMg:10,reconVol:2,site:'Abdomen',fasting:false,
+   timingWindow:'am',frequency:'5 days on, 2 days off',
+   daysOfWeek:[0,1,2,5,6],
+   category:'healing',
+   goals:['recovery','healing','gut health','tissue repair','anti-inflammatory'],
+   rationale:'50/50 blend of BPC-157 and TB-500 for comprehensive tissue repair, gut barrier support, and systemic healing. 250mcg each per 10-unit injection.',
+   notes:'10mg vial (5mg BPC-157 + 5mg TB-500). Reconstitute with 2ml BAC water. 10 units = 250mcg BPC-157 + 250mcg TB-500 per injection. 20 injections per vial = 4 weeks at 5on/2off.',
+   cycleOnWeeks:8,cycleOffWeeks:8},
+
   {name:'KLOW Blend',contains:['GHK-Cu','BPC-157','TB-500','KPV'],route:'Subcutaneous',form:'vial',
    dose:'2.5mg/500mcg/500mcg/500mcg',site:'Abdomen',fasting:false,
    timingWindow:'am',frequency:'5 days on, 2 days off',
@@ -5301,9 +5275,112 @@ function applyPantryFilters(items){
   });
 }
 
+function parseDoseMgSL(dose){
+  if(!dose||dose==='—') return 0;
+  var s=String(dose).toLowerCase().trim();
+  var m=s.match(/([\d.]+)\s*(mg|mcg|ug)/);
+  if(!m) return 0;
+  var v=parseFloat(m[1]);
+  return m[2]==='mg'?v:v/1000;
+}
+
+function renderShoppingList(){
+  var wrap=document.getElementById('shoppingListWrap');
+  if(!wrap) return;
+
+  // Get active + on-deck protocols (not archived)
+  var relevantProtos=protocols.filter(function(p){
+    return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1;
+  });
+  if(!relevantProtos.length){wrap.innerHTML='';return;}
+
+  // Build compound → required mg map across all relevant protocols
+  var compMap={};
+
+  relevantProtos.forEach(function(proto){
+    if(!proto.compounds||!proto.startDate||!proto.durationWeeks) return;
+    var protoStart=new Date(proto.startDate);
+
+    (proto.compounds||[]).forEach(function(c){
+      if(!c||!c.name) return;
+      var introWeek=c.introWeek||1;
+      var durWeeks=c.compoundDurationWeeks||proto.durationWeeks;
+      var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
+      var injectionsPerWeek=dows.length;
+      var tit=c.titrationSchedule||[];
+      var totalMg=0;
+
+      if(tit.length){
+        for(var w=introWeek;w<introWeek+durWeeks;w++){
+          var doseStr=tit[0].dose;
+          for(var t=0;t<tit.length;t++){if(w>=tit[t].week) doseStr=tit[t].dose;}
+          totalMg+=parseDoseMgSL(doseStr)*injectionsPerWeek;
+        }
+      } else {
+        totalMg=parseDoseMgSL(c.dose)*injectionsPerWeek*durWeeks;
+      }
+
+      if(!compMap[c.name]) compMap[c.name]={needed:0,protocols:[]};
+      compMap[c.name].needed+=totalMg;
+      compMap[c.name].protocols.push(proto.name);
+    });
+  });
+
+  // Compare against pantry stock
+  var rows=[];
+  Object.keys(compMap).forEach(function(name){
+    var stockMg=0;
+    var vialMg=0;
+    pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();})
+      .forEach(function(p){
+        stockMg+=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
+        if(!vialMg&&p.vialMg) vialMg=parseFloat(p.vialMg)||0;
+      });
+    var gapMg=Math.max(0,compMap[name].needed-stockMg);
+    var vialsNeeded=vialMg>0?Math.ceil(gapMg/vialMg):0;
+    rows.push({name:name,needed:Math.round(compMap[name].needed*10)/10,
+      stock:Math.round(stockMg*10)/10,gap:Math.round(gapMg*10)/10,
+      vialMg:vialMg,vialsNeeded:vialsNeeded});
+  });
+
+  if(!rows.length){wrap.innerHTML='';return;}
+
+  var needsOrder=rows.filter(function(r){return r.vialsNeeded>0;});
+  var sufficient=rows.filter(function(r){return r.vialsNeeded===0;});
+
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)">Protocol Shopping List</div>';
+  if(needsOrder.length) h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2)">'+needsOrder.length+' to order</span>';
+  else h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1)">✓ Fully stocked</span>';
+  h+='</div>';
+
+  h+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:4px 14px 10px;margin-bottom:14px">';
+
+  // Header row
+  h+='<div class="sl-row sl-label"><div>Compound</div><div style="text-align:right">Need</div><div style="text-align:right">Have</div><div style="text-align:right">Order</div></div>';
+
+  // Order rows first
+  rows.sort(function(a,b){return b.vialsNeeded-a.vialsNeeded;}).forEach(function(r){
+    var orderColor=r.vialsNeeded>0?'var(--p2)':'var(--p1)';
+    var orderText=r.vialsNeeded>0?r.vialsNeeded+'×':'✓';
+    h+='<div class="sl-row">';
+    h+='<div><div class="sl-name">'+r.name+'</div>';
+    if(r.vialsNeeded>0&&r.vialMg) h+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+r.vialMg+'mg vials</div>';
+    h+='</div>';
+    h+='<div class="sl-num" style="color:var(--dim)">'+r.needed+'mg</div>';
+    h+='<div class="sl-num" style="color:var(--dim)">'+r.stock+'mg</div>';
+    h+='<div class="sl-order" style="color:'+orderColor+'">'+orderText+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  wrap.innerHTML=h;
+}
+
 function renderPantry(){
   const grid=document.getElementById('pantryGrid');if(!grid) return;
   try{
+  renderShoppingList();
   renderRestockSection();
   // Show welcome banner if not dismissed
   var banner=document.getElementById('pantryWelcomeBanner');
@@ -5919,7 +5996,8 @@ function renderBuild(){
     } else {
       saved.innerHTML=protocols.filter(function(p){return p&&p.id&&p.status!=='archived';}).map(function(p){
         return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' on-deck':' active'):'')+'">'          +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
-          +'<div class="spc-info"><div class="spc-name">'+(p.name||'Unnamed Protocol')+'</div>'
+          +'<div class="spc-info"><div class="spc-name" title="'+(p.name||'')+'">'
+          +(p.name||'Unnamed Protocol')+'</div>'
           +(function(){
             var _isActive=activeProtoIds.indexOf(p.id)>-1;
             var _isFuture=p.startDate&&new Date(p.startDate)>new Date();
@@ -5928,7 +6006,7 @@ function renderBuild(){
             var _statusTag=_isDone?' · <span style="color:var(--p1)">✓ Complete</span>':_isActive?(_isFuture?' · <span style="color:var(--p2)">⏳ On Deck</span>':' · <span style="color:var(--p1)">✓ Active</span>'):'';
             return '<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+_statusTag+'</div></div>';
           }())
-          +'<div class="spc-actions">'
+          +'<div class="spc-actions" style="border-top:1px solid var(--bd);padding-top:8px">'
           +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Edit':'View')+'</button>'
           +(activeProtoIds.indexOf(p.id)>-1&&p.startDate&&new Date(p.startDate)>new Date()
             ?'' // On Deck — no button, meta line already shows it
@@ -7399,6 +7477,10 @@ async function seedDefaults(){
 
 
 function finishInit(){
+  // Restore clinical notes if missing
+  if(!localStorage.getItem('pt_clinical_notes')){
+    localStorage.setItem('pt_clinical_notes','eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist.');
+  }
   // Normalize COMPOUND_DB — filter out any entries without a name property
   // This permanently fixes the 'd.name' class of errors from mixed-format entries
   if(Array.isArray(COMPOUND_DB)){
@@ -9390,16 +9472,21 @@ function saveApexApiKey(){
 }
 
 function updateApexKeyUI(){
-  var badge=document.getElementById('apexKeyBadge');
-  var status=document.getElementById('apexKeyStatus');
   var hasKey=!!(localStorage.getItem('rp_anthropic_key'));
+  var setView=document.getElementById('apexKeySetView');
+  var inputView=document.getElementById('apexKeyInputView');
+  if(setView) setView.style.display=hasKey?'block':'none';
+  if(inputView) inputView.style.display=hasKey?'none':'block';
+  // Keep legacy badge in case it exists elsewhere
+  var badge=document.getElementById('apexKeyBadge');
   if(badge){
     badge.textContent=hasKey?'Set ✓':'Not set';
     badge.style.background=hasKey?'var(--p1d)':'var(--sf)';
     badge.style.color=hasKey?'var(--p1)':'var(--dim)';
     badge.style.borderColor=hasKey?'var(--p1)':'var(--bd)';
   }
-  if(status) status.textContent=hasKey?'Key saved — Coach APEX is ready to run':'No key set — APEX reports will not run';
+  var status=document.getElementById('apexKeyStatus');
+  if(status) status.textContent=hasKey?'Key saved — Coach APEX is ready':'No key set — APEX reports will not run';
 }
 
 function showInfoModal(title,bodyHtml){
@@ -9614,6 +9701,20 @@ function toggleArchiveCollapse(){
   var c=localStorage.getItem('pt_archive_collapsed')==='1';
   localStorage.setItem('pt_archive_collapsed',c?'0':'1');
   renderArchivedProtocols();
+}
+
+function loadImportFile(input){
+  var file=input.files[0];
+  if(!file) return;
+  var label=document.getElementById('importFileLabel');
+  if(label) label.textContent=file.name;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    // Try both possible textarea IDs
+    var ta=document.getElementById('protocolImportInput')||document.getElementById('importProtoText');
+    if(ta) ta.value=e.target.result;
+  };
+  reader.readAsText(file);
 }
 
 function importProtocol(){
@@ -10966,7 +11067,15 @@ document.addEventListener('DOMContentLoaded', initApp);
       </div>
       <button class="modal-close" onclick="closeModal('protocolImportModal')">&#x2715;</button>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:10px;flex-shrink:0">Paste a protocol JSON (with <code style="color:var(--text);background:var(--sf2);padding:1px 4px;border-radius:3px;font-size:9px">protocolImport</code> wrapper) to create a complete protocol including staggered intro weeks and titration schedules.</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;margin-bottom:10px;flex-shrink:0">Choose a JSON file or paste directly below.</div>
+    <!-- File picker -->
+    <label style="display:flex;align-items:center;gap:10px;background:var(--sf2);border:1px dashed var(--bd);border-radius:8px;padding:10px 12px;cursor:pointer;margin-bottom:10px;flex-shrink:0">
+      <input type="file" id="importProtoFile" accept=".json" style="display:none" onchange="loadImportFile(this)">
+      <span style="font-size:18px">📁</span>
+      <div><div style="font-family:var(--sans);font-size:13px;color:var(--text)">Choose JSON file</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim)" id="importFileLabel">No file selected</div></div>
+    </label>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;margin-bottom:8px;flex-shrink:0">— or paste JSON —</div>
     <textarea id="protocolImportInput" placeholder='{"protocolImport":{"name":"...","compounds":[...]}}' style="flex:1;min-height:220px;font-family:var(--mono);font-size:10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;color:var(--text);resize:none;line-height:1.6"></textarea>
     <div id="protocolImportPreview" style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px;min-height:18px;flex-shrink:0;line-height:1.5"></div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-shrink:0">
