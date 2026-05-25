@@ -1067,14 +1067,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="field" style="margin-bottom:12px"><label>Notes / Mechanism</label><input type="text" id="newNotes" placeholder="Key mechanism, timing notes..."></div>
     <div class="btn-row"><button class="btn sm" onclick="addCompound()">Add to Pantry</button><button class="btn ghost sm" onclick="togglePantryAddForm()">Cancel</button></div>
   </div>
-  <!-- Restock section -->
-  <div id="restockSection" style="margin-bottom:12px">
-    <button onclick="toggleRestock()" id="restockToggleBtn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--dim)">
-      <span>Restock Needed <span id="restockBadge" style="display:none;background:var(--p2);color:var(--bg);border-radius:10px;padding:1px 7px;font-size:10px;margin-left:6px">0</span></span>
-      <span id="restockChev">v</span>
-    </button>
-    <div id="restockList" style="display:none;border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px;overflow:hidden"></div>
-  </div>
+  <!-- Shopping list injected by renderShoppingList -->
+  <div id="shoppingListWrap" style="margin-bottom:14px"></div>
   <!-- Sort control -->
   <div class="chart-period-tabs" id="pantrySortTabs" style="margin-bottom:8px">
     <button class="cpt on" data-sort="az" onclick="setPantrySort('az')">A–Z</button>
@@ -1130,7 +1124,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
     </div>
   </div>
-  <div id="shoppingListWrap" style="margin-bottom:18px"></div>
   <div id="pantryGrid"></div>
 </div>
 
@@ -2219,6 +2212,18 @@ function getActivePantryItem(name){
 }
 
 // Check if a compound name has multiple stocked pantry entries with different concentrations
+function setActiveConcentration(name,pItemId){
+  // Set one pantry entry as active concentration, clear others
+  pantry.forEach(function(p){
+    if(p&&p.name&&p.name.toLowerCase()===name.toLowerCase()){
+      p.activeConcentration=(p.id===pItemId);
+    }
+  });
+  persist(KEYS.pantry,pantry);
+  renderChecklist();
+  toast('Switched to new concentration ✓');
+}
+
 function hasConcentrationConflict(name){
   var stocked=pantry.filter(function(p){
     return p.name.toLowerCase()===name.toLowerCase()&&isInStock(p);
@@ -3276,7 +3281,18 @@ function renderChecklist(){
               var _u=Math.round((_dmg/_conc)*100);
               if(_u) _units=' \u00b7 <span style="color:var(--p3);font-weight:600">'+_u+' units</span>';
             }
-          } else if(pItem&&pItem.form==='oral'&&pItem.capDose){
+          }
+          // Multi-concentration switcher
+          var multiConc=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase()&&isInStock(p);});
+          if(multiConc.length>1){
+            _units+=' \u00b7 <span style="font-family:var(--mono);font-size:9px;color:var(--dim)">';
+            multiConc.forEach(function(p,mi){
+              var isActive=(pItem&&pItem.id===p.id);
+              _units+='<span onclick="event.stopPropagation();setActiveConcentration(\''+c.name+'\',\''+p.id+'\')" style="cursor:pointer;padding:1px 5px;border-radius:3px;border:1px solid '+(isActive?'var(--p1)':'var(--bd)')+';color:'+(isActive?'var(--p1)':'var(--dim)')+';margin-left:'+(mi>0?'3px':'0')+'">'+p.vialMg+'mg</span>';
+            });
+            _units+='</span>';
+          }
+          if(pItem&&pItem.form==='oral'&&pItem.capDose){
             var _dmg2=parseDoseMg(dose);
             var _caps=_dmg2>0?Math.round(_dmg2/pItem.capDose):null;
             if(_caps) _units=' \u00b7 <span style="color:var(--p3);font-weight:600">'+_caps+' cap'+(caps>1?'s':'')+'</span>';
@@ -5495,7 +5511,7 @@ function applyPantryFilters(items){
 }
 
 function parseDoseMgSL(dose){
-  if(!dose||dose==='—') return 0;
+  if(!dose||dose==='\u2014') return 0;
   var s=String(dose).toLowerCase().trim();
   var m=s.match(/([\d.]+)\s*(mg|mcg|ug)/);
   if(!m) return 0;
@@ -5507,94 +5523,128 @@ function renderShoppingList(){
   var wrap=document.getElementById('shoppingListWrap');
   if(!wrap) return;
 
-  // Get active + on-deck protocols (not archived)
+  var todayMs=new Date().setHours(0,0,0,0);
+
   var relevantProtos=protocols.filter(function(p){
     return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1;
   });
-  if(!relevantProtos.length){wrap.innerHTML='';return;}
 
-  // Build compound → required mg map across all relevant protocols
-  var compMap={};
+  var needMap={};
 
   relevantProtos.forEach(function(proto){
     if(!proto.compounds||!proto.startDate||!proto.durationWeeks) return;
-    var protoStart=new Date(proto.startDate);
+    var protoStart=parseLocalDate(proto.startDate);
+    protoStart.setHours(0,0,0,0);
+    var isFuture=protoStart.getTime()>todayMs;
+    var curWk=isFuture?0:Math.floor((todayMs-protoStart.getTime())/(7*86400000));
 
     (proto.compounds||[]).forEach(function(c){
       if(!c||!c.name) return;
-      var introWeek=c.introWeek||1;
-      var durWeeks=c.compoundDurationWeeks||proto.durationWeeks;
-      var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
-      var injectionsPerWeek=dows.length;
+      var iw=c.introWeek||1;
+      var dw=c.compoundDurationWeeks||proto.durationWeeks;
+      var ew=iw+dw-1;
+      var effStart=isFuture?iw:Math.max(iw,curWk+1);
+      var remWks=Math.max(0,ew-effStart+1);
+      if(remWks===0) return;
+      var injWk=(c.daysOfWeek||[0,1,2,3,4,5,6]).length;
+      var dpd=c.dosesPerDay||1;
       var tit=c.titrationSchedule||[];
       var totalMg=0;
-
       if(tit.length){
-        for(var w=introWeek;w<introWeek+durWeeks;w++){
-          var doseStr=tit[0].dose;
-          for(var t=0;t<tit.length;t++){if(w>=tit[t].week) doseStr=tit[t].dose;}
-          totalMg+=parseDoseMgSL(doseStr)*injectionsPerWeek;
+        for(var w=effStart;w<=ew;w++){
+          var ds=tit[0].dose;
+          for(var t=0;t<tit.length;t++){if(w>=tit[t].week) ds=tit[t].dose;}
+          totalMg+=parseDoseMgSL(ds)*injWk*dpd;
         }
       } else {
-        totalMg=parseDoseMgSL(c.dose)*injectionsPerWeek*durWeeks;
+        totalMg=parseDoseMgSL(c.dose)*injWk*remWks*dpd;
       }
-
-      if(!compMap[c.name]) compMap[c.name]={needed:0,protocols:[]};
-      compMap[c.name].needed+=totalMg;
-      compMap[c.name].protocols.push(proto.name);
+      if(!needMap[c.name]) needMap[c.name]={needed:0,stock:0,vialMg:0,pItem:null};
+      needMap[c.name].needed+=totalMg;
     });
   });
 
-  // Compare against pantry stock
-  var rows=[];
-  Object.keys(compMap).forEach(function(name){
-    var stockMg=0;
-    var vialMg=0;
-    pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();})
-      .forEach(function(p){
-        stockMg+=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
-        if(!vialMg&&p.vialMg) vialMg=parseFloat(p.vialMg)||0;
-      });
-    var gapMg=Math.max(0,compMap[name].needed-stockMg);
-    var vialsNeeded=vialMg>0?Math.ceil(gapMg/vialMg):0;
-    rows.push({name:name,needed:Math.round(compMap[name].needed*10)/10,
-      stock:Math.round(stockMg*10)/10,gap:Math.round(gapMg*10)/10,
-      vialMg:vialMg,vialsNeeded:vialsNeeded});
+  // Attach pantry stock
+  pantry.filter(function(p){return p&&p.name;}).forEach(function(p){
+    if(needMap[p.name]){
+      needMap[p.name].stock+=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
+      if(!needMap[p.name].vialMg&&p.vialMg) needMap[p.name].vialMg=parseFloat(p.vialMg)||0;
+      if(!needMap[p.name].pItem) needMap[p.name].pItem=p;
+    }
   });
 
-  if(!rows.length){wrap.innerHTML='';return;}
+  if(!Object.keys(needMap).length){wrap.innerHTML='';return;}
 
-  var needsOrder=rows.filter(function(r){return r.vialsNeeded>0;});
-  var sufficient=rows.filter(function(r){return r.vialsNeeded===0;});
-
-  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-  h+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)">Protocol Shopping List</div>';
-  if(needsOrder.length) h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p2d);color:var(--p2);border:1px solid var(--p2)">'+needsOrder.length+' to order</span>';
-  else h+='<span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;background:var(--p1d);color:var(--p1);border:1px solid var(--p1)">✓ Fully stocked</span>';
-  h+='</div>';
-
-  h+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:4px 14px 10px;margin-bottom:14px">';
-
-  // Header row
-  h+='<div class="sl-row sl-label"><div>Compound</div><div style="text-align:right">Need</div><div style="text-align:right">Have</div><div style="text-align:right">Order</div></div>';
-
-  // Order rows first
-  rows.sort(function(a,b){return b.vialsNeeded-a.vialsNeeded;}).forEach(function(r){
-    var orderColor=r.vialsNeeded>0?'var(--p2)':'var(--p1)';
-    var orderText=r.vialsNeeded>0?r.vialsNeeded+'×':'✓';
-    h+='<div class="sl-row">';
-    h+='<div><div class="sl-name">'+r.name+'</div>';
-    if(r.vialsNeeded>0&&r.vialMg) h+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+r.vialMg+'mg vials</div>';
-    h+='</div>';
-    h+='<div class="sl-num" style="color:var(--dim)">'+r.needed+'mg</div>';
-    h+='<div class="sl-num" style="color:var(--dim)">'+r.stock+'mg</div>';
-    h+='<div class="sl-order" style="color:'+orderColor+'">'+orderText+'</div>';
-    h+='</div>';
+  // Split and sort alphabetically within each group
+  var needToOrder=[],sufficient=[];
+  Object.keys(needMap).sort().forEach(function(name){
+    (needMap[name].stock<needMap[name].needed?needToOrder:sufficient).push(name);
   });
+
+  var allRows=needToOrder.concat(sufficient);
+  if(!allRows.length){wrap.innerHTML='';return;}
+
+  var h='';
+
+  // Section header
+  h+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">';
+  h+='<span>Protocol Shopping List</span>';
+  if(needToOrder.length)
+    h+='<span style="background:var(--p5d);color:var(--p5);border:1px solid var(--p5);border-radius:3px;padding:1px 7px">'+needToOrder.length+' to order</span>';
+  else
+    h+='<span style="background:var(--p1d);color:var(--p1);border:1px solid var(--p1);border-radius:3px;padding:1px 7px">\u2713 Stocked</span>';
   h+='</div>';
 
+  // Table
+  h+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:12px">';
+
+  // Column headers
+  h+='<div style="display:grid;grid-template-columns:1fr 52px 52px 52px;gap:4px;padding:6px 14px;border-bottom:1px solid var(--bd)">';
+  h+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)">Compound</div>';
+  h+='<div style="font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--dim);text-align:right">Need</div>';
+  h+='<div style="font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--dim);text-align:right">Have</div>';
+  h+='<div style="font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--dim);text-align:right">Order</div>';
+  h+='</div>';
+
+  allRows.forEach(function(name,i){
+    var r=needMap[name];
+    var needOrder=r.stock<r.needed;
+    var gap=Math.max(0,r.needed-r.stock);
+    var vn=r.vialMg>0?Math.ceil(gap/r.vialMg):0;
+    var rowColor=needOrder?'var(--p5)':'var(--p1)';
+    var orderText=needOrder?(vn>0?vn+'\u00d7':'\u26a0'):'\u2713';
+
+    h+='<div style="display:grid;grid-template-columns:1fr 52px 52px 52px;gap:4px;align-items:center;padding:10px 14px;'+(i>0?'border-top:1px solid var(--bd)':'')+'">';
+    // Name + vial size
+    h+='<div>';
+    h+='<div style="font-family:var(--sans);font-size:13px;color:var(--text)">'+name+'</div>';
+    if(needOrder&&r.vialMg) h+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+r.vialMg+'mg vials</div>';
+    h+='</div>';
+    // Need
+    h+='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right">'+Math.round(r.needed*10)/10+'mg</div>';
+    // Have
+    h+='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right">'+Math.round(r.stock*10)/10+'mg</div>';
+    // Order
+    h+='<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+rowColor+';text-align:right">'+orderText+'</div>';
+    h+='</div>';
+
+    // Action row: ordered checkbox + add to stock
+    if(r.pItem){
+      var ordKey='proto_ord_'+r.pItem.id;
+      var ordered=localStorage.getItem(ordKey)==='1';
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:0 14px 10px;'+(i>0?'border-top:none':'')+'">';
+      h+='<span data-oid="'+r.pItem.id+'" onclick="toggleProtoOrderedUI(this)" style="width:20px;height:20px;border-radius:50%;border:2px solid '+(ordered?'var(--p1)':'var(--bd)')+';background:'+(ordered?'var(--p1)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+        +(ordered?'<span style="color:var(--bg);font-size:10px;font-weight:700">\u2713</span>':'')+'</span>';
+      h+='<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+(ordered?'Ordered':'Mark ordered')+'</span>';
+      h+='<button class="btn sm" onclick="openRestock(\''+r.pItem.id+'\')" style="margin-left:auto;font-size:9px;padding:3px 9px;background:var(--p2d);border-color:var(--p2);color:var(--p2)">+ Stock</button>';
+      h+='</div>';
+    }
+  });
+
+  h+='</div>';
   wrap.innerHTML=h;
 }
+
 
 function renderPantry(){
   const grid=document.getElementById('pantryGrid');if(!grid) return;
