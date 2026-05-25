@@ -6087,7 +6087,13 @@ function renderBuild(){
     if(!protocols.length){
       saved.innerHTML='<div class="empty-state"><div class="empty-icon">◑</div><div class="empty-title">No protocols yet</div><div class="empty-sub">Build your first protocol below — choose your compounds, set your doses, and activate it to start logging.</div></div>';
     } else {
-      saved.innerHTML=protocols.filter(function(p){return p&&p.id&&p.status!=='archived';}).map(function(p){
+      saved.innerHTML=protocols.filter(function(p){return p&&p.id&&p.status!=='archived';})
+      .slice().sort(function(a,b){
+        // Sort by start date ascending — no date sorts to end
+        var da=a.startDate?parseLocalDate(a.startDate).getTime():Infinity;
+        var db=b.startDate?parseLocalDate(b.startDate).getTime():Infinity;
+        return da-db;
+      }).map(function(p){
         return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0)?' on-deck':' active'):'')+'">'          +'<div class="spc-top">'
           +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
           +'<div class="spc-dot" style="background:'+(p.color||'var(--mid)')+';flex-shrink:0"></div>'
