@@ -7080,9 +7080,6 @@ function clearBuilderState(){
 function openProtoEditor(id){
   const proto=protocols.find(function(p){return p.id===id;});if(!proto) return;
   editingProtoId=id;
-  // Always navigate to Build tab first so editor is visible
-  var _currentTab=document.querySelector('.tab-btn.active');
-  var _onBuild=_currentTab&&_currentTab.getAttribute('data-tab')==='build';
   function _openEditor(){
     const wrap=document.getElementById('protoEditorWrap');
     const bs=document.getElementById('builderSection');
@@ -7090,11 +7087,19 @@ function openProtoEditor(id){
     if(wrap){wrap.style.display='block';renderProtoEditor(proto);}
     const mainEl=document.getElementById('mainEl');if(mainEl)mainEl.scrollTop=0;
   }
+  // Check if already on Build tab using correct class 'on' and id 'tb-build'
+  var _buildBtn=document.getElementById('tb-build');
+  var _onBuild=_buildBtn&&_buildBtn.classList.contains('on');
   if(_onBuild){
     _openEditor();
   } else {
     nav('build');
-    setTimeout(_openEditor,80);
+    // Use requestAnimationFrame after nav to ensure DOM is ready
+    setTimeout(function(){
+      requestAnimationFrame(function(){
+        requestAnimationFrame(_openEditor);
+      });
+    },50);
   }
 }
 
