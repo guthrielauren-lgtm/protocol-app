@@ -340,10 +340,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .sl-order{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right}
 .spc.active{border-color:var(--p1)}
 .spc.on-deck{border-color:var(--p2);border-style:dashed}
-.spc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.spc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:2px}
-.spc-info{flex:1;min-width:0}
-.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spc-top{margin-bottom:6px}
+.spc-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle;flex-shrink:0}
+.spc-info{width:100%}
+.spc-name{font-family:var(--lora);font-style:normal;font-size:15px;line-height:1.3;overflow-wrap:break-word;word-break:break-word;margin-bottom:2px}
 .spc-meta{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5}
 .spc-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
 .spc-btn{font-family:var(--mono);font-size:9px;padding:5px 10px;border-radius:3px;border:1px solid;cursor:pointer;background:none;-webkit-tap-highlight-color:transparent;transition:all .15s}
@@ -1930,6 +1930,24 @@ let selectedGoals=[];
 let buildScratchMode=false;
 let buildProtocolType='standard';
 var insightsPeriod='30';
+
+// API key cookie helpers — more durable than localStorage on iOS
+function _setApiKeyCookie(key){
+  try{
+    var exp=new Date();exp.setFullYear(exp.getFullYear()+1);
+    document.cookie='rp_api_key='+encodeURIComponent(key)+';expires='+exp.toUTCString()+';path=/;SameSite=Strict';
+  }catch(e){console.warn('Cookie write failed:',e);}
+}
+function _getApiKeyCookie(){
+  try{
+    var match=document.cookie.match(/(?:^|;\s*)rp_api_key=([^;]*)/);
+    return match?decodeURIComponent(match[1]):null;
+  }catch(e){return null;}
+}
+function _clearApiKeyCookie(){
+  try{document.cookie='rp_api_key=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';}catch(e){}
+}
+
 let selectedTemplateId=null;
 let tcScrolled=false;
 let isPro=false;
@@ -2207,7 +2225,7 @@ function nav(tab){
 function activateProtocol(id){
   var _p=protocols.find(function(p){return p.id===id;});
   // If protocol hasn't started yet and is already active, block pause — it's On Deck
-  if(_p&&_p.startDate&&new Date(_p.startDate)>new Date()&&activeProtoIds.indexOf(id)>-1){
+  if(_p&&_p.startDate&&parseLocalDate(_p.startDate).getTime()>new Date().setHours(0,0,0,0)&&activeProtoIds.indexOf(id)>-1){
     var _startStr=new Date(_p.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'});
     toast('⏳ On Deck — starts '+_startStr+'. Remove from active protocols in Build tab if needed.');
     return;
@@ -2246,11 +2264,11 @@ function openProtoSwap(){
       <div style="width:9px;height:9px;border-radius:50%;background:${p.color||'var(--mid)'};flex-shrink:0"></div>
       <div style="flex:1">
         <div style="font-family:var(--serif);font-size:15px">${p.name}</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.durationWeeks||'—'} weeks · ${(p.compounds||[]).length} compounds${p.startDate?' · '+(new Date(p.startDate)>new Date()?'⏳ Starts ':'Started ')+fmtDate(p.startDate):''}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${p.durationWeeks||'—'} weeks · ${(p.compounds||[]).length} compounds${p.startDate?' · '+(parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0)?'⏳ Starts ':'Started ')+fmtDate(p.startDate):''}</div>
       </div>
       ${(function(){
         var _inActive=activeProtoIds.indexOf(p.id)>-1;
-        var _isFuture=p.startDate&&new Date(p.startDate)>new Date();
+        var _isFuture=p.startDate&&parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0);
         if(_inActive&&_isFuture){
           return '<span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;background:var(--sf2);border:1px solid var(--bd);color:var(--dim)">⏳ On Deck</span>';
         } else if(_inActive){
@@ -2639,7 +2657,8 @@ function renderProtoHeader(){
   var html='';
 
   showInline.forEach(function(proto){
-    var isFuture=proto.startDate&&new Date(proto.startDate)>new Date();
+    var _sd3=proto.startDate?proto.startDate.split('-'):null;
+    var isFuture=_sd3&&new Date(_sd3[0],_sd3[1]-1,_sd3[2]).getTime()>new Date().setHours(0,0,0,0);
     var weekStr='';
     if(proto.startDate&&proto.durationWeeks){
       if(isFuture){
@@ -2975,7 +2994,9 @@ function renderFutureCompounds(){
     proto.compounds.forEach(function(c){
       if(!c||!c.name) return;
       // Show week-1 compounds as future if protocol itself hasn't started
-      var protoNotStarted=proto.startDate&&new Date(proto.startDate).getTime()>Date.now();
+      var _psd=proto.startDate?proto.startDate.split('-'):null;
+    var _psDate=_psd?new Date(_psd[0],_psd[1]-1,_psd[2]):null;
+    var protoNotStarted=_psDate&&_psDate.getTime()>new Date().setHours(0,0,0,0);
       if(!protoNotStarted&&(!c.introWeek||c.introWeek===1)) return;
       var status=getCompoundActiveStatus(proto,c);
       if(status.status==='future'){
@@ -3381,6 +3402,11 @@ function _executeLog(name,uid){
   persist(KEYS.doseMem,doseMem);
   logs.unshift(entry);persist(KEYS.logs,logs);
   deductStock(name,dose);
+  // Refresh shopping list if pantry tab is visible
+  if(typeof renderShoppingList==='function'){
+    var _slw=document.getElementById('shoppingListWrap');
+    if(_slw&&_slw.offsetParent!==null) renderShoppingList();
+  }
   // If this is a blend, propagate cycle end date to component pantry items
   var _proto=getActiveProtocol();
   if(_proto&&_proto.startDate&&_proto.durationWeeks){
@@ -3445,6 +3471,11 @@ function addCompoundTodayOnly(){
   persist(KEYS.doseMem,doseMem);
   logs.unshift(entry);persist(KEYS.logs,logs);
   deductStock(name,dose);
+  // Refresh shopping list if pantry tab is visible
+  if(typeof renderShoppingList==='function'){
+    var _slw=document.getElementById('shoppingListWrap');
+    if(_slw&&_slw.offsetParent!==null) renderShoppingList();
+  }
   toast(name+' logged for today ✓');
   closeModal('addTodayModal');
   renderChecklist();
@@ -3558,10 +3589,12 @@ function getCompoundActiveStatus(proto,compound){
   if(!proto||!proto.startDate||!compound) return {status:'unknown'};
   var introWeek=compound.introWeek||1;
   var duration=compound.compoundDurationWeeks||proto.durationWeeks||12;
-  var protoStart=new Date(proto.startDate);
+  var protoStart=parseLocalDate(proto.startDate);
   var compStart=new Date(protoStart.getTime()+(introWeek-1)*7*86400000);
   var compEnd=new Date(protoStart.getTime()+(introWeek-1+duration)*7*86400000);
-  var now=Date.now();
+  // Use local midnight to avoid UTC timezone off-by-one
+  var _now=new Date();_now.setHours(0,0,0,0);var now=_now.getTime();
+  compStart.setHours(0,0,0,0);compEnd.setHours(0,0,0,0);
   var status;
   if(now<compStart.getTime()) status='future';
   else if(now>=compEnd.getTime()) status='completed';
@@ -4953,6 +4986,11 @@ function deductStock(name,doseStr){
     if(newOpen>0&&newOpen<item.vialMg){item.openVialMg=parseFloat(newOpen.toFixed(3));item.vials=Math.max(0,parseFloat((item.vials-1).toFixed(3)));}
   }
   persist(KEYS.pantry,pantry);
+  // Refresh shopping list if pantry tab is visible
+  if(typeof renderShoppingList==='function'){
+    var _pw=document.getElementById('shoppingListWrap');
+    if(_pw&&_pw.offsetParent!==null) renderShoppingList();
+  }
 }
 
 var pantrySort='az';
@@ -5138,6 +5176,7 @@ function toggleOrderedUI(el){
   var row=el.closest('[style*="display:flex"]');if(row) row.style.opacity=checked?'0.45':'1';
 }
 function toggleProtoOrderedUI(el){
+  // Shopping list will re-render automatically via the ordered key
   var id=el.dataset.oid;
   var checked=localStorage.getItem('proto_ord_'+id)!=='1';
   localStorage.setItem('proto_ord_'+id,checked?'1':'0');
@@ -6038,6 +6077,7 @@ function saveRestock(){
   const unit=unitMap[item.form]||'units';
   closeModal('restockModal');toast('Restocked +'+adding+' '+unit+' of '+item.name+' ✓');
   renderPantry();renderChecklist();
+  // Shopping list already refreshed via renderPantry -> renderShoppingList chain
 }
 
 // ════════════ BUILD ════════════
@@ -6048,20 +6088,25 @@ function renderBuild(){
       saved.innerHTML='<div class="empty-state"><div class="empty-icon">◑</div><div class="empty-title">No protocols yet</div><div class="empty-sub">Build your first protocol below — choose your compounds, set your doses, and activate it to start logging.</div></div>';
     } else {
       saved.innerHTML=protocols.filter(function(p){return p&&p.id&&p.status!=='archived';}).map(function(p){
-        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&new Date(p.startDate)>new Date()?' on-deck':' active'):'')+'">'          +'<div class="spc-top"><div class="spc-dot" style="background:'+(p.color||'var(--mid)')+'"></div>'
-          +'<div class="spc-info"><div class="spc-name" title="'+(p.name||'')+'">'
-          +(p.name||'Unnamed Protocol')+'</div>'
+        return'<div class="spc'+(activeProtoIds.indexOf(p.id)>-1?(p.startDate&&parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0)?' on-deck':' active'):'')+'">'          +'<div class="spc-top">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+          +'<div class="spc-dot" style="background:'+(p.color||'var(--mid)')+';flex-shrink:0"></div>'
+          +'<div class="spc-name">'+(p.name||'Unnamed Protocol')+'</div>'
+          +'</div>'
+          +'<div class="spc-info">'
+          +''
           +(function(){
             var _isActive=activeProtoIds.indexOf(p.id)>-1;
-            var _isFuture=p.startDate&&new Date(p.startDate)>new Date();
-            var _endMs=p.startDate&&p.durationWeeks?new Date(p.startDate).getTime()+p.durationWeeks*7*86400000:null;
-            var _isDone=_endMs&&Date.now()>_endMs&&p.status!=='archived';
+            var _isFuture=p.startDate&&parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0);
+            var _endMs=p.startDate&&p.durationWeeks?parseLocalDate(p.startDate).getTime()+p.durationWeeks*7*86400000:null;
+            var _nowLocal=new Date();_nowLocal.setHours(0,0,0,0);
+            var _isDone=_endMs&&_nowLocal.getTime()>_endMs&&p.status!=='archived';
             var _statusTag=_isDone?' · <span style="color:var(--p1)">✓ Complete</span>':_isActive?(_isFuture?' · <span style="color:var(--p2)">⏳ On Deck</span>':' · <span style="color:var(--p1)">✓ Active</span>'):'';
             return '<div class="spc-meta">'+(p.durationWeeks||'—')+' wk · '+((p.compounds||[]).length)+' compounds'+(p.startDate?' · '+fmtDate(p.startDate):'')+_statusTag+'</div></div>';
           }())
           +'<div class="spc-actions" style="border-top:1px solid var(--bd);padding-top:8px">'
           +'<button class="spc-btn edit-btn" onclick="openProtoEditor(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Edit':'View')+'</button>'
-          +(activeProtoIds.indexOf(p.id)>-1&&p.startDate&&new Date(p.startDate)>new Date()
+          +(activeProtoIds.indexOf(p.id)>-1&&p.startDate&&parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0)
             ?'' // On Deck — no button, meta line already shows it
             :'<button class="spc-btn activate-btn'+(activeProtoIds.indexOf(p.id)>-1?' is-active':'')+'" onclick="activateProtocol(\''+p.id+'\')">'+(activeProtoIds.indexOf(p.id)>-1?'Pause':'Activate')+'</button>')
           +'<button class="spc-btn dup-btn" onclick="dupProtocol(\''+p.id+'\')">Copy</button>'
@@ -6830,12 +6875,26 @@ function openAddToNewProtocol(keepTab){
   if(!keepTab){switchAddToProtoTab('pantry');return;}
   const list=document.getElementById('addToProtoList');
   const inProto=new Set(buildCompounds.filter(function(c){return c.selected;}).map(function(c){return c.name;}));
-  list.innerHTML=pantry.map(function(p){
-    return'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
-      +'<div style="width:8px;height:8px;border-radius:50%;background:'+(p.color||'var(--mid)')+';flex-shrink:0"></div>'
-      +'<div style="flex:1;font-family:var(--serif);font-size:14px">'+p.name+'</div>'
-      +(inProto.has(p.name)?'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">✓ Added</span>'
-        :'<button onclick="addCompoundToNewProto(\''+p.name+'\')" style="font-family:var(--mono);font-size:9px;padding:5px 10px;background:var(--p1d);border:1px solid var(--p1);border-radius:3px;color:var(--p1);cursor:pointer">Add</button>')
+  var validPantryNew=pantry.filter(function(p){return p&&p.name&&typeof p.name==='string';})
+    .slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+  if(!validPantryNew.length){
+    list.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:20px;text-align:center">Your pantry is empty.<br>Use the Library tab to browse compounds.</div>';
+    openModal('addToProtoModal');
+    return;
+  }
+  list.innerHTML=validPantryNew.map(function(p){
+    var dbItem=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===p.name;});
+    var dot=dbItem&&CAT_COLORS[dbItem.cat||dbItem.category]?CAT_COLORS[dbItem.cat||dbItem.category]:'var(--mid)';
+    var safeName=p.name.replace(/'/g,'’');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
+      +'<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+p.name+'</div>'
+      +(p.dose?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px">'+p.dose+(p.form?' · '+p.form:'')+'</div>':'')
+      +'</div>'
+      +(inProto.has(p.name)
+        ?'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">✓ Added</span>'
+        :'<button onclick="addCompoundToNewProto(\''+safeName+'\')" style="font-family:var(--mono);font-size:9px;padding:5px 10px;background:var(--p1d);border:1px solid var(--p1);border-radius:3px;color:var(--p1);cursor:pointer">Add</button>')
       +'</div>';
   }).join('');
   openModal('addToProtoModal');
@@ -7021,11 +7080,22 @@ function clearBuilderState(){
 function openProtoEditor(id){
   const proto=protocols.find(function(p){return p.id===id;});if(!proto) return;
   editingProtoId=id;
-  const wrap=document.getElementById('protoEditorWrap');
-  const bs=document.getElementById('builderSection');
-  if(bs) bs.style.display='none';
-  if(wrap){wrap.style.display='block';renderProtoEditor(proto);}
-  const mainEl=document.getElementById('mainEl');if(mainEl)mainEl.scrollTop=0;
+  // Always navigate to Build tab first so editor is visible
+  var _currentTab=document.querySelector('.tab-btn.active');
+  var _onBuild=_currentTab&&_currentTab.getAttribute('data-tab')==='build';
+  function _openEditor(){
+    const wrap=document.getElementById('protoEditorWrap');
+    const bs=document.getElementById('builderSection');
+    if(bs) bs.style.display='none';
+    if(wrap){wrap.style.display='block';renderProtoEditor(proto);}
+    const mainEl=document.getElementById('mainEl');if(mainEl)mainEl.scrollTop=0;
+  }
+  if(_onBuild){
+    _openEditor();
+  } else {
+    nav('build');
+    setTimeout(_openEditor,80);
+  }
 }
 
 function renderProtoEditor(proto){
@@ -7222,12 +7292,27 @@ function openAddCompoundToEditor(protoId,keepTab){
   const proto=protocols.find(function(p){return p.id===protoId;});if(!proto) return;
   const inProto=new Set((proto.compounds||[]).map(function(c){return c.name;}));
   const list=document.getElementById('addToProtoList');
-  list.innerHTML=pantry.map(function(p){
-    return'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
-      +'<div style="width:8px;height:8px;border-radius:50%;background:'+(p.color||'var(--mid)')+';flex-shrink:0"></div>'
-      +'<div style="flex:1;font-family:var(--serif);font-size:14px">'+p.name+'</div>'
-      +(inProto.has(p.name)?'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">✓ In Protocol</span>'
-        :'<button onclick="addCompoundToEditor(\''+protoId+'\',\''+p.name+'\')" style="font-family:var(--mono);font-size:9px;padding:5px 10px;background:var(--p1d);border:1px solid var(--p1);border-radius:3px;color:var(--p1);cursor:pointer">Add</button>')
+  // Filter valid pantry items, sort alpha, look up color from COMPOUND_DB
+  var validPantry=pantry.filter(function(p){return p&&p.name&&typeof p.name==='string';})
+    .slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+  if(!validPantry.length){
+    list.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:20px;text-align:center">Your pantry is empty.<br>Use the Library tab to add compounds.</div>';
+    openModal('addToProtoModal');
+    return;
+  }
+  list.innerHTML=validPantry.map(function(p){
+    var dbItem=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===p.name;});
+    var dot=dbItem&&CAT_COLORS[dbItem.cat||dbItem.category]?CAT_COLORS[dbItem.cat||dbItem.category]:'var(--mid)';
+    var safeName=p.name.replace(/'/g,'\u2019');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
+      +'<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+p.name+'</div>'
+      +(p.dose?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px">'+p.dose+(p.form?' · '+p.form:'')+'</div>':'')
+      +'</div>'
+      +(inProto.has(p.name)
+        ?'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">✓ In Protocol</span>'
+        :'<button onclick="addCompoundToEditor(\''+protoId+'\',\''+safeName+'\')" style="font-family:var(--mono);font-size:9px;padding:5px 10px;background:var(--p1d);border:1px solid var(--p1);border-radius:3px;color:var(--p1);cursor:pointer">Add</button>')
       +'</div>';
   }).join('');
   openModal('addToProtoModal');
@@ -7478,7 +7563,10 @@ function importData(input){
       if(b.healthSync){healthSync=b.healthSync;await persist(KEYS.healthSync,healthSync);}
       if(b.ouraData){ouraData=b.ouraData;await persist(KEYS.oura,ouraData);}
       if(b.clinicalNotes){localStorage.setItem('pt_clinical_notes',b.clinicalNotes);}
-      if(b.anthropicKey){localStorage.setItem('rp_anthropic_key',b.anthropicKey);}
+      if(b.anthropicKey){
+        localStorage.setItem('rp_anthropic_key',b.anthropicKey);
+        _setApiKeyCookie(b.anthropicKey); // keep cookie in sync
+      }
       if(b.displayPrefs){localStorage.setItem('pt_display_prefs',b.displayPrefs);}
       if(b.pantryFilters){localStorage.setItem('pt_pantry_filters',b.pantryFilters);}
       if(b.theme){localStorage.setItem('pt_theme',b.theme);}
@@ -7533,6 +7621,17 @@ function finishInit(){
   // Restore clinical notes if missing
   if(!localStorage.getItem('pt_clinical_notes')){
     localStorage.setItem('pt_clinical_notes','eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist.');
+  }
+  // Restore API key from cookie if localStorage was cleared by iOS
+  if(!localStorage.getItem('rp_anthropic_key')){
+    var _cookieKey=_getApiKeyCookie();
+    if(_cookieKey){
+      localStorage.setItem('rp_anthropic_key',_cookieKey);
+      console.log('API key restored from cookie');
+    }
+  } else {
+    // Keep cookie in sync with localStorage
+    _setApiKeyCookie(localStorage.getItem('rp_anthropic_key'));
   }
   // Normalize COMPOUND_DB — filter out any entries without a name property
   // This permanently fixes the 'd.name' class of errors from mixed-format entries
@@ -9531,6 +9630,7 @@ function saveApexApiKey(){
     return;
   }
   localStorage.setItem('rp_anthropic_key',key);
+  _setApiKeyCookie(key); // dual-store for iOS durability
   document.getElementById('apexApiKeyInput').value='';
   updateApexKeyUI();
   toast('API key saved ✓');
@@ -9582,7 +9682,8 @@ function checkProtocolCompletion(){
   for(var i=0;i<activeProtoIds.length;i++){
     var _p=protocols.find(function(x){return x.id===activeProtoIds[i];});
     if(!_p||!_p.startDate||!_p.durationWeeks||_p.status==='archived') continue;
-    var endDate=new Date(_p.startDate);endDate.setDate(endDate.getDate()+_p.durationWeeks*7);endDate.setHours(0,0,0,0);
+    // Parse start date in local time to avoid UTC off-by-one
+    var _sd=_p.startDate.split('-');var endDate=new Date(_sd[0],_sd[1]-1,parseInt(_sd[2])+_p.durationWeeks*7);endDate.setHours(0,0,0,0);
     if(now>=endDate&&!localStorage.getItem('pt_completion_shown_'+_p.id)){
       _completionProtoId=_p.id;
       setTimeout(function(){triggerCompletionFlow();},800);
