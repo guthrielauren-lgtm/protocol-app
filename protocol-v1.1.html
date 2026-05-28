@@ -794,7 +794,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="bc-strip-clickable" id="bcStripToggle" onclick="toggleBCEntry()" style="position:relative">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:5px 0 2px;pointer-events:none" id="stripHint">Tap to log · tap again to close</div>
       <div class="stats-band" id="todayStrip">
-        <div class="stat-cell" id="strip-weight"><div class="stat-lbl">Weight</div><div class="stat-num" id="tsWeight">—</div><div class="stat-sub neu" id="tsWeightD">lbs</div></div>
+        <div class="stat-cell" id="strip-weight"><div class="stat-lbl">Weight<span id="weightLoggedBadge" style="display:none;width:6px;height:6px;border-radius:50%;background:var(--p1);display:inline-block;margin-left:4px;vertical-align:middle"></span></div><div class="stat-num" id="tsWeight">—</div><div class="stat-sub neu" id="tsWeightD">lbs</div></div>
         <div class="stat-cell" id="strip-fat"><div class="stat-lbl">Fat %<span id="tsFatSrc" style="font-size:8px;color:var(--p3);margin-left:3px"></span></div><div class="stat-num" id="tsFat">—</div><div class="stat-sub" id="tsFatD">—</div></div>
         <div class="stat-cell" id="strip-muscle"><div class="stat-lbl">Muscle</div><div class="stat-num" id="tsMuscle">—</div><div class="stat-sub" id="tsMuscleD">lbs</div></div>
         <div class="stat-cell" id="strip-water"><div class="stat-lbl">Water</div><div class="stat-num" id="tsWater">—</div><div class="stat-sub" id="tsWaterD">%</div></div>
@@ -2801,7 +2801,7 @@ function checkDailyCompletion(){
   activeProtos.forEach(function(proto){
     (proto.compounds||[]).forEach(function(c){
       if(!c||!c.name||!isCompoundDueToday(c,proto)) return;
-      if(!isLoggedToday(c.name)) allOk=false;
+      if(!isLoggedToday(c.name)&&!isSkippedToday(c.name)) allOk=false;
     });
   });
   if(!allOk) return;
@@ -2862,6 +2862,10 @@ function renderBodyStrip(){
   // Show +Log CTA always
   var ctaCell=document.getElementById('strip-log-cta');
   if(ctaCell) ctaCell.style.display='flex';
+  // Weight logged today badge
+  var _wBadge=document.getElementById('weightLoggedBadge');
+  var _weightLoggedToday=bodyLogs.some(function(b){return b.date===today()&&b.weight!=null;});
+  if(_wBadge) _wBadge.style.display=_weightLoggedToday?'inline-block':'none';
   // Weight-only mode via CSS class
   var strip=document.getElementById('todayStrip');
   if(strip) strip.classList.remove('weight-only');
@@ -3870,6 +3874,7 @@ function saveCheckin(){
   const cn=document.getElementById('ciNotes');if(cn)cn.value='';
   document.querySelectorAll('#ciSideChips .chip').forEach(function(c){c.classList.remove('on');});
   renderCheckinState(); // auto-collapses via checkinOpen=false when done
+  setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},300);
 }
 
 // ════════════ HISTORY ════════════
@@ -4410,6 +4415,7 @@ function saveBodyComp(){
   var inlineForm=document.getElementById('bcInlineEntry');
   if(inlineForm) inlineForm.classList.remove('open');
   clearBC();renderBodyComp();renderBodyStrip();
+  setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},300);
 }
 function clearBC(){
   ['bcMuscle','bcFat','bcBone','bcWater','bcNotes',
