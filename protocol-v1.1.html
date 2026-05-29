@@ -2605,7 +2605,10 @@ function buildInsightsReviewCard(proto){
   if(!proto) return html+'<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Activate a protocol to unlock AI coach reports.</div></div>';
   var protoStart=proto.startDate?new Date(proto.startDate):null;
   var totalWeeks=proto.durationWeeks||12;
-  var currentPct=protoStart?Math.min(1,(new Date()-protoStart)/(totalWeeks*7*86400000)):0;
+  var _now=new Date();_now.setHours(0,0,0,0);
+  // For completed/archived protocols, treat as 100% reached
+  var _isCompleted=(proto.status==='archived')||(_completionProtoId&&proto.id===_completionProtoId);
+  var currentPct=_isCompleted?1.0:(protoStart?Math.min(1,(_now-protoStart)/(totalWeeks*7*86400000)):0);
   var milestones=[{pct:0.25,label:'25%',desc:'First quarter check-in'},{pct:0.5,label:'50%',desc:'Midpoint deep dive'},{pct:0.75,label:'75%',desc:'Final stretch analysis'},{pct:1.0,label:'100%',desc:'Full protocol review'}];
   html+='<div style="display:flex;flex-direction:column;gap:8px">';
   milestones.forEach(function(m){
@@ -8467,7 +8470,10 @@ async function runProtocolReview(key,detailId,btnId){
   if(!btn||!detail) return;
   btn.textContent='Analyzing\u2026';btn.disabled=true;
   try{
-    var proto=getActiveProtocol();
+    // Use selectedInsightsProtoId if set (e.g. end-of-protocol flow), else active protocol
+    var proto=selectedInsightsProtoId
+      ?protocols.find(function(p){return p.id===selectedInsightsProtoId;})||getActiveProtocol()
+      :getActiveProtocol();
     if(!proto) throw new Error('No active protocol found.');
     var profile=userProfile||{};
     var now=new Date();
@@ -10076,9 +10082,13 @@ function launchCompletionApex(){
   setTimeout(function(){
     renderInsights();
     setTimeout(function(){
-      var b=document.getElementById('apexReportBtn');
-      if(b) b.click();
-    },300);
+      // Click the 100% milestone APEX button
+      var b=document.getElementById('reviewBtn100');
+      if(b){
+        b.scrollIntoView({behavior:'smooth',block:'center'});
+        b.click();
+      }
+    },400);
   },150);
 }
 
