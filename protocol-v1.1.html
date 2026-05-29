@@ -8464,16 +8464,16 @@ function goToProUpgrade(){
   },300);
 }
 
-async function runProtocolReview(key,detailId,btnId){
+async function runProtocolReview(key,detailId,btnId,explicitProtoId){
   var btn=document.getElementById(btnId||'reviewExpandBtn');
   var detail=document.getElementById(detailId||'reviewDetail');
   if(!btn||!detail) return;
   btn.textContent='Analyzing\u2026';btn.disabled=true;
   try{
-    // Use selectedInsightsProtoId if set (e.g. end-of-protocol flow), else active protocol
-    var proto=selectedInsightsProtoId
-      ?protocols.find(function(p){return p.id===selectedInsightsProtoId;})||getActiveProtocol()
-      :getActiveProtocol();
+    // Priority: explicit protoId > selectedInsightsProtoId > active protocol
+    var proto=(explicitProtoId?protocols.find(function(p){return p.id===explicitProtoId;}):null)
+      ||(selectedInsightsProtoId?protocols.find(function(p){return p.id===selectedInsightsProtoId;}):null)
+      ||getActiveProtocol();
     if(!proto) throw new Error('No active protocol found.');
     var profile=userProfile||{};
     var now=new Date();
@@ -10075,21 +10075,26 @@ function showCompletionCongrats(){
 }
 
 function launchCompletionApex(){
+  var _protoId=_completionProtoId; // capture before any modal/state changes
+  if(!_protoId){console.warn('launchCompletionApex: no _completionProtoId');return;}
   closeModal('completionCongratModal');
-  // Lock Insights to completed protocol before navigating
-  if(_completionProtoId) selectedInsightsProtoId=_completionProtoId;
-  nav('insights');
+  selectedInsightsProtoId=_protoId;
+  nav('insights'); // calls renderInsights() with correct proto
   setTimeout(function(){
-    renderInsights();
-    setTimeout(function(){
-      // Click the 100% milestone APEX button
-      var b=document.getElementById('reviewBtn100');
-      if(b){
-        b.scrollIntoView({behavior:'smooth',block:'center'});
-        b.click();
-      }
-    },400);
-  },150);
+    // Find the 100% report key for this specific protocol
+    var _key='pt_review_'+_protoId+'_100';
+    var _detId='reviewDetail100';
+    var _btnId='reviewBtn100';
+    var _btn=document.getElementById(_btnId);
+    if(_btn){
+      _btn.scrollIntoView({behavior:'smooth',block:'center'});
+      // Call directly with explicit protoId — no global state dependency
+      runProtocolReview(_key,_detId,_btnId,_protoId);
+    } else {
+      // Button not in DOM yet — run report directly
+      runProtocolReview(_key,_detId,'reviewExpandBtn',_protoId);
+    }
+  },600);
 }
 
 function archiveCompletedProtocol(){
