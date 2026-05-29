@@ -2902,7 +2902,18 @@ function renderBodyStrip(){
     } else if(fatDEl){fatDEl.textContent='%';fatDEl.className='stat-sub';}
   }
   const wEl=document.getElementById('tsWater');
+  const wDEl=document.getElementById('tsWaterD');
   if(wEl) wEl.textContent=last&&last.waterPct!=null?last.waterPct+'%':'—';
+  if(wDEl&&last&&last.waterPct!=null){
+    var _wYd=new Date();_wYd.setDate(_wYd.getDate()-1);
+    var _wYdStr=_wYd.toISOString().slice(0,10);
+    var _wYEntry=bodyLogs.find(function(b){return b.date===_wYdStr&&b.waterPct!=null&&b.source!=='dexa';});
+    if(_wYEntry){
+      var _wD=Math.round((last.waterPct-_wYEntry.waterPct)*10)/10;
+      wDEl.textContent=(_wD>=0?'+':'')+_wD+'% vs yesterday';
+      wDEl.className='stat-sub '+(_wD>0?'up':_wD<0?'dn':'neu');
+    } else { wDEl.textContent='%'; wDEl.className='stat-sub neu'; }
+  }
   const boneEl=document.getElementById('tsBone');
   if(boneEl) boneEl.textContent=last&&last.bone!=null?last.bone:'—';
 }
@@ -8532,20 +8543,35 @@ async function runProtocolReview(key,detailId,btnId){
     });
 
     // ── Build system prompt ──────────────────────────────────────────────────
-    var system='You are APEX, an AI coaching intelligence built into Protocol Pro. '
-      +'Write an encouraging, honest, occasionally witty coach note. '
-      +'Use ONLY the provided data. Never assume. Never make generic claims. '
-      +'If a section has no data, say so briefly with a light touch. '
-      +'When data is strong, celebrate it. When it needs work, be direct but warm. '
-      +'If Apple Health or Function Health data is included, reference specific numbers and trends from it. '
-      +'CRITICAL: Your entire response must be a single valid JSON object. No text before or after. No markdown. No backticks. Start your response with { and end with }. '
-      +'Required keys and value types (all strings): '
-      +'whats_working (encouraging paragraph), '
-      +'needs_attention (honest constructive paragraph), '
-      +'id_adjust (specific actionable paragraph), '
-      +'watch_for (forward-looking paragraph), '
-      +'realistic_outlook (one energizing sentence), '
-      +'questions_for_doctor (3-5 numbered questions as a single string, each on its own line starting with 1. 2. 3. etc, grounded in actual values from the data).';
+    var _isCompletionReport=!!(proto&&_completionProtoId&&proto.id===_completionProtoId);
+    var system='You are APEX, an elite AI coaching intelligence embedded in Protocol Pro. '
+      +'You have the client\'s full protocol stack, biometrics, labs, and compliance data. '
+      +'Be direct, warm, data-grounded, occasionally witty. Reference specific numbers always. '
+      +'BODY COMPOSITION RULES: '
+      +'(1) Withings daily scale = primary trend signal. '
+      +'(2) DEXA = historical baseline only — do NOT give it extra weight unless two DEXA scans exist within the same protocol timeline. '
+      +'(3) When both exist, explicitly describe the relationship between Withings trend and DEXA baseline. '
+      +'(4) Always state explicit before/after numbers: "Metric: X → Y over N weeks". '
+      +(_isCompletionReport
+        ?'This is an END-OF-PROTOCOL report. Priority: trajectory analysis, explicit deltas, transition readiness, and washout guidance if applicable. '
+        +'Focus on what changed, what the data suggests for next steps, and any labs to rerun before starting new protocols. '
+        :'This is a MILESTONE check-in report. Focus on progress, compliance, and adjustments. ')
+      +'CRITICAL: Entire response = single valid JSON object. No text before or after. No markdown. No backticks. Start { end }. '
+      +'Required keys (all strings, 2-4 sentences each): '
+      +'protocol_stack_summary (all active protocols, how they interact), '
+      +'whats_working (specific wins with actual numbers), '
+      +'needs_attention (honest, direct, constructive), '
+      +'compound_safety_flags (lab/compound intersections — say all clear explicitly if clean), '
+      +'id_adjust (specific actionable recommendations), '
+      +'watch_for (forward-looking flags before next check-in), '
+      +'realistic_outlook (one grounded energizing sentence), '
+      +(_isCompletionReport
+        ?'protocol_results (explicit before/after for every tracked metric: weight, fat%, lean mass, water%, visceral fat if available — format: "Metric: X → Y (±Z) over N weeks"), '
+         +'transition_guidance (reference specific On Deck protocols by name and compounds — what to expect, how each builds on this protocol), '
+         +'washout_guidance (if cycling off peptides/GLP-1s: what to expect physically, what to monitor, when to retest labs — include eGFR, hormones, glucose), '
+        :'')
+      +'next_milestone (what to collect before next check-in, 1-2 sentences), '
+      +'questions_for_doctor (4-6 numbered questions grounded in actual lab values and compounds — not generic).';
 
     // ── Build user prompt ────────────────────────────────────────────────────
     var clinicalNotes=localStorage.getItem('pt_clinical_notes')||'';
@@ -8568,26 +8594,57 @@ async function runProtocolReview(key,detailId,btnId){
           +' — compliance: '+complianceByCompound[c.name]+'%';
       }).join('\n')+'\n'
       +'Overall adherence: '+adherence+'%\n'
-      +'\nBODY COMPOSITION\n'
-      +(baseline&&latest&&wtDelta!==null
-        ?'Weight: '+baseline.weight+'lbs at start \u2192 '+latest.weight+'lbs now ('+
-          (wtDelta>=0?'+':'')+wtDelta+'lbs over '+weeksElapsed+' weeks)\n'
-        :'Weight data: not available\n')
+      +'\n=== BODY COMPOSITION ===\n'
+      +'[Withings = primary trend | DEXA = historical baseline only unless 2 scans in protocol timeline]\n'
       +(function(){
-        var allBC=[...bodyLogs].sort(function(a,b){return a.date>b.date?1:-1;});
-        var withingsLogs=allBC.filter(function(b){return b.source!=='dexa'&&b.fatPct!=null;});
-        var s='';
-        if(withingsLogs.length>=2){
-          var wFirst=withingsLogs[0],wLast=withingsLogs[withingsLogs.length-1];
-          var wFatDelta=Math.round((wLast.fatPct-wFirst.fatPct)*10)/10;
-          s+='Withings body fat: '+wFirst.fatPct+'% \u2192 '+wLast.fatPct+'%'+(wFatDelta!==0?' ('+(wFatDelta>0?'+':'')+wFatDelta+'%)':'')+'\n';
-          if(wLast.muscle) s+='Lean mass (latest): '+wLast.muscle+'lbs\n';
+        var allBC=[...bodyLogs].sort(function(a,b){return a.date<b.date?-1:1;});
+        var wLogs=allBC.filter(function(b){return b.source!=='dexa'&&b.weight!=null;});
+        var fLogs=allBC.filter(function(b){return b.source!=='dexa'&&b.fatPct!=null;});
+        var mLogs=allBC.filter(function(b){return b.source!=='dexa'&&(b.muscle||b.lean)!=null;});
+        var watLogs=allBC.filter(function(b){return b.source!=='dexa'&&b.waterPct!=null;});
+        // Find protocol-start baseline
+        var pStart=proto&&proto.startDate?parseLocalDate(proto.startDate):null;
+        var baseW=null;
+        if(pStart&&wLogs.length){
+          var sorted=[...wLogs].sort(function(a,b){return Math.abs(new Date(a.date)-pStart)-Math.abs(new Date(b.date)-pStart);});
+          if(Math.abs(new Date(sorted[0].date)-pStart)<14*86400000) baseW=sorted[0];
         }
-        if(dexaLogs.length>0){
-          s+='DEXA body fat: '+dexaLogs[0].fatPct+'% \u2192 '+dexaLogs[dexaLogs.length-1].fatPct+'%'+(fatDelta!==null?' ('+(fatDelta>0?'+':'')+fatDelta+'%)':'')+'\n';
-          s+='DEXA scans: '+dexaLogs.length+' total ('+dexaLogs[0].date+' to '+dexaLogs[dexaLogs.length-1].date+')\n';
+        var wkCount=proto&&proto.durationWeeks?proto.durationWeeks:weeksElapsed;
+        var s='WITHINGS (primary trend, '+wLogs.length+' readings)\n';
+        if(wLogs.length){
+          var w0=baseW||wLogs[0],wN=wLogs[wLogs.length-1];
+          if(w0.weight&&wN.weight){var d=Math.round((wN.weight-w0.weight)*10)/10;s+='  Weight: '+w0.weight+'lbs \u2192 '+wN.weight+'lbs ('+(d>=0?'+':'')+d+'lbs over '+wkCount+' weeks)\n';}
         }
-        return s||'Body composition data: not available\n';
+        if(fLogs.length>=2){
+          var f0=baseW&&baseW.fatPct?baseW:fLogs[0],fN=fLogs[fLogs.length-1];
+          if(f0.fatPct!=null&&fN.fatPct!=null){var fd=Math.round((fN.fatPct-f0.fatPct)*10)/10;s+='  Body fat: '+f0.fatPct+'% \u2192 '+fN.fatPct+'% ('+(fd>=0?'+':'')+fd+'% over '+wkCount+' weeks)\n';}
+        }
+        if(mLogs.length>=2){
+          var m0=mLogs[0],mN=mLogs[mLogs.length-1];
+          var mv0=m0.lean||m0.muscle,mvN=mN.lean||mN.muscle;
+          if(mv0&&mvN){var md=Math.round((mvN-mv0)*10)/10;s+='  Lean mass: '+mv0+'lbs \u2192 '+mvN+'lbs ('+(md>=0?'+':'')+md+'lbs)\n';}
+        }
+        if(watLogs.length>=2){
+          var wat0=watLogs[0],watN=watLogs[watLogs.length-1];
+          if(wat0.waterPct&&watN.waterPct){var wd=Math.round((watN.waterPct-wat0.waterPct)*10)/10;s+='  Body water: '+wat0.waterPct+'% \u2192 '+watN.waterPct+'% ('+(wd>=0?'+':'')+wd+'%)\n';}
+        }
+        // DEXA — historical context
+        var dexaInProto=dexaLogs.filter(function(d){return proto&&proto.startDate&&d.date>=proto.startDate;});
+        if(dexaLogs.length){
+          s+='DEXA ('+(dexaInProto.length>=2?'2 scans within protocol — compare directly':'historical baseline only, '+dexaLogs.length+' scan'+(dexaLogs.length>1?'s':''))+')\n';
+          if(dexaInProto.length>=2){
+            var dp0=dexaInProto[0],dpN=dexaInProto[dexaInProto.length-1];
+            s+='  '+dp0.date+'\u2192'+dpN.date+': fat '+dp0.fatPct+'%\u2192'+dpN.fatPct+'% | lean '+(dp0.lean||dp0.muscle)+'\u2192'+(dpN.lean||dpN.muscle)+'lbs\n';
+          } else if(dexaLogs.length){
+            var d0=dexaLogs[0];
+            s+='  Baseline ('+d0.date+'): '+d0.weight+'lbs | '+d0.fatPct+'% fat | '+(d0.lean||d0.muscle)+'lbs lean'+(d0.visceral?' | visceral '+d0.visceral+' cm\u00b3':'')+'\n';
+          }
+        }
+        if(healthSync&&healthSync.bodySpec&&healthSync.bodySpec.scanDate){
+          var bs=healthSync.bodySpec;
+          s+='BODY SPEC DEXA ('+bs.scanDate+', historical baseline): '+bs.weight_lbs+'lbs | '+bs.totalBodyFatPct+'% fat | '+bs.leanMass_lbs+'lbs lean'+(bs.visceralFat_cm3?' | visceral '+bs.visceralFat_cm3+' cm\u00b3':'')+'\n';
+        }
+        return s;
       })()
 +'\nCHECK-IN TRENDS (1-10 scale)\n'
       +(sleepTrend?'Sleep: avg '+sleepTrend.recent+'/10, '+sleepTrend.dir+' (was '+sleepTrend.early+' early → '+sleepTrend.recent+' recent)\n':'Sleep: insufficient check-in data\n')
@@ -8636,6 +8693,26 @@ async function runProtocolReview(key,detailId,btnId){
         });
         return s;
       })():'');
+
+    // End-of-protocol: add transition + washout context
+    if(_isCompletionReport){
+      var _onDeck=protocols.filter(function(p){return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1&&p.id!==proto.id;});
+      if(_onDeck.length){
+        userPrompt+='\n=== ON DECK PROTOCOLS (transition targets) ===\n';
+        _onDeck.forEach(function(p){
+          var _pFut=parseLocalDate(p.startDate).getTime()>new Date().setHours(0,0,0,0);
+          userPrompt+=p.name+' ['+ (_pFut?'Starts '+p.startDate:'Active')+'] '+p.durationWeeks+' weeks\n';
+          (p.compounds||[]).filter(function(c){return c&&c.name;}).forEach(function(c){
+            userPrompt+='  - '+c.name+' '+c.dose+(c.rationale?' | '+c.rationale:'')+'\n';
+          });
+        });
+      } else {
+        userPrompt+='\n=== TRANSITION NOTE ===\nNo active On Deck protocols — client may be entering a washout/rest period.\n';
+        userPrompt+='Provide specific washout guidance: expected physical changes, recommended monitoring, lab retesting timeline (eGFR, hormones, glucose, lipids, body comp).\n';
+      }
+      userPrompt+='\n=== END-OF-PROTOCOL SUMMARY REQUEST ===\n';
+      userPrompt+='State explicit before/after for every tracked metric. Calculate total deltas. Assess whether results aligned with stated goals. Reference transition to next protocols specifically.\n';
+    }
 
     var apiKey=localStorage.getItem('rp_anthropic_key')||'';
     var headers={'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
@@ -8691,6 +8768,15 @@ async function runProtocolReview(key,detailId,btnId){
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
     +(review.watch_for?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p4);margin-bottom:6px">◎ What to watch for</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.watch_for+'</div></div>':'')
     +(review.realistic_outlook?'<div style="background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--p2);margin-bottom:5px;letter-spacing:.1em;text-transform:uppercase">Realistic Outlook</div><div style="font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.7;font-style:italic">'+review.realistic_outlook+'</div></div>':'')
+    +(review.protocol_results?'<div style="margin-bottom:14px;background:var(--sf2);border:1px solid var(--p3);border-radius:8px;padding:12px 14px">'
+      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">■ Protocol Results</div>'
+      +'<div style="font-family:var(--mono);font-size:11px;color:var(--text);line-height:2;white-space:pre-line">'+review.protocol_results+'</div></div>':'')
+    +(review.transition_guidance?'<div style="margin-bottom:14px;background:var(--p2d);border:1px solid var(--p2);border-radius:8px;padding:12px 14px">'
+      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">→ Transition Guidance</div>'
+      +'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.transition_guidance+'</div></div>':'')
+    +(review.washout_guidance?'<div style="margin-bottom:14px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px">'
+      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">○ Washout Guidance</div>'
+      +'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.washout_guidance+'</div></div>':'')
         +(review.questions_for_doctor
       ?(function(){
         // Split numbered questions into individual items
@@ -9982,8 +10068,16 @@ function showCompletionCongrats(){
 
 function launchCompletionApex(){
   closeModal('completionCongratModal');
-  switchTab('insights');
-  setTimeout(function(){var b=document.getElementById('apexReportBtn');if(b)b.click();},400);
+  // Lock Insights to completed protocol before navigating
+  if(_completionProtoId) selectedInsightsProtoId=_completionProtoId;
+  nav('insights');
+  setTimeout(function(){
+    renderInsights();
+    setTimeout(function(){
+      var b=document.getElementById('apexReportBtn');
+      if(b) b.click();
+    },300);
+  },150);
 }
 
 function archiveCompletedProtocol(){
