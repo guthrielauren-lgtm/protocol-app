@@ -2350,9 +2350,11 @@ function renderInsights(){
   var wrap=document.getElementById('insightsWrap');
   if(!wrap) return;
   try{
-    // Use selected protocol or default to first active
+    // Use selected protocol — allow archived/completed protocols when explicitly set
     var _activeProtos=protocols.filter(function(p){return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1;});
-    if(!selectedInsightsProtoId||!_activeProtos.find(function(p){return p.id===selectedInsightsProtoId;}))
+    // Only reset selectedInsightsProtoId if it doesn't exist in protocols at all
+    var _selectedExists=selectedInsightsProtoId&&protocols.find(function(p){return p.id===selectedInsightsProtoId;});
+    if(!_selectedExists)
       selectedInsightsProtoId=_activeProtos.length?_activeProtos[0].id:null;
     var proto=protocols.find(function(p){return p.id===selectedInsightsProtoId;})||getActiveProtocol();
     var hasBodyData=(bodyLogs||[]).length>0;
