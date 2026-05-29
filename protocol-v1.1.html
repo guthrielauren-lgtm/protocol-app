@@ -2201,14 +2201,25 @@ function getActivePantryItem(name){
   // Multi-concentration: prefer activeConcentration:true
   var active=matches.find(function(p){return p.activeConcentration===true&&isInStock(p);});
   if(active) return active;
-  // Auto-resolve: lowest days remaining among stocked items
+  // Auto-resolve: prefer in-stock items, sorted by lowest days remaining
   var stocked=matches.filter(function(p){return isInStock(p);});
-  if(!stocked.length) return matches[0];
+  if(stocked.length===1) return stocked[0];
+  if(!stocked.length){
+    // All out of stock — clear activeConcentration flags and return first
+    matches.forEach(function(p){p.activeConcentration=false;});
+    return matches[0];
+  }
   stocked.sort(function(a,b){
     var da=calcDaysLeft(a,null)||999,db=calcDaysLeft(b,null)||999;
     return da-db;
   });
-  return stocked[0];
+  // Auto-set active concentration to the in-stock item if current is out of stock
+  var currentActive=matches.find(function(p){return p.activeConcentration===true;});
+  if(!currentActive||!isInStock(currentActive)){
+    matches.forEach(function(p){p.activeConcentration=false;});
+    stocked[0].activeConcentration=true;
+  }
+  return matches.find(function(p){return p.activeConcentration===true&&isInStock(p);})||stocked[0];
 }
 
 // Check if a compound name has multiple stocked pantry entries with different concentrations
@@ -3303,12 +3314,17 @@ function renderChecklist(){
             }
           }
           // Multi-concentration switcher
-          var multiConc=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase()&&isInStock(p);});
+          // Show all same-name vials — include out of stock as visual toggle option
+          var multiConc=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase()&&p.form==='vial';});
           if(multiConc.length>1){
             _units+=' \u00b7 <span style="font-family:var(--mono);font-size:9px;color:var(--dim)">';
             multiConc.forEach(function(p,mi){
               var isActive=(pItem&&pItem.id===p.id);
-              _units+='<span onclick="event.stopPropagation();setActiveConcentration(\''+c.name+'\',\''+p.id+'\')" style="cursor:pointer;padding:1px 5px;border-radius:3px;border:1px solid '+(isActive?'var(--p1)':'var(--bd)')+';color:'+(isActive?'var(--p1)':'var(--dim)')+';margin-left:'+(mi>0?'3px':'0')+'">'+p.vialMg+'mg</span>';
+              var hasStock=parseFloat(p.vials)>0||parseFloat(p.openVialMg)>0;
+              var border=isActive?'var(--p1)':(hasStock?'var(--bd)':'var(--p5)');
+              var color=isActive?'var(--p1)':(hasStock?'var(--dim)':'var(--p5)');
+              var label=p.vialMg+'mg'+(hasStock?'':' ×');
+              _units+='<span onclick="event.stopPropagation();setActiveConcentration(\''+c.name+'\',\''+p.id+'\')" style="cursor:pointer;padding:1px 5px;border-radius:3px;border:1px solid '+border+';color:'+color+';margin-left:'+(mi>0?'3px':'0')+'">'+label+'</span>';
             });
             _units+='</span>';
           }
@@ -5502,9 +5518,8 @@ function isInStock(item){
   if(item.form==='prefilled') return !!(item.pensRemaining>0);
   if(item.form==='nasal') return !!((item.nasalTotalMcg>0)||(item.nasalOpenMcg>0)||(item.nasalBottles>0));
   if(item.form==='cream') return !!(item.remainingG>0);
-  // vial — check across ALL same-name entries
-  var allVialEntries=pantry.filter(function(p){return p.name.toLowerCase()===item.name.toLowerCase()&&p.form==='vial';});
-  return allVialEntries.some(function(p){return p.vials>0||p.openVialMg>0;});
+  // vial — check THIS specific entry only
+  return !!(parseFloat(item.vials)>0||parseFloat(item.openVialMg)>0);
 }
 function applyPantryFilters(items){
   if(!pantryFilters.length) return items;
