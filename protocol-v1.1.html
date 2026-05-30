@@ -3217,6 +3217,9 @@ function renderChecklist(){
     proto.compounds.forEach(function(c){
       if(!c||!c.name) return;
       if(!isCompoundDueToday(c,proto)) return;
+      // Skip compounds whose window has ended
+      var _cs=getCompoundActiveStatus(proto,c);
+      if(_cs.status==='completed') return;
       // Use titration-aware dose if applicable
       var effectiveDose=getCompoundCurrentDose(c,protoWeek);
       var key=c.name.toLowerCase();
@@ -3321,10 +3324,11 @@ function renderChecklist(){
             multiConc.forEach(function(p,mi){
               var isActive=(pItem&&pItem.id===p.id);
               var hasStock=parseFloat(p.vials)>0||parseFloat(p.openVialMg)>0;
-              var border=isActive?'var(--p1)':(hasStock?'var(--bd)':'var(--p5)');
-              var color=isActive?'var(--p1)':(hasStock?'var(--dim)':'var(--p5)');
-              var label=p.vialMg+'mg'+(hasStock?'':' ×');
-              _units+='<span onclick="event.stopPropagation();setActiveConcentration(\''+c.name+'\',\''+p.id+'\')" style="cursor:pointer;padding:1px 5px;border-radius:3px;border:1px solid '+border+';color:'+color+';margin-left:'+(mi>0?'3px':'0')+'">'+label+'</span>';
+              var chipBg=isActive?'var(--p1)':'transparent';
+              var chipColor=isActive?'var(--bg)':(hasStock?'var(--mid)':'var(--dim)');
+              var chipBorder=isActive?'var(--p1)':(hasStock?'var(--bd)':'var(--bd)');
+              var chipDecor=hasStock?'none':'line-through';
+              _units+='<span onclick="event.stopPropagation();setActiveConcentration(\''+c.name+'\',\''+p.id+'\')" style="cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid '+chipBorder+';color:'+chipColor+';background:'+chipBg+';text-decoration:'+chipDecor+';margin-left:'+(mi>0?'3px':'0')+';font-size:9px;white-space:nowrap">'+p.vialMg+'mg</span>';
             });
             _units+='</span>';
           }
@@ -8802,6 +8806,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       +'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.washout_guidance+'</div></div>':'')
         +(review.questions_for_doctor
       ?(function(){
+        // 'What's next?' section appears AFTER questions — end-of-protocol only
         // Split numbered questions into individual items
         var lines=review.questions_for_doctor.split(/\n/).map(function(l){return l.trim();}).filter(Boolean);
         var items=lines.map(function(l){return l.replace(/^\d+\.\s*/,'');}).filter(Boolean);
@@ -8817,6 +8822,25 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
           }).join('')
           +'</div></div>';
       })()
+      :'')
+    +(_isCompletionReport&&proto
+      ?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px">'
+       +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">→ What\'s Next?</div>'
+       +'<div style="font-family:var(--sans);font-size:13px;color:var(--dim);margin-bottom:14px;line-height:1.6">Based on your results, choose how to proceed with '+proto.name+'.</div>'
+       +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+       +'<button class="btn ghost sm" onclick="archiveCompletedProtocol()" style="flex:1;justify-content:center;min-width:80px">Archive</button>'
+       +'<button class="btn ghost sm" style="flex:1;justify-content:center;min-width:80px;position:relative" onclick="document.getElementById(\'extendWrap_'+proto.id+'\').style.display=\'block\'">Extend</button>'
+       +'<button class="btn sm" onclick="renewProtocol(\''+proto.id+'\')" style="flex:1;justify-content:center;min-width:80px;background:var(--p2);border-color:var(--p2);color:var(--bg)">Renew</button>'
+       +'</div>'
+       +'<div id="extendWrap_'+proto.id+'" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">'
+       +'<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px">Add weeks to current protocol:</div>'
+       +'<div style="display:flex;align-items:center;gap:8px">'
+       +'<button onclick="var el=document.getElementById(\'extWks_'+proto.id+'\');el.value=Math.max(1,parseInt(el.value||4)-1)" style="width:32px;height:32px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);color:var(--text);font-size:16px;cursor:pointer">-</button>'
+       +'<input id="extWks_'+proto.id+'" type="number" value="4" min="1" max="52" style="width:60px;text-align:center;font-family:var(--mono);font-size:14px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:6px;color:var(--text)">'
+       +'<button onclick="var el=document.getElementById(\'extWks_'+proto.id+'\');el.value=parseInt(el.value||4)+1" style="width:32px;height:32px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);color:var(--text);font-size:16px;cursor:pointer">+</button>'
+       +'<button class="btn sm" onclick="extendProtocol(\''+proto.id+'\',parseInt(document.getElementById(\'extWks_'+proto.id+'\').value||4))" style="flex:1;justify-content:center;background:var(--p1);border-color:var(--p1);color:var(--bg)">Extend ✓</button>'
+       +'</div></div>'
+       +'</div>'
       :'')
     +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding-top:8px;border-top:1px solid var(--bd)">Coach APEX is an AI tool in Protocol Pro. Generated from your logged data only. Not medical advice. '+reportDate+'</div>'
     ;
@@ -10110,6 +10134,33 @@ function launchCompletionApex(){
       runProtocolReview(_key,_detId,'reviewExpandBtn',_protoId);
     }
   },600);
+}
+
+function extendProtocol(protoId, weeks){
+  var p=protocols.find(function(x){return x.id===protoId;});
+  if(!p) return;
+  p.durationWeeks=(parseInt(p.durationWeeks)||0)+weeks;
+  persist(KEYS.protocols,protocols);
+  renderBuild();renderToday();
+  toast(p.name+' extended by '+weeks+' weeks ✓');
+}
+
+function renewProtocol(protoId){
+  var p=protocols.find(function(x){return x.id===protoId;});
+  if(!p) return;
+  // Duplicate with today as new start date
+  var newProto=JSON.parse(JSON.stringify(p));
+  newProto.id='proto_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  newProto.startDate=today();
+  newProto.status=undefined;
+  newProto.archivedDate=undefined;
+  delete newProto.status;
+  delete newProto.archivedDate;
+  protocols.push(newProto);
+  persist(KEYS.protocols,protocols);
+  // Open editor for the new protocol
+  openProtoEditor(newProto.id);
+  toast('New cycle created — review and save to start');
 }
 
 function archiveCompletedProtocol(){
