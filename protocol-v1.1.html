@@ -7110,15 +7110,24 @@ function openAddToNewProtocol(keepTab){
     var dbItem=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===p.name;});
     var dot=dbItem&&CAT_COLORS[dbItem.cat||dbItem.category]?CAT_COLORS[dbItem.cat||dbItem.category]:'var(--mid)';
     var safeName=p.name.replace(/'/g,'’');
+    var stockMg=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
+    var hasStock=stockMg>0;
+    var vialLabel=p.vialMg?p.vialMg+'mg/vial':'';
+    var stockLabel=hasStock?(parseFloat(p.vials)>0?p.vials+' vial'+(parseFloat(p.vials)!==1?'s':''):'open vial'):'out of stock';
+    var stockColor=hasStock?'var(--p1)':'var(--p5)';
+    var subtitle=[p.dose,vialLabel].filter(Boolean).join(' · ');
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
       +'<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+p.name+'</div>'
-      +(p.dose?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px">'+p.dose+(p.form?' · '+p.form:'')+'</div>':'')
+      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)'+(hasStock?'':';opacity:.55')+'">'+p.name+'</div>'
+      +(subtitle?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px">'+subtitle+'</div>':'')
+      +'<div style="font-family:var(--mono);font-size:9px;color:'+stockColor+';margin-top:1px">'+stockLabel+'</div>'
       +'</div>'
       +(inProto.has(p.name)
         ?'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">✓ Added</span>'
-        :'<button onclick="addCompoundToNewProto(\''+safeName+'\')" style="font-family:var(--mono);font-size:9px;padding:5px 10px;background:var(--p1d);border:1px solid var(--p1);border-radius:3px;color:var(--p1);cursor:pointer">Add</button>')
+        :(hasStock
+          ?'<button class="btn sm" onclick="addCompoundToNewProto(\''+safeName+'\')" style="font-size:9px;padding:4px 10px;background:var(--p1d);border-color:var(--p1);color:var(--p1)">Add</button>'
+          :'<button class="btn sm" onclick="if(confirm(\''+p.name+(p.vialMg?' ('+p.vialMg+'mg)':'')+' has no stock — add anyway?\')) addCompoundToNewProto(\''+safeName+'\')" style="font-size:9px;padding:4px 10px;background:var(--p5d);border-color:var(--p5);color:var(--p5)">Add*</button>'))
       +'</div>';
   }).join('');
   openModal('addToProtoModal');
@@ -7511,7 +7520,16 @@ function openAddCompoundToEditor(protoId,keepTab){
   const list=document.getElementById('addToProtoList');
   // Filter valid pantry items, sort alpha, look up color from COMPOUND_DB
   var validPantry=pantry.filter(function(p){return p&&p.name&&typeof p.name==='string';})
-    .slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+    .slice().sort(function(a,b){
+      var nc=a.name.localeCompare(b.name);
+      if(nc!==0) return nc;
+      // Same name: sort in-stock first, then by vialMg descending
+      var aStock=(parseFloat(a.vials)||0)*(parseFloat(a.vialMg)||0)+(parseFloat(a.openVialMg)||0);
+      var bStock=(parseFloat(b.vials)||0)*(parseFloat(b.vialMg)||0)+(parseFloat(b.openVialMg)||0);
+      if(aStock>0&&bStock===0) return -1;
+      if(bStock>0&&aStock===0) return 1;
+      return (parseFloat(b.vialMg)||0)-(parseFloat(a.vialMg)||0);
+    });
   if(!validPantry.length){
     list.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:20px;text-align:center">Your pantry is empty.<br>Use the Library tab to add compounds.</div>';
     openModal('addToProtoModal');
@@ -7520,16 +7538,25 @@ function openAddCompoundToEditor(protoId,keepTab){
   list.innerHTML=validPantry.map(function(p){
     var dbItem=COMPOUND_DB.find(function(d){return d&&d.name&&d.name===p.name;});
     var dot=dbItem&&CAT_COLORS[dbItem.cat||dbItem.category]?CAT_COLORS[dbItem.cat||dbItem.category]:'var(--mid)';
-    var safeName=p.name.replace(/'/g,'\u2019');
+    var safeName=p.name.replace(/'/g,'’');
+    var stockMg=(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0)+(parseFloat(p.openVialMg)||0);
+    var hasStock=stockMg>0;
+    var vialLabel=p.vialMg?p.vialMg+'mg/vial':'';
+    var stockLabel=hasStock?(parseFloat(p.vials)>0?p.vials+' vial'+(parseFloat(p.vials)!==1?'s':''):'open vial'):'out of stock';
+    var stockColor=hasStock?'var(--p1)':'var(--p5)';
+    var subtitle=[p.dose,vialLabel].filter(Boolean).join(' · ');
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">'
       +'<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)">'+p.name+'</div>'
-      +(p.dose?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px">'+p.dose+(p.form?' · '+p.form:'')+'</div>':'')
+      +'<div style="font-family:var(--serif);font-size:14px;color:var(--text)'+(hasStock?'':';opacity:.55')+'">'+p.name+'</div>'
+      +(subtitle?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:1px">'+subtitle+'</div>':'')
+      +'<div style="font-family:var(--mono);font-size:9px;color:'+stockColor+';margin-top:1px">'+stockLabel+'</div>'
       +'</div>'
       +(inProto.has(p.name)
         ?'<span style="font-family:var(--mono);font-size:9px;color:var(--p1)">✓ In Protocol</span>'
-        :'<button onclick="addCompoundToEditor(\''+protoId+'\',\''+safeName+'\')" style="font-family:var(--mono);font-size:9px;padding:5px 10px;background:var(--p1d);border:1px solid var(--p1);border-radius:3px;color:var(--p1);cursor:pointer">Add</button>')
+        :(hasStock
+          ?'<button class="btn sm" onclick="addCompoundToEditor(\''+protoId+'\',\''+safeName+'\')" style="font-size:9px;padding:4px 10px;background:var(--p1d);border-color:var(--p1);color:var(--p1)">Add</button>'
+          :'<button class="btn sm" onclick="if(confirm(\''+p.name+(p.vialMg?' ('+p.vialMg+'mg)':'')+' has no stock — add anyway?\')) addCompoundToEditor(\''+protoId+'\',\''+safeName+'\')" style="font-size:9px;padding:4px 10px;background:var(--p5d);border-color:var(--p5);color:var(--p5)">Add*</button>'))
       +'</div>';
   }).join('');
   openModal('addToProtoModal');
