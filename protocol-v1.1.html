@@ -2850,8 +2850,26 @@ async function parseBodyScreenshot(input){
       var de=document.getElementById('bcDate');if(de) de.value=parsed.date;
     }
     if(parsed.fat_pct||parsed.lean_lbs) setBCMode('full');
-    if(filled===0) toast('No body data found — try a clearer screenshot','var(--p2)');
-    else toast(filled+' field'+(filled!==1?'s':'')+' imported ✓');
+    if(filled===0){
+      toast('No body data found — try a clearer screenshot','var(--p2)');
+    } else {
+      // Scroll form into view and highlight Save button
+      var form=document.getElementById('bcInlineEntry');
+      if(form){
+        form.style.display='block';
+        setTimeout(function(){
+          form.scrollIntoView({behavior:'smooth',block:'nearest'});
+          // Flash the save button so user knows to tap it
+          var saveBtn=form.querySelector('.btn:not(.ghost)');
+          if(saveBtn){
+            saveBtn.style.transition='transform .15s';
+            saveBtn.style.transform='scale(1.05)';
+            setTimeout(function(){saveBtn.style.transform='';},300);
+          }
+        },200);
+      }
+      toast(filled+' field'+(filled!==1?'s':'')+' filled — tap Save to confirm ✓');
+    }
   } catch(e){
     console.error('Screenshot parse:',e);
     toast('Could not read screenshot — try a clearer image','var(--p5)');
