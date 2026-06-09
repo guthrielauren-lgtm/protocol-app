@@ -804,8 +804,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
     </div>
     <div class="bc-inline-entry" id="bcInlineEntry">
-      <!-- Mode toggle -->
       <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button id="bcScreenshotBtn" onclick="document.getElementById('bcScreenshotInput').click()" style="font-family:var(--mono);font-size:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer;flex-shrink:0">Import</button>
         <button id="bcModeWeight" onclick="setBCMode('weight')" style="flex:1;font-family:var(--mono);font-size:10px;padding:7px 4px;border-radius:6px;border:1px solid var(--p1);background:var(--p1);color:var(--bg);cursor:pointer">Weight only</button>
         <button id="bcModeFull" onclick="setBCMode('full')" style="flex:1;font-family:var(--mono);font-size:10px;padding:7px 4px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer">Full body comp</button>
       </div>
@@ -2809,6 +2809,58 @@ function _showUndoToast(msg,undoLabel,undoFn){
   },5000);
 }
 
+async function parseBodyScreenshot(input){
+  var file=input.files&&input.files[0];if(!file) return;
+  var apiKey=localStorage.getItem('rp_anthropic_key')||_getApiKeyCookie()||'';
+  if(!apiKey){toast('Add your API key in Settings first','var(--p5)');return;}
+  var btn=document.getElementById('bcScreenshotBtn');
+  if(btn){btn.textContent='Reading…';btn.disabled=true;}
+  try{
+    var b64=await new Promise(function(res,rej){
+      var r=new FileReader();
+      r.onload=function(){res(r.result.split(',')[1]);};
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-opus-4-20250514',
+        max_tokens:400,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},
+          {type:'text',text:'Extract body composition data from this screenshot. Respond ONLY with a valid JSON object — no markdown, no backticks, no explanation. Keys (all optional, use null if not visible): weight_lbs (number), fat_pct (number), lean_lbs (number), water_pct (number), bone_lbs (number), date (string YYYY-MM-DD or null). If weight is in kg, convert to lbs (multiply by 2.205). Example: {"weight_lbs":167.2,"fat_pct":28.1,"lean_lbs":120.3,"water_pct":55.2,"bone_lbs":7.1,"date":"2024-01-15"}'}
+        ]}]
+      })
+    });
+    var data=await resp.json();
+    if(data.error) throw new Error(data.error.message||'API error');
+    var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
+    var parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    var map={bcWeight:'weight_lbs',bcFat:'fat_pct',bcMuscle:'lean_lbs',bcWater:'water_pct',bcBone:'bone_lbs'};
+    var filled=0;
+    Object.keys(map).forEach(function(elId){
+      var v=parsed[map[elId]];
+      if(v==null||isNaN(parseFloat(v))) return;
+      var el=document.getElementById(elId);
+      if(el){el.value=Math.round(parseFloat(v)*10)/10;filled++;}
+    });
+    if(parsed.date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)){
+      var de=document.getElementById('bcDate');if(de) de.value=parsed.date;
+    }
+    if(parsed.fat_pct||parsed.lean_lbs) setBCMode('full');
+    if(filled===0) toast('No body data found — try a clearer screenshot','var(--p2)');
+    else toast(filled+' field'+(filled!==1?'s':'')+' imported ✓');
+  } catch(e){
+    console.error('Screenshot parse:',e);
+    toast('Could not read screenshot — try a clearer image','var(--p5)');
+  } finally{
+    if(btn){btn.textContent='Import';btn.disabled=false;}
+    input.value='';
+  }
+}
+
 function checkDailyCompletion(){
   var t=today();
   if(localStorage.getItem('pt_celebrated_'+t)) return;
@@ -3493,7 +3545,12 @@ function updateManualStreak(name, dose, route, form, site, timingWindow){
   doseMem[name]=Object.assign({},mem,{manualStreakCount:streak, manualStreakDate:todayStr});
   persist(KEYS.doseMem, doseMem);
   // On 3rd consecutive day, prompt to add to protocol
-  if(streak>=3){
+  // Skip if compound already in any active protocol
+  var _alreadyInProto=protocols.some(function(p){
+    return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1
+      &&(p.compounds||[]).some(function(c){return c&&c.name&&c.name.toLowerCase()===name.toLowerCase();});
+  });
+  if(streak>=3&&!_alreadyInProto){
     setTimeout(function(){
       var pItem=pantry.find(function(p){return p.name===name;});
       showConfirm(
@@ -11724,5 +11781,6 @@ document.addEventListener('DOMContentLoaded', initApp);
 </div>
 
 
+<input type="file" id="bcScreenshotInput" accept="image/*" capture="environment" style="display:none" onchange="parseBodyScreenshot(this)">
 </body>
 </html>
