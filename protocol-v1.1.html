@@ -805,7 +805,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="bc-inline-entry" id="bcInlineEntry">
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button id="bcScreenshotBtn" onclick="document.getElementById('bcScreenshotInput').click()" style="font-family:var(--mono);font-size:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer;flex-shrink:0">Import</button>
+        <label for="bcScreenshotInput" id="bcScreenshotBtn" style="font-family:var(--mono);font-size:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer;flex-shrink:0;display:inline-block;line-height:1.4;-webkit-tap-highlight-color:transparent">Import</label>
         <button id="bcModeWeight" onclick="setBCMode('weight')" style="flex:1;font-family:var(--mono);font-size:10px;padding:7px 4px;border-radius:6px;border:1px solid var(--p1);background:var(--p1);color:var(--bg);cursor:pointer">Weight only</button>
         <button id="bcModeFull" onclick="setBCMode('full')" style="flex:1;font-family:var(--mono);font-size:10px;padding:7px 4px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer">Full body comp</button>
       </div>
@@ -2814,7 +2814,7 @@ async function parseBodyScreenshot(input){
   var apiKey=localStorage.getItem('rp_anthropic_key')||_getApiKeyCookie()||'';
   if(!apiKey){toast('Add your API key in Settings first','var(--p5)');return;}
   var btn=document.getElementById('bcScreenshotBtn');
-  if(btn){btn.textContent='Reading…';btn.disabled=true;}
+  if(btn){btn.textContent='Reading…';btn.style.pointerEvents='none';btn.style.opacity='.5';}
   try{
     var b64=await new Promise(function(res,rej){
       var r=new FileReader();
@@ -2856,7 +2856,7 @@ async function parseBodyScreenshot(input){
     console.error('Screenshot parse:',e);
     toast('Could not read screenshot — try a clearer image','var(--p5)');
   } finally{
-    if(btn){btn.textContent='Import';btn.disabled=false;}
+    if(btn){btn.textContent='Import';btn.style.pointerEvents='';btn.style.opacity='';}
     input.value='';
   }
 }
@@ -11781,6 +11781,6 @@ document.addEventListener('DOMContentLoaded', initApp);
 </div>
 
 
-<input type="file" id="bcScreenshotInput" accept="image/*" style="display:none" onchange="parseBodyScreenshot(this)">
+<input type="file" id="bcScreenshotInput" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" onchange="parseBodyScreenshot(this)">
 </body>
 </html>
