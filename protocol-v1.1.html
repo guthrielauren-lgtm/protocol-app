@@ -793,6 +793,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div class="bc-strip-outer">
     <div class="bc-strip-clickable" id="bcStripToggle" onclick="toggleBCEntry()" style="position:relative">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:5px 0 2px;pointer-events:none" id="stripHint">Tap to log · tap again to close</div>
+      <div id="missedCompoundsBanner" style="display:none;background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:12px 14px;margin-bottom:14px"></div>
       <div class="stats-band" id="todayStrip">
         <div class="stat-cell" id="strip-weight"><div class="stat-lbl">Weight<span id="weightLoggedBadge" style="display:none;width:6px;height:6px;border-radius:50%;background:var(--p1);display:inline-block;margin-left:4px;vertical-align:middle"></span></div><div class="stat-num" id="tsWeight">—</div><div class="stat-sub neu" id="tsWeightD">lbs</div></div>
         <div class="stat-cell" id="strip-fat"><div class="stat-lbl">Fat %<span id="tsFatSrc" style="font-size:8px;color:var(--p3);margin-left:3px"></span></div><div class="stat-num" id="tsFat">—</div><div class="stat-sub" id="tsFatD">—</div></div>
@@ -2548,19 +2549,26 @@ function buildSparkSVG(vals,color){
 }
 
 function calcCompliancePrior(proto){
-  if(!proto||!proto.compounds||!proto.compounds.length) return null;
-  var e=new Date();e.setDate(e.getDate()-28);var s=new Date();s.setDate(s.getDate()-56);
+  if(!proto||!proto.compounds||!proto.compounds.length||!proto.startDate) return null;
+  var protoStart=parseLocalDate(proto.startDate);protoStart.setHours(0,0,0,0);
+  var e=new Date();e.setDate(e.getDate()-28);e.setHours(0,0,0,0);
+  var s=new Date();s.setDate(s.getDate()-56);s.setHours(0,0,0,0);
+  // Clamp to protocol start
+  var start=new Date(Math.max(s.getTime(),protoStart.getTime()));
   var sc=0,lg=0;
-  for(var d=new Date(s);d<e;d.setDate(d.getDate()+1)){
-    var dow=d.getDay(),ds=d.toISOString().slice(0,10);
+  for(var d=new Date(start);d<e;d.setDate(d.getDate()+1)){
+    var dow=d.getDay(),ds=localDateStr(d);
+    var wkElapsed=Math.floor((d.getTime()-protoStart.getTime())/(7*86400000))+1;
     proto.compounds.forEach(function(c){
       if(!c||!c.name) return;
-      if(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1){
-        var _sk='pt_skip_'+ds+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
-        if(localStorage.getItem(_sk)==='1') return; // skipped — exclude from compliance
-        sc++;
-        if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;
-      }
+      var iw=c.introWeek||1,dw=c.compoundDurationWeeks||proto.durationWeeks;
+      if(wkElapsed<iw||wkElapsed>=iw+dw) return; // outside compound window
+      var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
+      if(dows.indexOf(dow)===-1) return;
+      var _sk='pt_skip_'+ds+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+      if(localStorage.getItem(_sk)==='1') return;
+      sc++;
+      if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;
     });
   }
   return sc?Math.round((lg/sc)*100):null;
@@ -2653,12 +2661,28 @@ function buildInsightsReviewCard(proto){
 }
 
 function calcCompliance(proto,period){
-  if(!proto||!proto.compounds||!proto.compounds.length) return null;
-  var days=parseInt(period)||30,cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);
+  if(!proto||!proto.compounds||!proto.compounds.length||!proto.startDate) return null;
+  var protoStart=parseLocalDate(proto.startDate);protoStart.setHours(0,0,0,0);
+  var days=parseInt(period)||30;
+  var cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);cutoff.setHours(0,0,0,0);
+  // Start from whichever is later: protocol start or cutoff
+  var start=new Date(Math.max(protoStart.getTime(),cutoff.getTime()));
+  var nowMidnight=new Date();nowMidnight.setHours(0,0,0,0);
   var sc=0,lg=0;
-  for(var d=new Date(cutoff);d<=new Date();d.setDate(d.getDate()+1)){
-    var dow=d.getDay(),ds=d.toISOString().slice(0,10);
-    proto.compounds.forEach(function(c){if(!c||!c.name) return; if(!c.daysOfWeek||c.daysOfWeek.indexOf(dow)!==-1){sc++;if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;}});
+  for(var d=new Date(start);d<=nowMidnight;d.setDate(d.getDate()+1)){
+    var dow=d.getDay(),ds=localDateStr(d);
+    var wkElapsed=Math.floor((d.getTime()-protoStart.getTime())/(7*86400000))+1;
+    proto.compounds.forEach(function(c){
+      if(!c||!c.name) return;
+      var iw=c.introWeek||1,dw=c.compoundDurationWeeks||proto.durationWeeks;
+      if(wkElapsed<iw||wkElapsed>=iw+dw) return; // outside compound window
+      var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
+      if(dows.indexOf(dow)===-1) return;
+      var _sk='pt_skip_'+ds+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+      if(localStorage.getItem(_sk)==='1') return; // skipped
+      sc++;
+      if(logs.some(function(l){return l.date===ds&&l.compound===c.name;})) lg++;
+    });
   }
   return sc?Math.round((lg/sc)*100):null;
 }
@@ -2688,7 +2712,7 @@ function renderToday(){
   }
   try{renderProtoHeader();}catch(e){console.error('renderProtoHeader:',e);}
   try{renderBodyStrip();}catch(e){console.error('renderBodyStrip:',e);}
-  try{renderChecklist();setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},600);}catch(e){console.error('renderChecklist:',e);}
+  try{renderChecklist();setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},600);setTimeout(function(){if(typeof checkMissedCompounds==='function')checkMissedCompounds();},800);}catch(e){console.error('renderChecklist:',e);}
   try{renderCheckinState();}catch(e){console.error('renderCheckinState:',e);}
   try{renderTomorrow();}catch(e){console.error('renderTomorrow:',e);}
   try{renderFutureCompounds();}catch(e){console.error('renderFutureCompounds:',e);}
@@ -2834,6 +2858,10 @@ async function parseBodyScreenshot(input){
         ]}]
       })
     });
+    if(!resp.ok){
+      var errData=await resp.json().catch(function(){return {};});
+      throw new Error('API '+resp.status+': '+(errData.error&&errData.error.message?errData.error.message:'request failed'));
+    }
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message||'API error');
     var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
@@ -2871,12 +2899,117 @@ async function parseBodyScreenshot(input){
       toast(filled+' field'+(filled!==1?'s':'')+' filled — tap Save to confirm ✓');
     }
   } catch(e){
-    console.error('Screenshot parse:',e);
-    toast('Could not read screenshot — try a clearer image','var(--p5)');
+    console.error('Screenshot parse error:',e);
+    var msg='Import failed';
+    if(e&&e.message){
+      if(e.message.indexOf('API')>-1||e.message.indexOf('401')>-1||e.message.indexOf('403')>-1) msg='API key error — check Settings';
+      else if(e.message.indexOf('NetworkError')>-1||e.message.indexOf('Failed to fetch')>-1) msg='Network error — check connection';
+      else if(e.message.indexOf('JSON')>-1||e.message.indexOf('parse')>-1) msg='Could not read data from image';
+      else msg=e.message.slice(0,60);
+    }
+    toast(msg,'var(--p5)');
   } finally{
     if(btn){btn.textContent='Import';btn.style.pointerEvents='';btn.style.opacity='';}
     input.value='';
   }
+}
+
+function checkMissedCompounds(){
+  // Only after 4am, once per day
+  var _now=new Date();
+  if(_now.getHours()<4) return;
+  var _seenKey='pt_missed_checked_'+today();
+  if(localStorage.getItem(_seenKey)) return;
+  localStorage.setItem(_seenKey,'1');
+
+  // Get yesterday's date string
+  var _yd=new Date();_yd.setDate(_yd.getDate()-1);
+  var _ydStr=_yd.toISOString().slice(0,10);
+
+  // Find all compounds that were due yesterday but not logged or skipped
+  var _missed=[];
+  var _activeProtos=protocols.filter(function(p){return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1;});
+  _activeProtos.forEach(function(proto){
+    (proto.compounds||[]).forEach(function(c){
+      if(!c||!c.name) return;
+      if(!isCompoundDueOnDate(c,proto,_ydStr)) return;
+      var _logged=logs.some(function(l){return l.date===_ydStr&&l.compound===c.name;});
+      var _skipKey='pt_skip_'+_ydStr+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+      var _skipped=localStorage.getItem(_skipKey)==='1';
+      if(!_logged&&!_skipped){
+        // Check not already dismissed
+        var _dimKey='pt_missed_dismissed_'+_ydStr+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+        if(!localStorage.getItem(_dimKey)){
+          _missed.push({name:c.name,proto:proto.name,date:_ydStr});
+        }
+      }
+    });
+  });
+
+  if(_missed.length) renderMissedBanner(_missed);
+}
+
+function renderMissedBanner(missed){
+  var wrap=document.getElementById('missedCompoundsBanner');
+  if(!wrap) return;
+  if(!missed||!missed.length){wrap.style.display='none';return;}
+
+  var inner='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+    +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2)">Yesterday — Unlogged</div>'
+    +'<button onclick="document.getElementById(\'missedCompoundsBanner\').style.display=\'none\'" style="background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;line-height:1;padding:0">×</button>'
+    +'</div>';
+
+  missed.forEach(function(m){
+    var safeDate=m.date;
+    var safeName=m.name.replace(/'/g,'’');
+    inner+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--bd)">'
+      +'<div>'
+      +'<div style="font-family:var(--sans);font-size:13px;color:var(--text)">'+m.name+'</div>'
+      +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+m.proto+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button class="btn ghost sm" onclick="dismissMissed(\''+safeName+'\',\''+safeDate+'\')" style="font-size:10px;padding:4px 10px">No</button>'
+      +'<button class="btn sm" onclick="logMissed(\''+safeName+'\',\''+safeDate+'\')" style="font-size:10px;padding:4px 10px;background:var(--p1);border-color:var(--p1);color:var(--bg)">Yes, log it</button>'
+      +'</div>'
+      +'</div>';
+  });
+
+  wrap.innerHTML=inner;
+  wrap.style.display='block';
+}
+
+function logMissed(name,date){
+  var _existingLog=logs.find(function(l){return l.date===date&&l.compound===name;});
+  if(!_existingLog){
+    logs.push({id:Date.now(),date:date,compound:name,note:'Logged next morning'});
+    persist(KEYS.logs,logs);
+    deductStock(name,'');
+  }
+  dismissMissed(name,date);
+  toast(name+' logged for '+date+' ✓');
+}
+
+function dismissMissed(name,date){
+  var _key='pt_missed_dismissed_'+date+'_'+name.toLowerCase().replace(/\s+/g,'_');
+  localStorage.setItem(_key,'1');
+  // Rebuild missed list and re-render
+  var _yd=new Date();_yd.setDate(_yd.getDate()-1);
+  var _ydStr=_yd.toISOString().slice(0,10);
+  var _activeProtos=protocols.filter(function(p){return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1;});
+  var _remaining=[];
+  _activeProtos.forEach(function(proto){
+    (proto.compounds||[]).forEach(function(c){
+      if(!c||!c.name||!isCompoundDueOnDate(c,proto,_ydStr)) return;
+      var _logged=logs.some(function(l){return l.date===_ydStr&&l.compound===c.name;});
+      var _skipKey='pt_skip_'+_ydStr+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+      var _skipped=localStorage.getItem(_skipKey)==='1';
+      var _dimKey='pt_missed_dismissed_'+_ydStr+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+      if(!_logged&&!_skipped&&!localStorage.getItem(_dimKey)){
+        _remaining.push({name:c.name,proto:proto.name,date:_ydStr});
+      }
+    });
+  });
+  renderMissedBanner(_remaining);
 }
 
 function checkDailyCompletion(){
@@ -5215,6 +5348,73 @@ function checkConcentrationPromotion(name){
   }
 }
 
+function _checkVialTransition(name,remainingMg,doseAmountMg){
+  // Fire once per compound per day
+  var _key='pt_vial_prompted_'+today()+'_'+name.toLowerCase().replace(/\s+/g,'_');
+  if(localStorage.getItem(_key)) return;
+  if(remainingMg>doseAmountMg) return; // more than one dose left
+  localStorage.setItem(_key,'1');
+  setTimeout(function(){
+    _showUndoToast(
+      'Starting a new vial of '+name+'?',
+      'Reconcile',
+      function(){openVialReconciliation(name);}
+    );
+  },800);
+}
+
+function openVialReconciliation(name){
+  var items=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();});
+  if(!items.length) return;
+  // Calculate what app thinks total stock is
+  var calcVials=items.reduce(function(s,p){return s+(parseFloat(p.vials)||0);},0);
+  var calcOpenMg=items.reduce(function(s,p){return s+(parseFloat(p.openVialMg)||0);},0);
+  var vialMg=items[0].vialMg||0;
+  var modal=document.getElementById('vialReconModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='vialReconModal';
+    modal.className='modal-overlay';
+    modal.style.cssText='display:flex;align-items:flex-end;justify-content:center;z-index:9999';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML='<div style="background:var(--sf);border-radius:16px 16px 0 0;padding:24px 20px;width:100%;max-width:480px">'
+    +'<div style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--p2);margin-bottom:8px">New Vial — '+name+'</div>'
+    +'<div style="font-family:var(--sans);font-size:13px;color:var(--dim);margin-bottom:18px;line-height:1.6">App calculated: <strong style="color:var(--text)">'+calcVials.toFixed(1)+' sealed vials</strong> + <strong style="color:var(--text)">'+Math.round(calcOpenMg)+'mg open</strong>. Correct the actual count below:</div>'
+    +'<div style="margin-bottom:12px">'
+    +'<label style="font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);display:block;margin-bottom:6px">Sealed vials in hand (not including new one you just opened)</label>'
+    +'<input id="reconVialsInput" type="number" value="'+Math.max(0,Math.round(calcVials))+'" min="0" step="1" style="width:100%;padding:10px 12px;font-family:var(--mono);font-size:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--text)">'
+    +'</div>'
+    +(vialMg?'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:16px">New vial opened: '+vialMg+'mg (full)</div>':'')
+    +'<div style="display:flex;gap:10px">'
+    +'<button class="btn ghost" onclick="document.getElementById(\'vialReconModal\').style.display=\'none\'" style="flex:1">Skip</button>'
+    +'<button class="btn" onclick="saveVialReconciliation(\''+name+'\')" style="flex:2;background:var(--p1);border-color:var(--p1);color:var(--bg)">Confirm ✓</button>'
+    +'</div>'
+    +'</div>';
+  modal.style.display='flex';
+}
+
+function saveVialReconciliation(name){
+  var input=document.getElementById('reconVialsInput');
+  if(!input) return;
+  var correctedVials=Math.max(0,parseInt(input.value)||0);
+  var items=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();});
+  if(!items.length) return;
+  // Reset: set corrected sealed count + open new vial at full
+  var primary=items.find(function(p){return p.activeConcentration||isInStock(p);})||items[0];
+  items.forEach(function(p){
+    p.vials=0;
+    p.openVialMg=0;
+  });
+  primary.vials=correctedVials;
+  primary.openVialMg=parseFloat(primary.vialMg)||0; // new vial fully open
+  persist(KEYS.pantry,pantry);
+  document.getElementById('vialReconModal').style.display='none';
+  renderPantry();
+  renderChecklist();
+  toast(name+' stock reconciled ✓');
+}
+
 function deductStock(name,doseStr){
   checkConcentrationPromotion(name);
   const item=getActivePantryItem(name)||pantry.find(function(p){return p.name===name;});
@@ -5246,6 +5446,11 @@ function deductStock(name,doseStr){
     if(newOpen>0&&newOpen<item.vialMg){item.openVialMg=parseFloat(newOpen.toFixed(3));item.vials=Math.max(0,parseFloat((item.vials-1).toFixed(3)));}
   }
   persist(KEYS.pantry,pantry);
+  // Check vial transition
+  var _doseAmt=parseDoseMg(doseStr)||0;
+  var _remMg=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===name.toLowerCase();})
+    .reduce(function(s,p){return s+(parseFloat(p.openVialMg)||0)+(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0);},0);
+  if(_doseAmt>0) _checkVialTransition(name,_remMg,_doseAmt);
   // Refresh shopping list if pantry tab is visible
   if(typeof renderShoppingList==='function'){
     var _pw=document.getElementById('shoppingListWrap');
@@ -5624,6 +5829,11 @@ function applyPantryFilters(items){
     }
     return true;
   });
+}
+
+// Local date string helper — avoids UTC off-by-one
+function localDateStr(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
 function parseDoseMgSL(dose){
@@ -8601,35 +8811,37 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
     var protoStart=parseLocalDate(proto.startDate);
     var weeksElapsed=Math.floor((now-protoStart)/(7*24*3600*1000));
 
-    // ── Per-compound compliance ──────────────────────────────────────────────
+    // ── Per-compound compliance (timezone-safe + window-aware + skip-aware) ──
     var complianceByCompound={};
     proto.compounds.forEach(function(c){
-      var scheduledDates=[];
-      var d=new Date(protoStart);
-      while(d<=now){
-        var dow=d.getDay();
-        var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
-        if(dows.indexOf(dow)!==-1) scheduledDates.push(d.toISOString().split('T')[0]);
-        d.setDate(d.getDate()+1);
-      }
+      if(!c||!c.name) return;
+      var iw=c.introWeek||1,dw=c.compoundDurationWeeks||proto.durationWeeks;
+      var cStart=new Date(protoStart.getTime()+(iw-1)*7*86400000);cStart.setHours(0,0,0,0);
+      var cEnd=new Date(protoStart.getTime()+(iw-1+dw)*7*86400000);cEnd.setHours(0,0,0,0);
+      var dows=c.daysOfWeek||[0,1,2,3,4,5,6];
+      var sc=0,lg=0;
       var loggedDates=new Set(logs.filter(function(l){return l.compound===c.name;}).map(function(l){return l.date;}));
-      var pct=scheduledDates.length>0?Math.round(scheduledDates.filter(function(d){return loggedDates.has(d);}).length/scheduledDates.length*100):0;
-      complianceByCompound[c.name]=pct;
+      for(var d=new Date(cStart);d<cEnd&&d<=now;d.setDate(d.getDate()+1)){
+        if(dows.indexOf(d.getDay())===-1) continue;
+        var ds=localDateStr(d);
+        var _sk='pt_skip_'+ds+'_'+c.name.toLowerCase().replace(/\s+/g,'_');
+        if(localStorage.getItem(_sk)==='1') continue;
+        sc++;
+        if(loggedDates.has(ds)) lg++;
+      }
+      complianceByCompound[c.name]=sc>0?Math.round((lg/sc)*100):0;
+      complianceByCompound['__sc_'+c.name]=sc;
+      complianceByCompound['__lg_'+c.name]=lg;
     });
 
-    // ── Overall adherence ────────────────────────────────────────────────────
-    var allScheduled=new Set();
-    var d2=new Date(protoStart);
-    while(d2<=now){
-      var dow2=d2.getDay();
-      if(proto.compounds.some(function(c){return !c.daysOfWeek||c.daysOfWeek.indexOf(dow2)!==-1;}))
-        allScheduled.add(d2.toISOString().split('T')[0]);
-      d2.setDate(d2.getDate()+1);
-    }
-    var loggedDays=new Set(logs.filter(function(l){
-      return proto.compounds.some(function(c){return c.name===l.compound;});
-    }).map(function(l){return l.date;}));
-    var adherence=allScheduled.size>0?Math.round([...allScheduled].filter(function(day){return loggedDays.has(day);}).length/allScheduled.size*100):0;
+    // ── Overall adherence (window-aware + timezone-safe + skip-aware) ────────
+    var _totalSc=0,_totalLg=0;
+    proto.compounds.forEach(function(c){
+      if(!c||!c.name) return;
+      _totalSc+=parseInt(complianceByCompound['__sc_'+c.name]||0);
+      _totalLg+=parseInt(complianceByCompound['__lg_'+c.name]||0);
+    });
+    var adherence=_totalSc>0?Math.round((_totalLg/_totalSc)*100):0;
 
     // ── Check-in trends ──────────────────────────────────────────────────────
     var sortedCheckins=[...(checkins||[])].sort(function(a,b){return a.date>b.date?1:-1;});
