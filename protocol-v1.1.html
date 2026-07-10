@@ -200,6 +200,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .cr-name{font-family:var(--lora);font-style:normal;font-size:17px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cr-meta{font-family:var(--mono);font-size:13px;color:var(--dim);line-height:1.5}
 .cr-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.protein-card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.protein-card.done-yes{border-color:var(--p1);background:var(--p1d)}
+.protein-card.done-partial{border-color:var(--p2);background:var(--p2d)}
+.protein-card.done-no{border-color:var(--p5);background:var(--p5d)}
 .cr-skip{font-family:var(--mono);font-size:9px;color:var(--dim);cursor:pointer;padding:2px 6px;border-radius:3px;border:1px solid transparent;flex-shrink:0;line-height:1.8;-webkit-tap-highlight-color:transparent}
 .cr-skip:active{opacity:.6}
 .cr.skipped .cr-check{opacity:.3;pointer-events:none}
@@ -1274,6 +1278,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div class="field"><label>Target body fat %</label>
         <input type="number" id="profTargetFat" placeholder="e.g. 18" step="0.5" oninput="saveProfileField('targetBodyFat',parseFloat(this.value)||null)">
       </div>
+      <div class="field"><label>Daily protein goal (g)</label>
+        <input type="number" id="profProteinGoal" placeholder="130" min="50" max="400" oninput="saveProfileField('proteinGoal',parseInt(this.value)||130)">
+      </div>
     </div>
     <div class="field" style="margin-bottom:0">
       <label>Goal date</label>
@@ -1384,6 +1391,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <!-- 6. INTEGRATIONS -->
   <div class="sec-lbl" style="margin-top:18px">Integrations</div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6">Import biometric and lab data to enrich your Coach APEX reports.</div>
+
+  <!-- Body Log Import -->
+  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text)">Body Log Import</div>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:12px">Import a JSON file of body composition entries from Withings or other sources. Existing dates are preserved.</div>
+    <input type="file" id="bodyLogImportInput" accept=".json" style="display:none" onchange="importBodyLogsFromFile(this)">
+    <button class="btn sm" onclick="document.getElementById('bodyLogImportInput').click()">Import Body Log JSON</button>
+  </div>
 
   <!-- Claude Health Sync -->
   <div style="background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:14px;margin-bottom:10px">
@@ -2714,6 +2731,7 @@ function renderToday(){
   try{renderBodyStrip();}catch(e){console.error('renderBodyStrip:',e);}
   try{renderChecklist();setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},600);setTimeout(function(){if(typeof checkMissedCompounds==='function')checkMissedCompounds();},800);}catch(e){console.error('renderChecklist:',e);}
   try{renderCheckinState();}catch(e){console.error('renderCheckinState:',e);}
+  try{renderProteinCard();}catch(e){console.error('renderProteinCard:',e);}
   try{renderTomorrow();}catch(e){console.error('renderTomorrow:',e);}
   try{renderFutureCompounds();}catch(e){console.error('renderFutureCompounds:',e);}
 }
@@ -2831,6 +2849,52 @@ function _showUndoToast(msg,undoLabel,undoFn){
     el.style.opacity='0';
     setTimeout(function(){el.parentNode&&el.parentNode.removeChild(el);},400);
   },5000);
+}
+
+async function importBodyLogsFromFile(input){
+  var file=input&&input.files&&input.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var parsed=JSON.parse(e.target.result);
+      var incoming=parsed.bodyLogs||parsed;
+      if(!Array.isArray(incoming)||!incoming.length){
+        toast('No body logs found in file','var(--p5)');return;
+      }
+      // Merge: skip dates already logged, add new ones
+      var existingByDate={};
+      bodyLogs.forEach(function(b){if(b.date) existingByDate[b.date]=b;});
+      var added=0,merged=0,skipped=0;
+      incoming.forEach(function(entry){
+        if(!entry.date||!entry.weight) return;
+        var existing=existingByDate[entry.date];
+        if(existing){
+          // Merge: fill in missing fields only — never overwrite existing values
+          var changed=false;
+          ['weight','fatPct','muscle','lean','bone','waterPct','waterLbs'].forEach(function(k){
+            if(entry[k]!=null&&existing[k]==null){
+              existing[k]=entry[k];changed=true;
+            }
+          });
+          if(changed) merged++; else skipped++;
+        } else {
+          bodyLogs.push(entry);
+          existingByDate[entry.date]=entry;
+          added++;
+        }
+      });
+      // Sort by date descending
+      bodyLogs.sort(function(a,b){return a.date>b.date?-1:1;});
+      persist(KEYS.bodyLogs,bodyLogs);
+      renderBodyStrip();renderBodyComp();
+      toast(added+' added, '+merged+' merged, '+skipped+' unchanged ✓');
+      input.value='';
+    } catch(err){
+      toast('Could not read file: '+err.message,'var(--p5)');
+    }
+  };
+  reader.readAsText(file);
 }
 
 async function parseBodyScreenshot(input){
@@ -3012,6 +3076,52 @@ function dismissMissed(name,date){
   renderMissedBanner(_remaining);
 }
 
+function renderProteinCard(){
+  var wrap=document.getElementById('proteinCard');
+  if(!wrap) return;
+  var goal=parseInt((userProfile&&userProfile.proteinGoal)||130);
+  var t=today();
+  var answer=localStorage.getItem('pt_protein_'+t); // 'yes'|'partial'|'no'|null
+  var cardClass='protein-card'+(answer===('yes')?(' done-yes'):answer===('partial')?' done-partial':answer===('no')?' done-no':'');
+  if(answer){
+    var icons={'yes':'✓','partial':'~','no':'✗'};
+    var labels={'yes':'Hit it','partial':'Partial','no':'Missed it'};
+    var colors={'yes':'var(--p1)','partial':'var(--p2)','no':'var(--p5)'};
+    wrap.innerHTML='<div class="'+cardClass+'">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between">'
+      +'<div>'
+      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px">Protein Goal</div>'
+      +'<div style="font-family:var(--sans);font-size:14px;color:var(--text)">'+goal+'g today</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+colors[answer]+'">'+icons[answer]+' '+labels[answer]+'</span>'
+      +'<button onclick="clearProteinLog()" style="background:none;border:none;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;padding:2px 4px">edit</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  } else {
+    wrap.innerHTML='<div class="protein-card">'
+      +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Protein Goal</div>'
+      +'<div style="font-family:var(--sans);font-size:14px;color:var(--text);margin-bottom:12px">Did you hit <strong>'+goal+'g</strong> protein today?</div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button onclick="logProtein(\'yes\')" class="btn sm" style="flex:1;justify-content:center;background:var(--p1);border-color:var(--p1);color:var(--bg)">Yes ✓</button>'
+      +'<button onclick="logProtein(\'partial\')" class="btn ghost sm" style="flex:1;justify-content:center;border-color:var(--p2);color:var(--p2)">Partial ~</button>'
+      +'<button onclick="logProtein(\'no\')" class="btn ghost sm" style="flex:1;justify-content:center;border-color:var(--p5);color:var(--p5)">No ✗</button>'
+      +'</div>'
+      +'</div>';
+  }
+}
+
+function logProtein(answer){
+  localStorage.setItem('pt_protein_'+today(),answer);
+  renderProteinCard();
+  renderChecklist(); // trigger completion check
+  if(answer==='yes') toast('Protein goal hit today ✓');
+  else if(answer==='partial') toast('Partial protein logged');
+  else toast('Protein logged for today');
+  setTimeout(function(){if(typeof checkDailyCompletion==='function') checkDailyCompletion();},300);
+}
+
 function checkDailyCompletion(){
   var t=today();
   if(localStorage.getItem('pt_celebrated_'+t)) return;
@@ -3026,6 +3136,8 @@ function checkDailyCompletion(){
   if(!allOk) return;
   if(!bodyLogs.some(function(b){return b.date===t&&b.weight!=null;})) return;
   if(!(checkins||[]).some(function(c){return c.date===t;})) return;
+  // Protein check must be answered (any answer counts)
+  if(!localStorage.getItem('pt_protein_'+t)) return;
   localStorage.setItem('pt_celebrated_'+t,'1');
   launchConfetti();
   setTimeout(function(){
@@ -8100,6 +8212,12 @@ function importData(input){
       if(b.pantryFilters){localStorage.setItem('pt_pantry_filters',b.pantryFilters);}
       if(b.theme){localStorage.setItem('pt_theme',b.theme);}
       if(b.proKey){localStorage.setItem('pt_pro_key',b.proKey);}
+      // Restore ephemeral daily keys
+      if(b.skipLogs&&typeof b.skipLogs==='object'){
+        Object.keys(b.skipLogs).forEach(function(k){
+          localStorage.setItem(k,b.skipLogs[k]);
+        });
+      }
       // Refresh UI fields after restore
       if(typeof loadClinicalNotesUI==='function') loadClinicalNotesUI();
       if(typeof updateApexKeyUI==='function') updateApexKeyUI();
@@ -8111,8 +8229,11 @@ function importData(input){
       if(b.activeProtoId!==undefined){activeProtoId=b.activeProtoId;await persist(KEYS.activeProtoId,activeProtoId);}
       if(b.activeProtoIds!==undefined){activeProtoIds=b.activeProtoIds;await persist(KEYS.activeProtoIds,activeProtoIds);}
       else if(activeProtoId){activeProtoIds=[activeProtoId];await persist(KEYS.activeProtoIds,activeProtoIds);}
-      toast('Restored: '+logs.length+' entries ✓');nav('today');
-    }catch(err){toast('Import failed — invalid backup file ✗','var(--p5)');}
+      toast('Restored: '+logs.length+' entries ✓');
+      // Full re-initialization to ensure all derived state is correct
+      if(typeof finishInit==='function') finishInit();
+      else nav('today');
+    }catch(err){console.error('Import error:',err);toast('Import failed: '+err.message,'var(--p5)');}
   };
   r.readAsText(file);
 }
@@ -8644,6 +8765,7 @@ function renderSettings(){
   var ps=document.getElementById('profSex');if(ps)ps.value=p.sex||'';
   var ptw=document.getElementById('profTargetWt');if(ptw)ptw.value=p.targetWeight||'';
   var ptf=document.getElementById('profTargetFat');if(ptf)ptf.value=p.targetBodyFat||'';
+  var ppg=document.getElementById('profProteinGoal');if(ppg)ppg.value=p.proteinGoal||130;
   // Timeline buttons
   var tl=p.timelineWeeks||0;
   document.querySelectorAll('.ob-timeline-btn').forEach(function(b){
@@ -9060,7 +9182,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
     if(apiKey) headers['x-api-key']=apiKey;
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:headers,
-      body:JSON.stringify({model:'claude-opus-4-7',max_tokens:4000,
+      body:JSON.stringify({model:'claude-opus-4-7',max_tokens:8000,
         system:system,
         messages:[{role:'user',content:userPrompt}]})
     });
@@ -9087,12 +9209,26 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
     try{
       review=JSON.parse(reviewRaw);
     } catch(parseErr){
-      // Try to salvage by removing any trailing comma before }
-      var cleaned=reviewRaw.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      // Multi-pass cleanup for common Claude JSON issues
+      var cleaned=reviewRaw
+        .replace(/,\s*}/g,'}')
+        .replace(/,\s*]/g,']')
+        // Escape unescaped control chars inside strings
+        .replace(/([^\\])\n/g,'$1\\n')
+        .replace(/([^\\])\r/g,'$1\\r')
+        .replace(/([^\\])\t/g,'$1\\t');
       try{
         review=JSON.parse(cleaned);
       } catch(e2){
-        throw new Error('JSON parse error: '+parseErr.message+'. Raw: '+reviewRaw.slice(0,200));
+        // Last resort: extract fields individually via regex
+        review={};
+        var fieldRx=/(\"[\w_]+\")\s*:\s*\"((?:[^\"]|\\.)*)\"/g;
+        var fm;
+        while((fm=fieldRx.exec(cleaned))!==null){
+          try{review[JSON.parse(fm[1])]=fm[2].replace(/\\n/g,'\n');}catch(fe){}
+        }
+        if(!Object.keys(review).length)
+          throw new Error('JSON parse error: '+parseErr.message+'. Raw: '+reviewRaw.slice(0,200));
       }
     }
 
@@ -10717,7 +10853,7 @@ function dismissBackupBanner(){
 
 function exportToFiles(){
   localStorage.setItem('pt_last_files_save', Date.now().toString());
-  var backup={version:13,exported:new Date().toISOString(),
+  var backup={version:14,exported:new Date().toISOString(),
     logs:logs,doseMem:doseMem,bodyLogs:bodyLogs,checkins:checkins,
     pantry:pantry,protocols:protocols,activeProtoId:activeProtoId,activeProtoIds:activeProtoIds,
     userProfile:userProfile,
@@ -10731,7 +10867,17 @@ function exportToFiles(){
     displayPrefs:localStorage.getItem('pt_display_prefs')||'',
     pantryFilters:localStorage.getItem('pt_pantry_filters')||'',
     theme:localStorage.getItem('pt_theme')||'',
-    proKey:localStorage.getItem('pt_pro_key')||''};
+    proKey:localStorage.getItem('pt_pro_key')||'',
+    // Ephemeral daily keys — skip logs and missed dismissals
+    skipLogs:(function(){
+      var sk={};
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&(k.indexOf('pt_skip_')===0||k.indexOf('pt_missed_dismissed_')===0||k.indexOf('pt_protein_')===0))
+          sk[k]=localStorage.getItem(k);
+      }
+      return sk;
+    })()};
   var jsonStr=JSON.stringify(backup,null,2);
   var filename='protocol-backup-'+today()+'.json';
   // iOS PWA: use Web Share API to trigger Files picker
