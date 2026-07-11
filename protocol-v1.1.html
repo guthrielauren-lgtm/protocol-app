@@ -76,7 +76,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .tab-btn.on{color:var(--p1)}
 .tab-icon{font-size:19px;line-height:1}
 .tab-label{font-family:var(--mono);font-size:9px;letter-spacing:.05em}
-.main{overflow-y:auto;height:calc(100dvh - var(--hdr-h) - var(--safe-t));padding:0 16px calc(var(--tab-h) + var(--safe-b) + 16px);position:relative;z-index:1;background:var(--bg);-webkit-overflow-scrolling:touch}
+.main{overflow-y:auto;height:calc(100dvh - var(--hdr-h) - var(--safe-t));padding:0 16px calc(var(--tab-h) + var(--safe-b) + 40px);position:relative;z-index:1;background:var(--bg);-webkit-overflow-scrolling:touch}
 @media(max-width:767px){
   .app{grid-template-columns:1fr;padding-top:calc(var(--hdr-h) + var(--safe-t));background:var(--bg)}
   .sidebar{display:none}
@@ -183,7 +183,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .proto-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
 .proto-swap{font-family:var(--mono);font-size:10px;padding:6px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;color:var(--mid);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
 .proto-swap:hover{border-color:var(--p1);color:var(--p1)}
-.bc-strip-outer{margin-bottom:12px}
+.bc-strip-outer{margin-top:8px;margin-bottom:18px}
 .bc-strip-clickable{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bc-inline-entry{background:var(--sf);border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px;padding:14px 16px;display:none}
 .bc-inline-entry.open{display:block}
@@ -458,6 +458,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .tour-btn-next{font-family:var(--mono);font-size:11px;padding:8px 18px;background:var(--p1);color:var(--bg);border:none;border-radius:6px;cursor:pointer;font-weight:500}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
+<script type="module">import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs";pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";window.pdfjsLib=pdfjsLib;</script>
 <script>
 (function(){
   try{
@@ -797,7 +799,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div id="missedCompoundsBanner" style="display:none;background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:12px 14px;margin:0 0 14px"></div>
   <div class="bc-strip-outer">
     <div class="bc-strip-clickable" id="bcStripToggle" onclick="toggleBCEntry()" style="position:relative">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:5px 0 2px;pointer-events:none" id="stripHint">Tap to log · tap again to close</div>
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:8px 0 6px;pointer-events:none" id="stripHint">Tap to log · tap again to close</div>
       <div class="stats-band" id="todayStrip">
         <div class="stat-cell" id="strip-weight"><div class="stat-lbl">Weight<span id="weightLoggedBadge" style="display:none;width:6px;height:6px;border-radius:50%;background:var(--p1);display:inline-block;margin-left:4px;vertical-align:middle"></span></div><div class="stat-num" id="tsWeight">—</div><div class="stat-sub neu" id="tsWeightD">lbs</div></div>
         <div class="stat-cell" id="strip-fat"><div class="stat-lbl">Fat %<span id="tsFatSrc" style="font-size:8px;color:var(--p3);margin-left:3px"></span></div><div class="stat-num" id="tsFat">—</div><div class="stat-sub" id="tsFatD">—</div></div>
@@ -845,14 +847,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div id="conflictBannerWrap" style="margin:0 16px 4px"></div>
-  <div id="checklistWrap"></div>
+  <div id="checklistWrap" style="margin-top:4px"></div>
 
-  <button class="add-compound-btn" onclick="openAddCompoundToday()">
+  <button class="add-compound-btn" onclick="openAddCompoundToday()" style="margin-top:6px;margin-bottom:14px">
     <span style="font-size:18px;color:var(--p1)">+</span>
     <span>Add compound for today</span>
   </button>
 
-  <div id="proteinCard" style="margin-bottom:12px"></div>
+  <div id="proteinCard" style="margin-top:6px;margin-bottom:14px"></div>
   <div class="checkin-card" style="margin-top:12px">
     <div class="checkin-hdr" id="checkinHdr" onclick="toggleCheckin()">
       <span style="font-size:15px;color:var(--p1)">✦</span>
@@ -2937,6 +2939,42 @@ function showComplianceBreakdown(protoId,compoundName){
   modal.style.display='flex';
 }
 
+async function parseBodyScreenshot(input){
+  var file=input.files&&input.files[0];if(!file) return;
+  var apiKey=localStorage.getItem('rp_anthropic_key')||_getApiKeyCookie()||'';
+  if(!apiKey){toast('Add your API key in Settings first','var(--p5)');return;}
+  var btn=document.getElementById('bcScreenshotBtn');
+  if(btn){btn.textContent='Reading\u2026';btn.style.pointerEvents='none';btn.style.opacity='.5';}
+  try{
+    var b64=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result.split(',')[1]);};r.onerror=rej;r.readAsDataURL(file);});
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},
+        {type:'text',text:'Extract body composition data from this screenshot. Respond ONLY with a valid JSON object \u2014 no markdown, no backticks. Keys (all optional, use null if not visible): weight_lbs, fat_pct, lean_lbs, water_pct, bone_lbs, date (YYYY-MM-DD). If weight is in kg, convert to lbs (x2.205). Example: {"weight_lbs":167.2,"fat_pct":28.1,"lean_lbs":120.3,"water_pct":55.2,"bone_lbs":7.1,"date":"2024-01-15"}'}
+      ]}]})
+    });
+    if(!resp.ok){var ed=await resp.json().catch(function(){return {};});throw new Error((ed.error&&ed.error.message)?ed.error.message:('HTTP '+resp.status));}
+    var data=await resp.json();
+    if(data.error) throw new Error(data.error.message||'API error');
+    var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
+    var parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    var map={bcWeight:'weight_lbs',bcFat:'fat_pct',bcMuscle:'lean_lbs',bcWater:'water_pct',bcBone:'bone_lbs'};
+    var filled=0;
+    Object.keys(map).forEach(function(elId){var v=parsed[map[elId]];if(v==null||isNaN(parseFloat(v)))return;var el=document.getElementById(elId);if(el){el.value=Math.round(parseFloat(v)*10)/10;filled++;}});
+    if(parsed.date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)){var de=document.getElementById('bcDate');if(de)de.value=parsed.date;}
+    if(parsed.fat_pct||parsed.lean_lbs) setBCMode('full');
+    if(filled===0){toast('No body data found \u2014 try a clearer screenshot','var(--p2)');}
+    else{var form=document.getElementById('bcInlineEntry');if(form){form.style.display='block';setTimeout(function(){form.scrollIntoView({behavior:'smooth',block:'nearest'});},200);}toast(filled+' field'+(filled!==1?'s':'')+' filled \u2014 tap Save to confirm \u2713');}
+  }catch(e){
+    console.error('Screenshot parse:',e);
+    var msg='Import failed';
+    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('fetch')>-1)msg='Network error';else if(e.message.indexOf('JSON')>-1)msg='Could not read image';else msg=e.message.slice(0,60);}
+    toast(msg,'var(--p5)');
+  }finally{if(btn){btn.textContent='Import';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
+}
+
 async function parseLabsPDF(input){
   var file=input&&input.files&&input.files[0];if(!file) return;
   var apiKey=localStorage.getItem('rp_anthropic_key')||_getApiKeyCookie()||'';
@@ -2944,23 +2982,41 @@ async function parseLabsPDF(input){
   var btn=document.getElementById('labsImportBtn');
   if(btn){btn.textContent='Reading labs\u2026';btn.style.pointerEvents='none';btn.style.opacity='.5';}
   try{
-    var b64=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result.split(',')[1]);};r.onerror=rej;r.readAsDataURL(file);});
-    var isPdf=(file.type||'').indexOf('pdf')>-1;
-    var srcBlock=isPdf?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}:{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}};
-    var promptText='Extract lab test results from this document. Respond ONLY with valid JSON, no markdown, no backticks. CRITICAL PRIVACY RULE: do NOT include any patient name, date of birth, address, phone, patient ID, specimen ID, requisition number, provider names, or facility names. Extract ONLY: collection_date (YYYY-MM-DD, the specimen collection date), and markers (array). Each marker: {name (standardized lab name), value (number if numeric, else string), unit, ref_low (number or null), ref_high (number or null), flag ("H","L", or null)}. Example: {"collection_date":"2026-06-29","markers":[{"name":"Creatinine","value":1.07,"unit":"mg/dL","ref_low":0.5,"ref_high":0.99,"flag":"H"},{"name":"eGFR","value":65,"unit":"mL/min/1.73m2","ref_low":60,"ref_high":null,"flag":null}]}';
+    var imageBlocks=[];
+    var isPdf=(file.type||'').indexOf('pdf')>-1||/\.pdf$/i.test(file.name||'');
+    if(isPdf){
+      if(!window.pdfjsLib){throw new Error('PDF engine still loading, try again in a moment');}
+      var buf=await file.arrayBuffer();
+      var pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+      var maxPages=Math.min(pdf.numPages,6);
+      for(var pn=1;pn<=maxPages;pn++){
+        var page=await pdf.getPage(pn);
+        var viewport=page.getViewport({scale:2.0});
+        var canvas=document.createElement('canvas');
+        canvas.width=viewport.width;canvas.height=viewport.height;
+        var ctx=canvas.getContext('2d');
+        await page.render({canvasContext:ctx,viewport:viewport}).promise;
+        var dataUrl=canvas.toDataURL('image/jpeg',0.85);
+        imageBlocks.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:dataUrl.split(',')[1]}});
+      }
+    } else {
+      var b64=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result.split(',')[1]);};r.onerror=rej;r.readAsDataURL(file);});
+      imageBlocks.push({type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}});
+    }
+    var promptText='Extract lab test results from these document pages. Respond ONLY with valid JSON, no markdown, no backticks. CRITICAL PRIVACY RULE: do NOT include any patient name, date of birth, address, phone, patient ID, specimen ID, requisition number, provider names, or facility names. Extract ONLY: collection_date (YYYY-MM-DD, the specimen collection date), and markers (array). Each marker: {name (standardized lab name), value (number if numeric else string), unit, ref_low (number or null), ref_high (number or null), flag ("H","L", or null)}. Example: {"collection_date":"2026-06-29","markers":[{"name":"Creatinine","value":1.07,"unit":"mg/dL","ref_low":0.5,"ref_high":0.99,"flag":"H"}]}';
+    var content=imageBlocks.concat([{type:'text',text:promptText}]);
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-opus-4-20250514',max_tokens:4000,messages:[{role:'user',content:[srcBlock,{type:'text',text:promptText}]}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:content}]})
     });
-    if(!resp.ok){var ed=await resp.json().catch(function(){return {};});throw new Error('API '+resp.status+': '+(ed.error&&ed.error.message?ed.error.message:'failed'));}
+    if(!resp.ok){var ed=await resp.json().catch(function(){return {};});var em=(ed.error&&ed.error.message)?ed.error.message:('HTTP '+resp.status);throw new Error(em);}
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message||'API error');
     var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
     var parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     if(!parsed.markers||!parsed.markers.length){toast('No lab markers found','var(--p5)');return;}
     var cdate=(parsed.collection_date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.collection_date))?parsed.collection_date:today();
-    // PII safeguard: strip any marker whose name looks like identifying info
     var piiWords=['name','birth','dob','address','phone','patient','specimen','requisition','provider','facility','client'];
     var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
     var added=0;
@@ -2971,11 +3027,9 @@ async function parseLabsPDF(input){
       if(m.value==null||m.value==='') return;
       var key=m.name.trim();
       if(!labs[key]) labs[key]={unit:m.unit||'',ref_low:m.ref_low,ref_high:m.ref_high,readings:[]};
-      // Avoid duplicate date entries
       if(!labs[key].readings.some(function(r){return r.date===cdate;})){
         labs[key].readings.push({date:cdate,value:m.value,flag:m.flag||null});
         labs[key].readings.sort(function(a,b){return a.date>b.date?1:-1;});
-        // keep latest range
         if(m.ref_low!=null)labs[key].ref_low=m.ref_low;
         if(m.ref_high!=null)labs[key].ref_high=m.ref_high;
         if(m.unit)labs[key].unit=m.unit;
@@ -2989,7 +3043,7 @@ async function parseLabsPDF(input){
   }catch(e){
     console.error('Labs parse:',e);
     var msg='Import failed';
-    if(e&&e.message){if(e.message.indexOf('API')>-1||e.message.indexOf('401')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('JSON')>-1)msg='Could not read labs';else msg=e.message.slice(0,50);}
+    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1||e.message.indexOf('authentication')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('JSON')>-1||e.message.indexOf('parse')>-1)msg='Could not read labs data';else msg=e.message.slice(0,80);}
     toast(msg,'var(--p5)');
   }finally{if(btn){btn.textContent='Import Lab PDF';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
 }
