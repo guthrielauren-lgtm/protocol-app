@@ -13,15 +13,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=DM+Serif+Display&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0f0e0c;--bg2:#161511;--sf:#1e1c18;--sf2:#252320;
-  --bd:#333028;--bd2:#46423a;
-  --p1:#3dd68c;--p1d:rgba(61,214,140,.13);
-  --p2:#f5a623;--p2d:rgba(245,166,35,.13);
-  --p3:#2ec4b6;--p3d:rgba(46,196,182,.13);
-  --p4:#9b72cf;--p4d:rgba(155,114,207,.13);
-  --p5:#f25c54;--p5d:rgba(242,92,84,.13);
-  --warn:#f5a623;
-  --text:#f2ede6;--mid:#a09890;--dim:#665e54;
+  --bg:#0C1210;--bg2:#0F1714;--sf:#141F1A;--sf2:#1A2822;
+  --bd:#24352E;--bd2:#33473E;
+  --p1:#57E6B4;--p1d:rgba(87,230,180,.13);
+  --p2:#E4A54C;--p2d:rgba(228,165,76,.13);
+  --p3:#4FD6C4;--p3d:rgba(79,214,196,.13);
+  --p4:#9B8CE0;--p4d:rgba(155,140,224,.13);
+  --p5:#F07A6C;--p5d:rgba(240,122,108,.13);
+  --warn:#E4A54C;
+  --text:#E7EEEA;--mid:#7B8C84;--dim:#4C5A53;
   --mono:'IBM Plex Mono',monospace;
   --serif:'DM Serif Display',Georgia,serif;
   --lora:'Plus Jakarta Sans',sans-serif;
@@ -29,14 +29,15 @@
   --tab-h:64px;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);--hdr-h:56px;
 }
 @media(prefers-color-scheme:light){:root{
-  --bg:#f5f2ec;--bg2:#ede9e0;--sf:#fff;--sf2:#f0ece4;
-  --bd:#d6d0c4;--bd2:#b8b0a2;
-  --p1:#1a9e5c;--p1d:rgba(26,158,92,.10);
-  --p2:#c47d00;--p2d:rgba(196,125,0,.10);
-  --p3:#0e8a80;--p3d:rgba(14,138,128,.10);
-  --p4:#6e3fb5;--p4d:rgba(110,63,181,.10);
-  --p5:#d93025;--p5d:rgba(217,48,37,.10);
-  --text:#1a1714;--mid:#5a5248;--dim:#9c9184;
+  --bg:#EDF2F2;--bg2:#E3EBEA;--sf:#FBFDFD;--sf2:#EAF0EF;
+  --bd:#D2DEDB;--bd2:#B3C3BF;
+  --p1:#0E9E75;--p1d:rgba(14,158,117,.10);
+  --p2:#B07520;--p2d:rgba(176,117,32,.10);
+  --p3:#0D8F87;--p3d:rgba(13,143,135,.10);
+  --p4:#6B5BC4;--p4d:rgba(107,91,196,.10);
+  --p5:#CE4F40;--p5d:rgba(206,79,64,.10);
+  --warn:#B07520;
+  --text:#141C1F;--mid:#556764;--dim:#8CA09B;
 }}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;background:var(--bg)}
@@ -66,8 +67,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .backup-btn.export{background:var(--p1d);border:1px solid var(--p1);color:var(--p1)}
 .backup-btn.import-btn{background:var(--sf2);border:1px solid var(--bd);color:var(--mid)}
 /* Logo mark fills — swap in dark mode via JS */
-.logo-mark-bg{fill:#0a1628}
-.logo-mark-p{fill:#3dd68c}
+.logo-mark-bg{fill:#0C1210}
+.logo-mark-p{fill:#57E6B4}
 .mob-header{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-bottom:1px solid var(--bd);padding:0 18px;padding-top:var(--safe-t);height:calc(var(--hdr-h) + var(--safe-t));position:fixed;top:0;left:0;right:0;z-index:50}
 .mob-title{font-family:var(--lora);font-size:17px;font-weight:600}
 .mob-proto-btn{font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;border:1px solid var(--p1);color:var(--p1);background:var(--p1d);cursor:pointer;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-tap-highlight-color:transparent}
@@ -403,7 +404,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .onboard-slide{display:none;flex-direction:column;height:100%;padding:28px 24px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .onboard-slide.on{display:flex}
 #ob2{overflow:hidden}
-.active-proto-dropdown{background:var(--sf);border:1px solid var(--bd);border-top:none;border-radius:0 0 10px 10px;padding:4px 14px 10px;margin-top:-2px;margin-bottom:8px}
+.active-proto-dropdown{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:4px 14px 10px;margin:6px 16px 12px}
 .apd-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)}
 .apd-row:last-child{border-bottom:none}
 .apd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -444,7 +445,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .tour-spotlight::after{content:'';position:absolute;inset:-4px;border-radius:14px;border:2px solid var(--p1);animation:tour-pulse 2s infinite}
 @keyframes tour-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.02)}}
 /* Tour illustrations */
-.tour-illus-bar{background:#0a1628;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e3050}
+.tour-illus-bar{background:#0C1210;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e3050}
 /* Tour tooltip */
 .tour-tooltip{position:fixed;background:var(--bg2);border:1px solid var(--p1);border-radius:12px;padding:16px 16px 12px;width:min(320px,calc(100vw - 32px));z-index:2004;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:all .35s cubic-bezier(.4,0,.2,1)}
 .tour-step-label{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--p1);margin-bottom:5px}
@@ -456,10 +457,114 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .tour-dot.on{background:var(--p1)}
 .tour-btn-skip{font-family:var(--mono);font-size:10px;color:var(--dim);background:none;border:none;cursor:pointer;padding:0}
 .tour-btn-next{font-family:var(--mono);font-size:11px;padding:8px 18px;background:var(--p1);color:var(--bg);border:none;border-radius:6px;cursor:pointer;font-weight:500}
+
+.hero-wrap{margin:10px 0 6px;padding:14px 4px 4px}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;padding:0 4px 6px}
+.hero-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.hero-val{font-family:var(--serif);font-size:46px;line-height:.9;letter-spacing:-.5px;margin-top:5px;color:var(--text)}
+.hero-unit{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:3px;letter-spacing:0}
+.hero-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.logpill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);border:1px solid var(--p1);background:var(--p1d);border-radius:20px;padding:7px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.logpill .lp{font-family:var(--serif);font-size:14px;line-height:1}
+.hero-delta-wrap{text-align:right}
+.hero-delta{font-family:var(--serif);font-size:16px;color:var(--p1)}
+.hero-delta.dn{color:var(--p5)}
+.hero-raw{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px;letter-spacing:.03em}
+.hero-chart{width:100%;height:112px;display:block}
+.hero-cap{display:flex;align-items:center;gap:14px;padding:7px 4px 0;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.04em}
+.hsw{display:inline-flex;align-items:center;gap:5px}
+.hsw i{width:14px;height:2px;background:var(--p1);border-radius:2px}
+.hsw.g i{width:5px;height:5px;border-radius:50%;background:var(--bd2)}
+.hero-chips{display:flex;gap:7px;padding:12px 4px 4px}
+.hchip{flex:1;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:8px 0;border:1px solid var(--bd);border-radius:9px;background:var(--bg2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hchip.on{color:var(--p1);border-color:var(--p1);background:var(--p1d)}
+.hero-empty{text-align:center;padding:26px 16px;font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.8;border:1px dashed var(--bd);border-radius:12px;margin:4px}
+.bc-scrim{position:fixed;inset:0;background:rgba(4,8,7,.66);z-index:900;display:none;align-items:flex-end;justify-content:center}
+.bc-scrim.open{display:flex}
+
+.bc-sheet{width:100%;max-width:480px;background:var(--bg2);border-top:1px solid var(--p1);border-radius:22px 22px 0 0;padding:16px 20px calc(26px + var(--safe-b));box-shadow:0 -20px 50px rgba(0,0,0,.4);max-height:86vh;overflow-y:auto}
+.bc-grip{width:38px;height:4px;border-radius:2px;background:var(--bd);margin:0 auto 14px}
+.bc-sheet-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.bc-sheet-hd h3{font-family:var(--serif);font-size:20px;color:var(--text);margin:0}
+.bc-import{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--p1);border:1px solid var(--p1);border-radius:16px;padding:6px 11px;background:var(--p1d);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bc-sheet-sub{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.04em;margin-bottom:14px}
+.bc-mode-row{display:flex;gap:7px;margin-bottom:14px}
+.bc-mode{flex:1;font-family:var(--mono);font-size:10px;padding:8px 4px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer}
+.bc-mode.on{border-color:var(--p1);background:var(--p1);color:var(--bg)}
+.bc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.bc-field{background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:10px 12px}
+.bc-field.full{margin-bottom:12px}
+.bc-field label{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.bc-field input{width:100%;background:transparent;border:none;outline:none;font-family:var(--serif);font-size:22px;color:var(--text);padding:0}
+.bc-field input::placeholder{color:var(--dim);opacity:.5}
+.bc-field:focus-within{border-color:var(--p1)}
+.bc-prev{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px;min-height:10px}
+.bc-live{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;padding:8px 0 12px}
+.bc-live b{color:var(--text)}
+.bc-live #bcLiveFat{color:var(--p2)}
+.bc-live #bcLiveLean{color:var(--p1)}
+.bc-save{width:100%;font-family:var(--serif);font-size:15px;padding:14px;background:var(--p1);color:var(--bg);border:none;border-radius:12px;cursor:pointer}
+.bc-cancel{width:100%;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:12px;background:transparent;color:var(--dim);border:none;margin-top:8px;cursor:pointer}
+
+
+.hero-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8.5px;color:var(--dim);letter-spacing:.04em;padding:5px 4px 0}
+.hsw.d i{width:13px;height:0;border-top:2px dashed var(--p1);background:none;border-radius:0}
+.hsw.m i{width:1px;height:11px;background:var(--p4);border-radius:0}
+.hero-chart{height:150px}
+
+/* ── RHYTHM SPINE ── */
+#checklistWrap{position:relative;padding-left:30px;margin-top:10px}
+#checklistWrap::before{
+  content:"";position:absolute;left:9px;top:14px;bottom:10px;width:2px;
+  background:linear-gradient(var(--p1) 0%, var(--bd) 60%, var(--bd) 100%);
+  opacity:.55;border-radius:2px;
+}
+.timing-group{position:relative;margin-bottom:22px}
+.timing-group-hdr{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 11px;position:relative;
+}
+.timing-group.tg-now .timing-group-hdr{color:var(--p1)}
+.timing-group-hdr .tg-state{opacity:.75;margin-left:5px}
+
+/* each dose card becomes a node on the spine */
+.cr{position:relative}
+.cr::before{
+  content:"";position:absolute;left:-27px;top:19px;width:12px;height:12px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--bd2);z-index:2;
+}
+.cr.logged::before{
+  background:var(--p1);border-color:var(--p1);
+  box-shadow:0 0 10px var(--p1d),0 0 4px var(--p1);
+}
+.cr.skipped::before{
+  background:var(--bg);border-color:var(--p2);
+}
+.cr.cr-now::before{
+  background:var(--bg);border-color:var(--p1);
+  animation:spinePulse 2.4s ease-in-out infinite;
+}
+@keyframes spinePulse{
+  0%,100%{box-shadow:0 0 0 3px var(--p1d)}
+  50%{box-shadow:0 0 0 7px transparent}
+}
+@media (prefers-reduced-motion:reduce){.cr.cr-now::before{animation:none;box-shadow:0 0 0 3px var(--p1d)}}
+.cr.cr-now{border-color:var(--p1)}
+.cr-nowtag{
+  position:absolute;left:-27px;top:2px;font-family:var(--mono);font-size:7.5px;
+  letter-spacing:.18em;color:var(--p1);white-space:nowrap;
+}
+.cr.logged{opacity:.66}
+
+
+.rhythm-status{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--p1);padding:14px 2px 2px}
+.rs-dot{width:6px;height:6px;border-radius:50%;background:var(--p1);flex-shrink:0;box-shadow:0 0 8px var(--p1)}
+.rs-dot.done{background:var(--dim);box-shadow:none}
+.rhythm-status:empty{display:none}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
-<script type="module">import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs";pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";window.pdfjsLib=pdfjsLib;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib){window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}</script>
 <script>
 (function(){
   try{
@@ -521,11 +626,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
 <div id="installBanner" class="install-banner" style="display:none">
   <svg class="install-banner-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-    <rect width="512" height="512" rx="114" fill="#0a1628"/>
-    <rect x="128" y="112" width="64" height="288" rx="14" fill="#3dd68c"/>
-    <rect x="128" y="112" width="208" height="64" rx="14" fill="#3dd68c"/>
-    <rect x="128" y="240" width="208" height="64" rx="14" fill="#3dd68c"/>
-    <rect x="272" y="112" width="64" height="192" rx="14" fill="#3dd68c"/>
+    <rect width="512" height="512" rx="114" fill="#0C1210"/>
+    <rect x="128" y="112" width="64" height="288" rx="14" fill="#57E6B4"/>
+    <rect x="128" y="112" width="208" height="64" rx="14" fill="#57E6B4"/>
+    <rect x="128" y="240" width="208" height="64" rx="14" fill="#57E6B4"/>
+    <rect x="272" y="112" width="64" height="192" rx="14" fill="#57E6B4"/>
   </svg>
   <div class="install-banner-text">
     <div class="install-banner-title">Add Protocol to Home Screen</div>
@@ -797,56 +902,39 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div class="active-proto-dropdown" id="activeProtoDropdown" style="display:none"></div>
 
   <div id="missedCompoundsBanner" style="display:none;background:var(--p2d);border:1px solid var(--p2);border-radius:10px;padding:12px 14px;margin:0 0 14px"></div>
-  <div class="bc-strip-outer">
-    <div class="bc-strip-clickable" id="bcStripToggle" onclick="toggleBCEntry()" style="position:relative">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:8px 0 6px;pointer-events:none" id="stripHint">Tap to log · tap again to close</div>
-      <div class="stats-band" id="todayStrip">
-        <div class="stat-cell" id="strip-weight"><div class="stat-lbl">Weight<span id="weightLoggedBadge" style="display:none;width:6px;height:6px;border-radius:50%;background:var(--p1);display:inline-block;margin-left:4px;vertical-align:middle"></span></div><div class="stat-num" id="tsWeight">—</div><div class="stat-sub neu" id="tsWeightD">lbs</div></div>
-        <div class="stat-cell" id="strip-fat"><div class="stat-lbl">Fat %<span id="tsFatSrc" style="font-size:8px;color:var(--p3);margin-left:3px"></span></div><div class="stat-num" id="tsFat">—</div><div class="stat-sub" id="tsFatD">—</div></div>
-        <div class="stat-cell" id="strip-muscle"><div class="stat-lbl">Muscle</div><div class="stat-num" id="tsMuscle">—</div><div class="stat-sub" id="tsMuscleD">lbs</div></div>
-        <div class="stat-cell" id="strip-water"><div class="stat-lbl">Water</div><div class="stat-num" id="tsWater">—</div><div class="stat-sub" id="tsWaterD">%</div></div>
-        <div class="stat-cell" id="strip-bone"><div class="stat-lbl">Bone</div><div class="stat-num" id="tsBone">—</div><div class="stat-sub" id="tsBoneD">lbs</div></div>
-
-        <div class="stat-cell" id="strip-log-cta" style="display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px dashed var(--p1);border-radius:6px;background:var(--p1d)"><div style="font-family:var(--mono);font-size:28px;font-weight:300;color:var(--p1);text-align:center;line-height:1;padding:4px 0">+<br><span style="font-size:11px;letter-spacing:.04em">Log</span></div></div>
+  <div class="hero-wrap">
+    <div class="hero-top">
+      <div class="hero-lead">
+        <div class="hero-lbl" id="heroLbl">Muscle · signal</div>
+        <div class="hero-val" id="heroVal">—<span class="hero-unit" id="heroUnit">lbs</span></div>
+      </div>
+      <div class="hero-side">
+        <div class="logpill" onclick="openBCSheet()"><span class="lp">+</span> log reading</div>
+        <div class="hero-delta-wrap">
+          <div class="hero-delta" id="heroDelta"></div>
+          <div class="hero-raw" id="heroTrendLbl"></div>
+          <div class="hero-raw" id="heroRaw"></div>
+        </div>
       </div>
     </div>
-    <div class="bc-inline-entry" id="bcInlineEntry">
-      <div style="display:flex;gap:6px;margin-bottom:12px">
-        <label for="bcScreenshotInput" id="bcScreenshotBtn" style="font-family:var(--mono);font-size:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer;flex-shrink:0;display:inline-block;line-height:1.4;-webkit-tap-highlight-color:transparent">Import</label>
-        <button id="bcModeWeight" onclick="setBCMode('weight')" style="flex:1;font-family:var(--mono);font-size:10px;padding:7px 4px;border-radius:6px;border:1px solid var(--p1);background:var(--p1);color:var(--bg);cursor:pointer">Weight only</button>
-        <button id="bcModeFull" onclick="setBCMode('full')" style="flex:1;font-family:var(--mono);font-size:10px;padding:7px 4px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer">Full body comp</button>
-      </div>
-      <!-- Weight-only mode -->
-      <div id="bcEntryWeight">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Log today's weight</div>
-        <div class="field" style="margin-bottom:10px"><label>Weight (lbs)</label><input type="number" inputmode="decimal" id="tWtOnly" placeholder="165.0" step="0.1"></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn sm" onclick="saveWeightOnly()">Save Weight</button>
-          <button class="btn ghost sm" onclick="toggleBCEntry()">Cancel</button>
-        </div>
-      </div>
-      <!-- Full body comp mode -->
-      <div id="bcEntryFull" style="display:none">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Smart scale / DEXA reading</div>
-        <div class="g2-fixed" style="margin-bottom:8px">
-          <div class="field"><label>M · Muscle</label><input type="number" inputmode="decimal" id="tM" placeholder="127.3" step="0.1" oninput="bcLiveCalc()"></div>
-          <div class="field"><label>F · Fat</label><input type="number" inputmode="decimal" id="tF" placeholder="33.9" step="0.1" oninput="bcLiveCalc()"></div>
-          <div class="field"><label>B · Bone</label><input type="number" inputmode="decimal" id="tB" placeholder="7.3" step="0.1" oninput="bcLiveCalc()"></div>
-          <div class="field"><label>W · Water</label><input type="number" inputmode="decimal" id="tW" placeholder="82.4" step="0.1"></div>
-
-        </div>
-        <div class="bc-live-row" id="bcLiveRow">
-          Total: <b id="bcLiveWt" style="color:var(--text)"></b> lbs &nbsp;·&nbsp; Fat <span id="bcLiveFat" style="color:var(--p2)"></span>% &nbsp;·&nbsp; Lean <span id="bcLiveLean" style="color:var(--p1)"></span>%
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn sm" onclick="saveTodayBC()">Save Reading</button>
-          <button class="btn ghost sm" onclick="toggleBCEntry()">Cancel</button>
-        </div>
-      </div>
+    <div id="heroChartWrap"></div>
+    <div class="hero-axis" id="heroAxis"></div>
+    <div class="hero-cap" id="heroCap">
+      <span class="hsw"><i></i> signal</span>
+      <span class="hsw g"><i></i> daily</span>
+      <span class="hsw d" id="heroSwGap" style="display:none"><i></i> no data</span>
+      <span class="hsw m" id="heroSwMark" style="display:none"><i></i> protocol start</span>
+    </div>
+    <div class="hero-chips">
+      <div class="hchip" id="hchip-weight" onclick="setHeroMetric('weight')">Weight</div>
+      <div class="hchip" id="hchip-fatPct" onclick="setHeroMetric('fatPct')">Fat %</div>
+      <div class="hchip on" id="hchip-muscle" onclick="setHeroMetric('muscle')">Muscle</div>
     </div>
   </div>
 
+
   <div id="conflictBannerWrap" style="margin:0 16px 4px"></div>
+  <div class="rhythm-status" id="rhythmStatus"></div>
   <div id="checklistWrap" style="margin-top:4px"></div>
 
   <button class="add-compound-btn" onclick="openAddCompoundToday()" style="margin-top:6px;margin-bottom:14px">
@@ -1394,15 +1482,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <!-- 6. INTEGRATIONS -->
   <div class="sec-lbl" style="margin-top:18px">Integrations</div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6">Import biometric and lab data to enrich your Coach APEX reports.</div>
-
-  <!-- Labs Import -->
-  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
-    <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">Lab Results</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:12px">Import a lab PDF. Your name and identifying details are never stored — only clinical markers, values, and collection dates. Data stays on your device.</div>
-    <input type="file" id="labsImportInput" accept=".pdf,image/*" style="display:none" onchange="parseLabsPDF(this)">
-    <label for="labsImportInput" id="labsImportBtn" style="font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:6px;border:1px solid var(--p1);background:var(--p1d);color:var(--p1);cursor:pointer;display:inline-block;-webkit-tap-highlight-color:transparent">Import Lab PDF</label>
-    <div id="labsSection" style="margin-top:14px"></div>
-  </div>
 
   <!-- Body Log Import -->
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
@@ -2287,7 +2366,7 @@ function nav(tab){
   const panel=document.getElementById('panel-'+tab);if(panel)panel.classList.add('on');
   const mainEl=document.getElementById('mainEl');if(mainEl)mainEl.scrollTop=0;
   if(tab==='today')    renderToday();
-  if(tab==='insights') renderInsights();
+  if(tab==='insights'){ renderInsights(); setTimeout(function(){ensureLabsInInsights();},50); }
   if(tab==='journal'){renderHistory();}
   var names={'today':'TODAY','journal':'JOURNAL','insights':'INSIGHTS','build':'BUILD','pantry':'PANTRY','settings':'SETTINGS'};
   Object.keys(names).forEach(function(t){var el=document.getElementById('phdr-'+t);if(el)el.style.display=t===tab?'block':'none';});
@@ -2612,14 +2691,14 @@ function buildTrendSection(){
   var wt=sb.filter(function(b){return b.weight;});
   var dx=sb.filter(function(b){return b.source==='dexa'&&b.fatPct!=null;});
   var cards=[];
-  if(wt.length>=2){var w0=parseFloat(wt[0].weight),wN=parseFloat(wt[wt.length-1].weight),dw=Math.round((wN-w0)*10)/10;cards.push({label:'Weight',value:wN+'lbs',delta:(dw>0?'+':'')+dw+'lbs',color:dw<=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(wt.map(function(b){return parseFloat(b.weight);}),dw<=0?'#3dd68c':'#f25c54')});}
+  if(wt.length>=2){var w0=parseFloat(wt[0].weight),wN=parseFloat(wt[wt.length-1].weight),dw=Math.round((wN-w0)*10)/10;cards.push({label:'Weight',value:wN+'lbs',delta:(dw>0?'+':'')+dw+'lbs',color:dw<=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(wt.map(function(b){return parseFloat(b.weight);}),dw<=0?'#57E6B4':'#F07A6C')});}
   else cards.push({label:'Weight',value:'—',delta:'Log weight',color:'var(--dim)',spark:''});
-  if(dx.length>=2){var f0=parseFloat(dx[0].fatPct),fN=parseFloat(dx[dx.length-1].fatPct),df=Math.round((fN-f0)*10)/10;cards.push({label:'Body fat',value:fN+'%',delta:(df>0?'+':'')+df+'%',color:df<=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(dx.map(function(b){return parseFloat(b.fatPct);}),df<=0?'#3dd68c':'#f25c54')});}
+  if(dx.length>=2){var f0=parseFloat(dx[0].fatPct),fN=parseFloat(dx[dx.length-1].fatPct),df=Math.round((fN-f0)*10)/10;cards.push({label:'Body fat',value:fN+'%',delta:(df>0?'+':'')+df+'%',color:df<=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(dx.map(function(b){return parseFloat(b.fatPct);}),df<=0?'#57E6B4':'#F07A6C')});}
   else cards.push({label:'Body fat',value:'—',delta:'DEXA needed',color:'var(--dim)',spark:''});
   var proto=getActiveProtocol();
   if(proto){var c4=calcCompliance(proto,'28'),c8=calcCompliancePrior(proto),dc=c4!==null&&c8!==null?c4-c8:null;cards.push({label:'Compliance',value:c4!==null?c4+'%':'—',delta:dc!==null?(dc>=0?'+':'')+dc+'% vs prior':'',color:dc===null?'var(--p1)':dc>=0?'var(--p1)':'var(--p5)',spark:''});}
   var ci=[...(checkins||[])].sort(function(a,b){return a.date>b.date?1:-1;});
-  if(ci.length>=3){var rE=ci.slice(0,7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length),eE=ci.slice(-7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length),de=Math.round((rE-eE)*10)/10;cards.push({label:'Energy',value:Math.round(rE*10)/10+'/10',delta:(de>=0?'+':'')+de+' trend',color:de>=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(ci.slice(0,14).reverse().map(function(c){return c.energy||5;}),'#3dd68c')});}
+  if(ci.length>=3){var rE=ci.slice(0,7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length),eE=ci.slice(-7).reduce(function(s,c){return s+(c.energy||0);},0)/Math.min(7,ci.length),de=Math.round((rE-eE)*10)/10;cards.push({label:'Energy',value:Math.round(rE*10)/10+'/10',delta:(de>=0?'+':'')+de+' trend',color:de>=0?'var(--p1)':'var(--p5)',spark:buildSparkSVG(ci.slice(0,14).reverse().map(function(c){return c.energy||5;}),'#57E6B4')});}
   else cards.push({label:'Energy',value:'—',delta:'Log check-ins',color:'var(--dim)',spark:''});
   var html='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Trends</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   cards.forEach(function(card){html+='<div style="background:var(--sf);border-radius:6px;padding:10px"><div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px">'+card.label+'</div><div style="font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:2px">'+card.value+'</div><div style="font-family:var(--mono);font-size:9px;color:'+card.color+'">'+card.delta+'</div>'+(card.spark?'<svg width="100%" height="24" viewBox="0 0 100 24" preserveAspectRatio="none" style="margin-top:6px">'+card.spark+'</svg>':'')+'</div>';});
@@ -2631,7 +2710,7 @@ function buildCheckinSection(){
   var html='<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Check-in averages</div>';
   if(!ci.length) return html+'<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Complete daily check-ins to see trends.</div></div>';
   var recent=ci.slice(0,14);
-  [{key:'sleep',label:'Sleep',color:'#2ec4b6'},{key:'energy',label:'Energy',color:'#3dd68c'},{key:'hunger',label:'Hunger',color:'#f5a623'},{key:'recovery',label:'Recovery',color:'#9b72cf'},{key:'activity',label:'Activity',color:'#f5a623',note:'(Oura-assisted)'}].forEach(function(m){
+  [{key:'sleep',label:'Sleep',color:'#2ec4b6'},{key:'energy',label:'Energy',color:'#57E6B4'},{key:'hunger',label:'Hunger',color:'#E4A54C'},{key:'recovery',label:'Recovery',color:'#9b72cf'},{key:'activity',label:'Activity',color:'#E4A54C',note:'(Oura-assisted)'}].forEach(function(m){
     var vals=recent.map(function(c){return c[m.key]||0;}).filter(Boolean);if(!vals.length) return;
     var avg=Math.round(vals.reduce(function(s,v){return s+v;},0)/vals.length*10)/10;
     var early=ci.slice(-7).map(function(c){return c[m.key]||0;}).filter(Boolean);
@@ -2765,6 +2844,7 @@ function renderToday(){
   try{renderBodyStrip();}catch(e){console.error('renderBodyStrip:',e);}
   try{renderChecklist();setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},600);}catch(e){console.error('renderChecklist:',e);}
   try{renderCheckinState();}catch(e){console.error('renderCheckinState:',e);}
+  try{renderHero();}catch(e){console.error('renderHero:',e);}
   try{renderProteinCard();}catch(e){console.error('renderProteinCard:',e);}
   setTimeout(function(){if(typeof checkMissedCompounds==='function')checkMissedCompounds();},800);
   try{renderTomorrow();}catch(e){console.error('renderTomorrow:',e);}
@@ -2856,11 +2936,48 @@ function renderProtoHeader(){
   });
 
   if(overflow.length){
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding:6px 0;cursor:pointer;text-align:center" onclick="toggleActiveProtoDropdown()">and '+overflow.length+' more ▾</div>';
+    html+='<div id="protoMoreToggle" style="font-family:var(--mono);font-size:9px;color:var(--dim);padding:6px 0;cursor:pointer;text-align:center" onclick="toggleActiveProtoDropdown()">and '+overflow.length+' more \u25be</div>';
   }
 
   wrap.innerHTML=html;
-  if(dropdown) dropdown.style.display='none';
+
+  // Populate the overflow dropdown with the remaining protocols
+  if(dropdown){
+    if(!overflow.length){
+      dropdown.innerHTML='';
+      dropdown.style.display='none';
+    } else {
+      var dh='';
+      overflow.forEach(function(proto){
+        var _sd=proto.startDate?proto.startDate.split('-'):null;
+        var isFut=_sd&&new Date(_sd[0],_sd[1]-1,_sd[2]).getTime()>new Date().setHours(0,0,0,0);
+        var ws='';
+        if(proto.startDate&&proto.durationWeeks){
+          if(isFut){ ws='\u23f3 On Deck \u00b7 Starts '+fmtDate(proto.startDate); }
+          else {
+            var w=Math.max(1,Math.min(weeksBetween(proto.startDate,today())+1,proto.durationWeeks));
+            var pc=Math.min(100,Math.round(((w-1)/proto.durationWeeks)*100));
+            ws='Week '+w+' of '+proto.durationWeeks+' \u00b7 '+pc+'%';
+          }
+        }
+        dh+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)">';
+        dh+='<div style="width:8px;height:8px;border-radius:50%;background:'+(proto.color||'var(--p1)')+';flex-shrink:0"></div>';
+        dh+='<div style="flex:1;min-width:0">';
+        dh+='<div style="font-family:var(--serif);font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+proto.name+'</div>';
+        if(ws) dh+='<div style="font-family:var(--mono);font-size:9px;color:'+(isFut?'var(--p2)':'var(--dim)')+'">'+ws+'</div>';
+        if(!isFut&&proto.startDate&&proto.durationWeeks){
+          var w3=Math.max(1,Math.min(weeksBetween(proto.startDate,today())+1,proto.durationWeeks));
+          var pc3=Math.min(100,Math.round(((w3-1)/proto.durationWeeks)*100));
+          dh+='<div style="height:2px;background:var(--bd);border-radius:2px;margin-top:5px;overflow:hidden"><div style="height:100%;width:'+pc3+'%;background:var(--p1);border-radius:2px"></div></div>';
+        }
+        dh+='</div>';
+        dh+='<button class="proto-swap" onclick="openProtoEditor(\''+proto.id+'\')" style="flex-shrink:0;font-size:9px;padding:4px 10px">Edit</button>';
+        dh+='</div>';
+      });
+      dropdown.innerHTML=dh;
+      dropdown.style.display='none';
+    }
+  }
 }
 
 
@@ -2960,13 +3077,14 @@ async function parseBodyScreenshot(input){
     if(data.error) throw new Error(data.error.message||'API error');
     var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
     var parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
-    var map={bcWeight:'weight_lbs',bcFat:'fat_pct',bcMuscle:'lean_lbs',bcWater:'water_pct',bcBone:'bone_lbs'};
+    var map={tWtOnly:'weight_lbs',tF:'fat_pct',tM:'lean_lbs',tW:'water_pct',tB:'bone_lbs'};
     var filled=0;
     Object.keys(map).forEach(function(elId){var v=parsed[map[elId]];if(v==null||isNaN(parseFloat(v)))return;var el=document.getElementById(elId);if(el){el.value=Math.round(parseFloat(v)*10)/10;filled++;}});
     if(parsed.date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)){var de=document.getElementById('bcDate');if(de)de.value=parsed.date;}
+    // (date field optional in v3 sheet)
     if(parsed.fat_pct||parsed.lean_lbs) setBCMode('full');
     if(filled===0){toast('No body data found \u2014 try a clearer screenshot','var(--p2)');}
-    else{var form=document.getElementById('bcInlineEntry');if(form){form.style.display='block';setTimeout(function(){form.scrollIntoView({behavior:'smooth',block:'nearest'});},200);}toast(filled+' field'+(filled!==1?'s':'')+' filled \u2014 tap Save to confirm \u2713');}
+    else{if(typeof openBCSheet==='function')openBCSheet();if(typeof setBCMode==='function')setBCMode('full');if(typeof bcLiveCalc==='function')bcLiveCalc();toast(filled+' field'+(filled!==1?'s':'')+' filled \u2014 tap Save to confirm \u2713');}
   }catch(e){
     console.error('Screenshot parse:',e);
     var msg='Import failed';
@@ -3048,11 +3166,32 @@ async function parseLabsPDF(input){
   }finally{if(btn){btn.textContent='Import Lab PDF';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
 }
 
-function renderLabs(){
-  var wrap=document.getElementById('labsSection');if(!wrap) return;
+function ensureLabsInInsights(){
+  var iw=document.getElementById('insightsWrap');if(!iw) return;
+  var sec=document.getElementById('labsInsightsSection');
+  if(!sec){
+    sec=document.createElement('div');
+    sec.id='labsInsightsSection';
+    sec.style.marginTop='24px';
+    iw.appendChild(sec);
+  }
+  // Header + import button + labs list
+  var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
+  var hasLabs=Object.keys(labs).length>0;
+  var head='<div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding-bottom:8px;border-bottom:1px solid var(--bd);margin-bottom:12px">Lab Results</div>';
+  head+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6;margin-bottom:12px">Identifying details are never stored — only markers, values, and dates. Data stays on your device.</div>';
+  head+='<input type="file" id="labsImportInput" accept=".pdf,image/*" style="display:none" onchange="parseLabsPDF(this)">';
+  head+='<label for="labsImportInput" id="labsImportBtn" style="font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:6px;border:1px solid var(--p1);background:var(--p1d);color:var(--p1);cursor:pointer;display:inline-block;-webkit-tap-highlight-color:transparent;margin-bottom:14px">Import Lab PDF</label>';
+  head+='<div id="labsListContainer"></div>';
+  sec.innerHTML=head;
+  renderLabs('labsListContainer');
+}
+
+function renderLabs(targetId){
+  var wrap=document.getElementById(targetId||'labsInsightsSection');if(!wrap) return;
   var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
   var names=Object.keys(labs);
-  if(!names.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;padding:16px">No labs imported yet</div>';return;}
+  if(!names.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;padding:16px">No labs imported yet — tap Import Lab PDF above</div>';return;}
   // Sort: flagged first, then alpha
   names.sort(function(a,b){
     var af=labs[a].readings[labs[a].readings.length-1].flag?0:1;
@@ -3139,6 +3278,280 @@ function showLabTrend(name){
   h+='</div>';
   modal.innerHTML=h;
   modal.style.display='flex';
+}
+
+var heroMetric=localStorage.getItem('pt_hero_metric')||'muscle';
+var HERO_META={
+  weight:{lbl:'Weight',unit:'lbs',dir:-1},
+  fatPct:{lbl:'Fat',unit:'%',dir:-1},
+  muscle:{lbl:'Muscle',unit:'lbs',dir:1}
+};
+
+function setHeroMetric(m){
+  if(!HERO_META[m]) return;
+  heroMetric=m;
+  localStorage.setItem('pt_hero_metric',m);
+  ['weight','fatPct','muscle'].forEach(function(k){
+    var c=document.getElementById('hchip-'+k);
+    if(c) c.classList.toggle('on',k===m);
+  });
+  renderHero();
+}
+
+// Window rule: 90 days default. If a protocol's ELAPSED time exceeds 90 days,
+// stretch to (that protocol's start - 14 days) -> now.
+function _heroWindow(){
+  var now=new Date();now.setHours(0,0,0,0);
+  var start=new Date(now.getTime()-89*86400000);
+  var anchor=null;
+  getActiveProtocols().forEach(function(p){
+    if(!p||!p.startDate) return;
+    var ps=parseLocalDate(p.startDate);ps.setHours(0,0,0,0);
+    if(ps>now) return;
+    var elapsed=Math.floor((now-ps)/86400000);
+    if(elapsed>90){
+      var stretched=new Date(ps.getTime()-14*86400000);
+      if(!anchor||stretched<anchor){anchor=stretched;}
+    }
+  });
+  if(anchor&&anchor<start) start=anchor;
+  return {start:start,end:now};
+}
+
+function _heroSeries(field,win){
+  var rows=bodyLogs.filter(function(b){
+    if(!b||!b.date||b[field]==null||b.source==='dexa') return false;
+    var d=parseLocalDate(b.date);d.setHours(0,0,0,0);
+    return d>=win.start&&d<=win.end;
+  }).map(function(b){return {date:b.date,v:parseFloat(b[field])};})
+    .filter(function(r){return !isNaN(r.v);})
+    .sort(function(a,b){return a.date>b.date?1:-1;});
+  if(!rows.length) return null;
+  var smooth=rows.map(function(r){
+    var ra=_rollingAvg(field,r.date,7);
+    return {date:r.date,v:ra?ra.avg:r.v};
+  });
+  return {raw:rows,smooth:smooth};
+}
+
+function markRhythmNow(){
+  // "NOW" = the first unlogged, unskipped dose — action-oriented, self-correcting
+  var wrap=document.getElementById('checklistWrap');
+  if(!wrap) return;
+  wrap.querySelectorAll('.cr-now').forEach(function(el){el.classList.remove('cr-now');});
+  wrap.querySelectorAll('.cr-nowtag').forEach(function(el){el.remove();});
+  wrap.querySelectorAll('.timing-group.tg-now').forEach(function(el){el.classList.remove('tg-now');});
+
+  var cards=Array.prototype.slice.call(wrap.querySelectorAll('.cr'));
+  var next=cards.filter(function(el){
+    return !el.classList.contains('logged')&&!el.classList.contains('skipped');
+  })[0];
+
+  // Annotate every group header with its state
+  wrap.querySelectorAll('.timing-group').forEach(function(g){
+    var hdr=g.querySelector('.timing-group-hdr');
+    if(!hdr||hdr.querySelector('.tg-state')) return;
+    var gc=Array.prototype.slice.call(g.querySelectorAll('.cr'));
+    if(!gc.length) return;
+    var allDone=gc.every(function(el){return el.classList.contains('logged')||el.classList.contains('skipped');});
+    var s=document.createElement('span');
+    s.className='tg-state';
+    s.textContent=allDone?'\u00b7 logged':'\u00b7 pending';
+    hdr.appendChild(s);
+  });
+
+  if(!next) return;
+  next.classList.add('cr-now');
+  var tag=document.createElement('span');
+  tag.className='cr-nowtag';
+  tag.textContent='NOW';
+  next.appendChild(tag);
+
+  var grp=next.closest('.timing-group');
+  if(grp){
+    grp.classList.add('tg-now');
+    var st=grp.querySelector('.tg-state');
+    if(st) st.textContent='\u00b7 now';
+  }
+}
+
+function updateRhythmStatus(){
+  // Header status line: where you are in the day
+  var el=document.getElementById('rhythmStatus');
+  if(!el) return;
+  var wrap=document.getElementById('checklistWrap');
+  var next=wrap?wrap.querySelector('.cr:not(.logged):not(.skipped)'):null;
+  if(!next){
+    el.innerHTML='<span class="rs-dot done"></span>all doses logged';
+    return;
+  }
+  var grp=next.closest('.timing-group');
+  var hdr=grp?grp.querySelector('.timing-group-hdr'):null;
+  var label=hdr?hdr.textContent.replace(/[^\w\s\u00b7-]/g,'').replace(/\u00b7.*$/,'').trim():'next dose';
+  el.innerHTML='<span class="rs-dot"></span>'+label.toLowerCase()+' window';
+}
+
+function renderHero(){
+  var wrap=document.getElementById('heroChartWrap');
+  if(!wrap) return;
+  var meta=HERO_META[heroMetric]||HERO_META.muscle;
+  var lblEl=document.getElementById('heroLbl');
+  var valEl=document.getElementById('heroVal');
+  var dEl=document.getElementById('heroDelta');
+  var tEl=document.getElementById('heroTrendLbl');
+  var rEl=document.getElementById('heroRaw');
+  var capEl=document.getElementById('heroCap');
+  var axEl=document.getElementById('heroAxis');
+  if(lblEl) lblEl.textContent=meta.lbl+' \u00b7 signal';
+
+  var win=_heroWindow();
+  var s=_heroSeries(heroMetric,win);
+
+  if(!s||s.raw.length<3){
+    wrap.innerHTML='<div class="hero-empty">Log a few readings to see your signal.<br>The smoothed trend needs 3+ points.</div>';
+    if(valEl) valEl.innerHTML=(s&&s.raw.length?(Math.round(s.raw[s.raw.length-1].v*10)/10):'\u2014')+'<span class="hero-unit">'+meta.unit+'</span>';
+    if(dEl) dEl.textContent='';
+    if(tEl) tEl.textContent='';
+    if(rEl) rEl.textContent=s&&s.raw.length?(s.raw.length+' reading'+(s.raw.length!==1?'s':'')+' in window'):'no readings yet';
+    if(capEl) capEl.style.display='none';
+    if(axEl) axEl.innerHTML='';
+    return;
+  }
+  if(capEl) capEl.style.display='flex';
+
+  var raw=s.raw, sm=s.smooth;
+  var lastSm=sm[sm.length-1].v, lastRaw=raw[raw.length-1].v;
+
+  // Delta measured since primary protocol start (falls back to window start)
+  var prim=getActiveProtocols().filter(function(p){
+    if(!p||!p.startDate) return false;
+    var ps=parseLocalDate(p.startDate);ps.setHours(0,0,0,0);
+    return ps<=win.end;
+  }).sort(function(a,b){return a.startDate<b.startDate?-1:1;})[0];
+  var baseVal=sm[0].v, baseLbl='over window';
+  if(prim){
+    var pStart=parseLocalDate(prim.startDate);pStart.setHours(0,0,0,0);
+    var atStart=sm.filter(function(r){return parseLocalDate(r.date)<=pStart;}).pop();
+    if(!atStart) atStart=sm[0];
+    baseVal=atStart.v; baseLbl='since protocol start';
+  }
+  var diff=parseFloat((lastSm-baseVal).toFixed(1));
+
+  if(valEl) valEl.innerHTML=(Math.round(lastSm*10)/10)+'<span class="hero-unit">'+meta.unit+'</span>';
+  if(dEl){
+    dEl.textContent=(diff>0?'+':'')+diff;
+    dEl.className='hero-delta '+((diff*meta.dir>=0)?'':'dn');
+  }
+  if(tEl) tEl.textContent=baseLbl;
+  if(rEl) rEl.textContent='now '+(Math.round(lastRaw*10)/10)+' \u00b7 daily';
+
+  // ── SVG ──
+  var W=360,H=150,PL=34,PR=8,PT=10,PB=22;
+  var vals=raw.map(function(r){return r.v;}).concat(sm.map(function(r){return r.v;}));
+  var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+  if(mx-mn<0.5){mn-=0.5;mx+=0.5;}
+  var rng=(mx-mn)||1;
+  var t0=win.start.getTime(), t1=win.end.getTime(), tr=(t1-t0)||1;
+  function X(d){var t=(typeof d==='string')?parseLocalDate(d).getTime():d.getTime();return PL+((t-t0)/tr)*(W-PL-PR);}
+  function Y(v){return H-PB-((v-mn)/rng)*(H-PT-PB);}
+
+  var svg='<svg class="hero-chart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+  // y bounds + gridlines
+  svg+='<line x1="'+PL+'" y1="'+PT+'" x2="'+(W-PR)+'" y2="'+PT+'" stroke="var(--sf2)" stroke-width="1"/>';
+  svg+='<line x1="'+PL+'" y1="'+(H-PB)+'" x2="'+(W-PR)+'" y2="'+(H-PB)+'" stroke="var(--sf2)" stroke-width="1"/>';
+  svg+='<text x="2" y="'+(PT+4)+'" fill="var(--dim)" font-family="var(--mono)" font-size="8">'+(Math.round(mx*10)/10)+'</text>';
+  svg+='<text x="2" y="'+(H-PB+4)+'" fill="var(--dim)" font-family="var(--mono)" font-size="8">'+(Math.round(mn*10)/10)+'</text>';
+
+  // protocol start markers (all active, color-coded)
+  var hasMarker=false;
+  getActiveProtocols().forEach(function(p,i){
+    if(!p||!p.startDate) return;
+    var ps=parseLocalDate(p.startDate);ps.setHours(0,0,0,0);
+    if(ps<win.start||ps>win.end) return;
+    hasMarker=true;
+    var x=X(ps).toFixed(1);
+    var col=p.color||'var(--p4)';
+    svg+='<line x1="'+x+'" y1="'+(PT-2)+'" x2="'+x+'" y2="'+(H-PB)+'" stroke="'+col+'" stroke-width="1" stroke-dasharray="3,3" opacity=".7"/>';
+    svg+='<circle cx="'+x+'" cy="'+(PT-2)+'" r="2.5" fill="'+col+'"/>';
+    var nm=(p.name||'').toUpperCase().slice(0,16);
+    svg+='<text x="'+(parseFloat(x)+5)+'" y="'+(PT+8+i*10)+'" fill="'+col+'" font-family="var(--mono)" font-size="7" letter-spacing=".5">'+nm+'</text>';
+  });
+
+  // ghost dots
+  raw.forEach(function(r){
+    svg+='<circle cx="'+X(r.date).toFixed(1)+'" cy="'+Y(r.v).toFixed(1)+'" r="2.2" fill="var(--bd2)"/>';
+  });
+
+  // smoothed line, dashed across gaps > 5 days
+  var seg=[], segs=[];
+  for(var i=0;i<sm.length;i++){
+    if(i>0){
+      var gap=(parseLocalDate(sm[i].date)-parseLocalDate(sm[i-1].date))/86400000;
+      if(gap>5){
+        if(seg.length) segs.push({pts:seg.slice(),gap:false});
+        segs.push({pts:[sm[i-1],sm[i]],gap:true});
+        seg=[sm[i]];
+        continue;
+      }
+    }
+    seg.push(sm[i]);
+  }
+  if(seg.length) segs.push({pts:seg,gap:false});
+
+  segs.forEach(function(sg){
+    if(sg.pts.length<2) return;
+    var pts=sg.pts.map(function(r){return X(r.date).toFixed(1)+','+Y(r.v).toFixed(1);}).join(' ');
+    if(sg.gap){
+      svg+='<polyline points="'+pts+'" fill="none" stroke="var(--p1)" stroke-width="2" stroke-dasharray="4,4" opacity=".5"/>';
+    } else {
+      svg+='<polyline points="'+pts+'" fill="none" stroke="var(--p1)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+  });
+
+  var eX=X(sm[sm.length-1].date).toFixed(1), eY=Y(sm[sm.length-1].v).toFixed(1);
+  svg+='<circle cx="'+eX+'" cy="'+eY+'" r="4" fill="var(--p1)"/>';
+  svg+='</svg>';
+  wrap.innerHTML=svg;
+
+  // x axis labels
+  if(axEl){
+    var days=Math.round((win.end-win.start)/86400000)+1;
+    axEl.innerHTML='<span>'+fmtDate(localDateStr(win.start))+'</span><span>'+days+' days</span><span>now</span>';
+  }
+
+  // legend: show gap/marker swatches only when relevant
+  var gapSw=document.getElementById('heroSwGap');
+  var mkSw=document.getElementById('heroSwMark');
+  if(gapSw) gapSw.style.display=segs.some(function(x){return x.gap;})?'inline-flex':'none';
+  if(mkSw) mkSw.style.display=hasMarker?'inline-flex':'none';
+}
+
+function openBCSheet(){
+  var sc=document.getElementById('bcScrim');
+  if(!sc) return;
+  sc.classList.add('open');
+  var de=document.getElementById('bcDate');
+  if(de&&!de.value) de.value=today();
+  if(typeof setBCMode==='function') setBCMode('full');
+  if(typeof renderBCPrev==='function') renderBCPrev();
+}
+
+function closeBCSheet(){
+  var sc=document.getElementById('bcScrim');
+  if(sc) sc.classList.remove('open');
+}
+
+function renderBCPrev(){
+  // show previous values as ghost hints under each field
+  var last=bodyLogs.filter(function(b){return b&&b.date&&b.source!=='dexa';})
+    .sort(function(a,b){return a.date>b.date?-1:1;})[0];
+  var map={bcPrevWeight:'weight',bcPrevFat:'fatPct',bcPrevMuscle:'muscle',bcPrevWater:'waterPct',bcPrevBone:'bone'};
+  Object.keys(map).forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    var v=last?last[map[id]]:null;
+    el.textContent=(v!=null&&!isNaN(parseFloat(v)))?('prev '+v):'';
+  });
 }
 
 function renderProteinCard(){
@@ -3304,102 +3717,32 @@ function launchConfetti(){
 function toggleActiveProtoDropdown(){
   var dropdown=document.getElementById('activeProtoDropdown');
   if(!dropdown) return;
-  var isOpen=dropdown.style.display!=='none'&&dropdown.style.display!=='';
+  if(!dropdown.innerHTML.trim()){ dropdown.style.display='none'; return; }
+  var isOpen=dropdown.style.display==='block';
   dropdown.style.display=isOpen?'none':'block';
-  var nameEl=document.getElementById('protoName');
-  if(nameEl){
-    var cnt=getActiveProtocols().length;
-    nameEl.innerHTML=cnt+' active protocols <span style="font-size:10px">'+(isOpen?'&#9662;':'&#9652;')+'</span>';
+  var tog=document.getElementById('protoMoreToggle');
+  if(tog){
+    var n=Math.max(0,getActiveProtocols().length-2);
+    tog.innerHTML=isOpen?('and '+n+' more \u25be'):('show less \u25b4');
   }
 }
 
-function renderBodyStrip(){
-  const last=bodyLogs.length?bodyLogs[0]:null;
-  var _baselineEntry=null,_baselineLabel='';
-  var _actP=protocols.filter(function(p){return p&&p.id&&p.status!=='archived'&&activeProtoIds.indexOf(p.id)>-1&&p.startDate;});
-  if(_actP.length){
-    var _earliest=_actP.reduce(function(m,p){return p.startDate<m?p.startDate:m;},_actP[0].startDate);
-    var _startMs=new Date(_earliest).getTime();
-    var _nd=[...bodyLogs].filter(function(b){return b.source!=='dexa'&&b.weight;});
-    var _ns=_nd.slice().sort(function(a,b){return Math.abs(new Date(a.date).getTime()-_startMs)-Math.abs(new Date(b.date).getTime()-_startMs);});
-    if(_ns.length&&Math.abs(new Date(_ns[0].date).getTime()-_startMs)<14*86400000){
-      _baselineEntry=_ns[0];
-      _baselineLabel='vs '+new Date(_earliest).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    } else if(_nd.length>1){_baselineEntry=_nd[_nd.length-1];_baselineLabel='vs start';}
-  }
-  const prev=_baselineEntry||(bodyLogs.length>1?bodyLogs[1]:null);
-  // Show +Log CTA always
-  var ctaCell=document.getElementById('strip-log-cta');
-  if(ctaCell) ctaCell.style.display='flex';
-  // Weight logged today badge
-  var _wBadge=document.getElementById('weightLoggedBadge');
-  var _weightLoggedToday=bodyLogs.some(function(b){return b.date===today()&&b.weight!=null;});
-  if(_wBadge) _wBadge.style.display=_weightLoggedToday?'inline-block':'none';
-  // Weight-only mode via CSS class
-  var strip=document.getElementById('todayStrip');
-  if(strip) strip.classList.remove('weight-only');
-  if(last){
-    var isWeightOnly=last.source==='manual-weight'||(!last.muscle&&!last.fat&&!last.bone);
-    if(strip) strip.classList.toggle('weight-only',isWeightOnly);
-    if(isWeightOnly){
-      var wSub=document.getElementById('tsWeightD');
-      if(wSub) wSub.textContent='lbs · weight only';
-    }
-  }
-  function setCell(numId,subId,field,unit,dir){
-    const el=document.getElementById(numId);const sub=document.getElementById(subId);
-    if(!el) return;
-    if(!last||last[field]==null){el.textContent='—';if(sub)sub.textContent=unit;return;}
-    el.textContent=last[field];
-    if(sub&&prev&&prev[field]!=null){
-      const diff=parseFloat((last[field]-prev[field]).toFixed(1));
-      const sign=diff>0?'+':'';
-      sub.textContent=sign+diff+' '+unit+(_baselineLabel?' · '+_baselineLabel:'');
-      sub.className='stat-sub '+(diff*dir>0?'up':diff*dir<0?'dn':'neu');
-    } else if(sub){sub.textContent=unit;sub.className='stat-sub';}
-  }
-  setCell('tsWeight','tsWeightD','weight','lbs',-1);
-  setCell('tsMuscle','tsMuscleD','muscle','lbs',1);
-  const fatEl=document.getElementById('tsFat');const fatDEl=document.getElementById('tsFatD');
-  if(fatEl&&last){
-    const fp=last.fatPct!=null?last.fatPct:null;
-    fatEl.textContent=fp!=null?fp:'—';
-    if(fatDEl&&prev&&prev.fatPct!=null&&fp!=null){
-      const d=parseFloat((fp-prev.fatPct).toFixed(1));
-      fatDEl.textContent=(d>0?'+':'')+d+'%'+(_baselineLabel?' · '+_baselineLabel:'');
-      fatDEl.className='stat-sub '+(d<0?'up':d>0?'dn':'neu');
-    } else if(fatDEl){fatDEl.textContent='%';fatDEl.className='stat-sub';}
-  }
-  const wEl=document.getElementById('tsWater');
-  const wDEl=document.getElementById('tsWaterD');
-  if(wEl) wEl.textContent=last&&last.waterPct!=null?last.waterPct+'%':'—';
-  if(wDEl&&last&&last.waterPct!=null){
-    var _wYd=new Date();_wYd.setDate(_wYd.getDate()-1);
-    var _wYdStr=_wYd.toISOString().slice(0,10);
-    var _wYEntry=bodyLogs.find(function(b){return b.date===_wYdStr&&b.waterPct!=null&&b.source!=='dexa';});
-    if(_wYEntry){
-      var _wD=Math.round((last.waterPct-_wYEntry.waterPct)*10)/10;
-      wDEl.textContent=(_wD>=0?'+':'')+_wD+'% vs yesterday';
-      wDEl.className='stat-sub '+(_wD>0?'up':_wD<0?'dn':'neu');
-    } else { wDEl.textContent='%'; wDEl.className='stat-sub neu'; }
-  }
-  const boneEl=document.getElementById('tsBone');
-  if(boneEl) boneEl.textContent=last&&last.bone!=null?last.bone:'—';
+function _rollingAvg(field,endDate,days){
+  // Average of `field` over the `days` window ending at endDate (inclusive), BIA sources only
+  var end=endDate?new Date(endDate):new Date();
+  var start=new Date(end.getTime()-(days-1)*86400000);
+  var vals=bodyLogs.filter(function(b){
+    if(!b||b.source==='dexa'||b[field]==null) return false;
+    var d=new Date(b.date);
+    return d>=start&&d<=end;
+  }).map(function(b){return parseFloat(b[field]);}).filter(function(v){return !isNaN(v);});
+  if(!vals.length) return null;
+  var sum=vals.reduce(function(a,c){return a+c;},0);
+  return {avg:sum/vals.length,n:vals.length};
 }
 
-function toggleBCEntry(){
-  var form=document.getElementById('bcInlineEntry');
-  if(!form) return;
-  // Read actual current state from DOM — not stale bcEntryOpen variable
-  var isOpen=form.classList.contains('open');
-  bcEntryOpen=!isOpen;
-  form.classList.toggle('open',bcEntryOpen);
-  if(bcEntryOpen){
-    var savedMode=localStorage.getItem('pt_bc_mode')||'weight';
-    setBCMode(savedMode);
-  }
-}
-
+function renderBodyStrip(){ if(typeof renderHero==='function') renderHero(); }
+function toggleBCEntry(){ if(typeof openBCSheet==='function') openBCSheet(); }
 function setBCMode(mode){
   localStorage.setItem('pt_bc_mode',mode);
   var weightPanel=document.getElementById('bcEntryWeight');
@@ -3409,12 +3752,9 @@ function setBCMode(mode){
   var isWeight=mode==='weight';
   if(weightPanel) weightPanel.style.display=isWeight?'block':'none';
   if(fullPanel) fullPanel.style.display=isWeight?'none':'block';
-  if(weightBtn){
-    weightBtn.style.background=isWeight?'var(--p1)':'transparent';
-    weightBtn.style.color=isWeight?'var(--bg)':'var(--dim)';
-    weightBtn.style.borderColor=isWeight?'var(--p1)':'var(--bd)';
-  }
-  if(fullBtn){
+  if(weightBtn){ weightBtn.classList.toggle('on',isWeight); }
+  if(fullBtn){ fullBtn.classList.toggle('on',!isWeight); }
+  if(false){
     fullBtn.style.background=isWeight?'transparent':'var(--p1)';
     fullBtn.style.color=isWeight?'var(--dim)':'var(--bg)';
     fullBtn.style.borderColor=isWeight?'var(--bd)':'var(--p1)';
@@ -3431,9 +3771,9 @@ function saveWeightOnly(){
     fatPct:null,leanPct:null,lean:null,waterPct:null,notes:''});
   persist(KEYS.bodyLogs,bodyLogs);
   var el=document.getElementById('tWtOnly');if(el)el.value='';
-  bcEntryOpen=false;
-  var form=document.getElementById('bcInlineEntry');if(form)form.classList.remove('open');
-  toast('Weight saved ✓');renderBodyStrip();
+  if(typeof closeBCSheet==='function') closeBCSheet();
+  toast('Weight saved \u2713');
+  if(typeof renderHero==='function') renderHero();
 }
 
 function bcLiveCalc(){
@@ -3468,10 +3808,9 @@ function saveTodayBC(){
   persist(KEYS.bodyLogs,bodyLogs);
   ['tM','tF','tB','tW'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var row=document.getElementById('bcLiveRow');if(row)row.style.display='none';
-  bcEntryOpen=false;
-  var form=document.getElementById('bcInlineEntry');if(form)form.classList.remove('open');
-  toast('Reading saved ✓');
-  renderBodyStrip();
+  if(typeof closeBCSheet==='function') closeBCSheet();
+  toast('Reading saved \u2713');
+  if(typeof renderHero==='function') renderHero();
 }
 
 // ════════════ CHECKLIST ════════════
@@ -3899,6 +4238,8 @@ function renderChecklist(){
         +'</div></div></div>';
     });
     wrap.innerHTML+=adHocHtml;
+  try{markRhythmNow();}catch(e){console.error('markRhythmNow:',e);}
+  try{updateRhythmStatus();}catch(e){}
   }
 }
 
@@ -8555,47 +8896,38 @@ function finishInit(){
 var forcedTheme=null;
 function applyTheme(t){
   var r=document.documentElement;
+  var P;
   if(t==='light'){
-    r.style.setProperty('--bg','#f5f2ed');r.style.setProperty('--bg2','#ede9e2');
-    document.documentElement.style.background='#f5f2ed';document.body.style.background='#f5f2ed';
-    r.style.setProperty('--sf','#ffffff');r.style.setProperty('--sf2','#f0ece5');
-    r.style.setProperty('--bd','#d8d0c4');r.style.setProperty('--bd2','#b8b0a4');
-    r.style.setProperty('--text','#1a1510');r.style.setProperty('--mid','#5a5248');r.style.setProperty('--dim','#9a9088');
-    r.style.setProperty('--p1','#2ab573');r.style.setProperty('--p1d','rgba(42,181,115,.12)');
-    r.style.setProperty('--p2','#d4880a');r.style.setProperty('--p2d','rgba(212,136,10,.12)');
-    r.style.setProperty('--p3','#1a9e92');r.style.setProperty('--p3d','rgba(26,158,146,.12)');
-    r.style.setProperty('--p4','#7a52af');r.style.setProperty('--p4d','rgba(122,82,175,.12)');
-    r.style.setProperty('--p5','#d23c34');r.style.setProperty('--p5d','rgba(210,60,52,.12)');
-    r.style.setProperty('--warn','#d4880a');
-    // Logo: navy bg + teal P (light mode)
-    document.querySelectorAll('.logo-mark-bg').forEach(function(el){el.style.fill='#0a1628';});
-    document.querySelectorAll('.logo-mark-p').forEach(function(el){el.style.fill='#3dd68c';});
-
+    P={bg:'#EDF2F2',bg2:'#E3EBEA',sf:'#FBFDFD',sf2:'#EAF0EF',bd:'#D2DEDB',bd2:'#B3C3BF',
+       text:'#141C1F',mid:'#556764',dim:'#8CA09B',
+       p1:'#0E9E75',p1d:'rgba(14,158,117,.10)',
+       p2:'#B07520',p2d:'rgba(176,117,32,.10)',
+       p3:'#0D8F87',p3d:'rgba(13,143,135,.10)',
+       p4:'#6B5BC4',p4d:'rgba(107,91,196,.10)',
+       p5:'#CE4F40',p5d:'rgba(206,79,64,.10)',
+       warn:'#B07520', logoBg:'#0C1210', logoP:'#0E9E75'};
   } else if(t==='dark'){
-    r.style.setProperty('--bg','#0f0e0c');r.style.setProperty('--bg2','#161511');
-    document.documentElement.style.background='#0f0e0c';document.body.style.background='#0f0e0c';
-    r.style.setProperty('--sf','#1e1c18');r.style.setProperty('--sf2','#252320');
-    r.style.setProperty('--bd','#333028');r.style.setProperty('--bd2','#46423a');
-    r.style.setProperty('--text','#f2ede6');r.style.setProperty('--mid','#a09890');r.style.setProperty('--dim','#665e54');
-    r.style.setProperty('--p1','#3dd68c');r.style.setProperty('--p1d','rgba(61,214,140,.13)');
-    r.style.setProperty('--p2','#f5a623');r.style.setProperty('--p2d','rgba(245,166,35,.13)');
-    r.style.setProperty('--p3','#2ec4b6');r.style.setProperty('--p3d','rgba(46,196,182,.13)');
-    r.style.setProperty('--p4','#9b72cf');r.style.setProperty('--p4d','rgba(155,114,207,.13)');
-    r.style.setProperty('--p5','#f25c54');r.style.setProperty('--p5d','rgba(242,92,84,.13)');
-    // Logo: teal bg + dark P (dark mode)
-    document.querySelectorAll('.logo-mark-bg').forEach(function(el){el.style.fill='#3dd68c';});
-    document.querySelectorAll('.logo-mark-p').forEach(function(el){el.style.fill='#0a1628';});
+    P={bg:'#0C1210',bg2:'#0F1714',sf:'#141F1A',sf2:'#1A2822',bd:'#24352E',bd2:'#33473E',
+       text:'#E7EEEA',mid:'#7B8C84',dim:'#4C5A53',
+       p1:'#57E6B4',p1d:'rgba(87,230,180,.13)',
+       p2:'#E4A54C',p2d:'rgba(228,165,76,.13)',
+       p3:'#4FD6C4',p3d:'rgba(79,214,196,.13)',
+       p4:'#9B8CE0',p4d:'rgba(155,140,224,.13)',
+       p5:'#F07A6C',p5d:'rgba(240,122,108,.13)',
+       warn:'#E4A54C', logoBg:'#57E6B4', logoP:'#0C1210'};
   } else {
-    r.style.setProperty('--bg','#f5f2ec');r.style.setProperty('--bg2','#ede9e0');
-    r.style.setProperty('--sf','#fff');r.style.setProperty('--sf2','#f0ece4');
-    r.style.setProperty('--bd','#d6d0c4');r.style.setProperty('--bd2','#b8b0a2');
-    r.style.setProperty('--text','#1a1714');r.style.setProperty('--mid','#5a5248');r.style.setProperty('--dim','#9c9184');
-    r.style.setProperty('--p1','#1a9e5c');r.style.setProperty('--p1d','rgba(26,158,92,.10)');
-    r.style.setProperty('--p2','#c47d00');r.style.setProperty('--p2d','rgba(196,125,0,.10)');
-    r.style.setProperty('--p3','#0e8a80');r.style.setProperty('--p3d','rgba(14,138,128,.10)');
-    r.style.setProperty('--p4','#6e3fb5');r.style.setProperty('--p4d','rgba(110,63,181,.10)');
-    r.style.setProperty('--p5','#d93025');r.style.setProperty('--p5d','rgba(217,48,37,.10)');
+    // system default -> follow OS preference
+    var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+    return applyTheme(prefersDark?'dark':'light');
   }
+  Object.keys(P).forEach(function(k){
+    if(k==='logoBg'||k==='logoP') return;
+    r.style.setProperty('--'+k,P[k]);
+  });
+  document.documentElement.style.background=P.bg;
+  if(document.body) document.body.style.background=P.bg;
+  document.querySelectorAll('.logo-mark-bg').forEach(function(el){el.style.fill=P.logoBg;});
+  document.querySelectorAll('.logo-mark-p').forEach(function(el){el.style.fill=P.logoP;});
 }
 function updateThemeButtons(isDark){
   var t=document.getElementById('themeToggle');if(t)t.textContent=isDark?'Light Mode':'Dark Mode';
@@ -8866,7 +9198,6 @@ function setUnitsPreference(units){
 
 function renderSettings(){
   loadDisplayPrefs();
-  if(typeof renderLabs==='function') renderLabs();
   // Populate profile fields
   var p=userProfile||{};
   var pf=document.getElementById('profFirstName');if(pf)pf.value=p.firstName||'';
@@ -9153,7 +9484,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       +'compound_safety_flags (lab/compound intersections — say all clear explicitly if clean), '
       +'id_adjust (specific actionable recommendations), '
       +'watch_for (forward-looking flags before next check-in), '
-      +'realistic_outlook (one grounded energizing sentence), '
+      +'looking_ahead (a forward-looking action list as a single string. Cover TWO things concretely: (1) TITRATION: any upcoming dose changes in the next 2-3 weeks based on the titration schedule provided — name the compound, the new dose, the date, and the expected physiological effect (e.g. deeper appetite suppression, prioritize protein). (2) REORDER TIMING: for any compound running low, calculate when to reorder accounting for the stated ~1 week shipping lead time and any upcoming titration step that increases consumption — give a specific "order by" date. Be concrete with dates and numbers. If nothing is upcoming, say so briefly.), '
       +(_isCompletionReport
         ?'protocol_results (explicit before/after for every tracked metric: weight, fat%, lean mass, water%, visceral fat if available — format: "Metric: X → Y (±Z) over N weeks"), '
          +'transition_guidance (reference specific On Deck protocols by name and compounds — what to expect, how each builds on this protocol), '
@@ -9320,7 +9651,35 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
         userPrompt+='\nLAB INSTRUCTIONS: Flag clinically meaningful trends or out-of-range values, especially directional changes across dates (e.g. rising creatinine, falling eGFR). Always defer to the user\'s physicians and nephrologist. Never reassure the user that an abnormal or worsening value is fine. Frame lab observations as topics to discuss with their clinicians, not diagnoses. If a value like eGFR or creatinine is trending worse, explicitly recommend prompt clinical follow-up.\n';
       }
     }catch(_le){}
-    // Protein gram history (v2.0)
+    // Titration schedule + stock levels for Looking Ahead (v2.0 Batch D)
+    try{
+      var _protoStartD=parseLocalDate(proto.startDate);_protoStartD.setHours(0,0,0,0);
+      var _nowD=new Date();_nowD.setHours(0,0,0,0);
+      var _curWeek=Math.max(1,Math.floor((_nowD-_protoStartD)/(7*86400000))+1);
+      var _titLines=[];
+      (proto.compounds||[]).forEach(function(c){
+        if(!c||!c.name) return;
+        if(c.titrationSchedule&&c.titrationSchedule.length){
+          var sched=c.titrationSchedule.slice().sort(function(a,b){return a.week-b.week;});
+          var upcoming=sched.filter(function(s){return s.week>=_curWeek&&s.week<=_curWeek+3;});
+          var schedStr=sched.map(function(s){var wkDate=new Date(_protoStartD.getTime()+(s.week-1)*7*86400000);return 'wk'+s.week+' ('+localDateStr(wkDate)+'): '+s.dose;}).join(', ');
+          _titLines.push(c.name+' titration \u2014 currently wk'+_curWeek+'. Full schedule: '+schedStr+(upcoming.length?'. UPCOMING CHANGE in next 3 weeks.':''));
+        }
+      });
+      if(_titLines.length) userPrompt+='\n=== TITRATION SCHEDULES ===\n'+_titLines.join('\n')+'\n';
+      // Stock levels
+      var _stockLines=[];
+      (proto.compounds||[]).forEach(function(c){
+        if(!c||!c.name) return;
+        var items=pantry.filter(function(p){return p&&p.name&&p.name.toLowerCase()===c.name.toLowerCase();});
+        if(!items.length){_stockLines.push(c.name+': NO STOCK on hand');return;}
+        var totalMg=items.reduce(function(s,p){return s+(parseFloat(p.openVialMg)||0)+(parseFloat(p.vials)||0)*(parseFloat(p.vialMg)||0);},0);
+        _stockLines.push(c.name+': '+Math.round(totalMg)+'mg total on hand');
+      });
+      if(_stockLines.length) userPrompt+='\n=== CURRENT STOCK (for reorder timing; ~1 week shipping lead time) ===\n'+_stockLines.join('\n')+'\n';
+    }catch(_te){}
+    
+// Protein gram history (v2.0)
     var _pG=parseInt((userProfile&&userProfile.proteinGoal)||130);
     var _pD=[];
     for(var _pi=0;_pi<14;_pi++){
@@ -9377,6 +9736,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       +'<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+adherence+'% adherence · '+reportDate+'</div>'
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+proto.compounds.map(function(c){var p=complianceByCompound[c.name];var cl=p>=80?'var(--p1)':p>=50?'var(--p2)':'var(--p5)';return '<span onclick="showComplianceBreakdown(\''+proto.id+'\',\''+c.name.replace(/&#39;/g,'')+'\')" style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid '+cl+';color:'+cl+';cursor:pointer">'+c.name+' '+p+'%</span>';}).join('')+'</div>'
+    +(review.looking_ahead?'<div style="margin-bottom:16px;background:var(--p1d);border:1px solid var(--p1);border-radius:10px;padding:14px">'+'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:8px">→ Looking Ahead</div>'+'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.looking_ahead+'</div></div>':'')
     +(review.whats_working?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:6px">✔ What’s working</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.whats_working+'</div></div>':'')
     +(review.needs_attention?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ What needs attention</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.needs_attention+'</div></div>':'')
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
@@ -11047,8 +11407,8 @@ function showStorageWipeRecovery(){
   div.innerHTML='<div style="font-size:36px;margin-bottom:16px">⚠️</div>'
     +'<div style="font-family:var(--sans,sans-serif);font-size:18px;font-weight:600;color:#fff;margin-bottom:10px">Storage was cleared</div>'
     +'<div style="font-family:var(--mono,monospace);font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:28px;max-width:320px">iOS cleared your app\'s local storage — this can happen when storage is low or after extended inactivity. Your data may be recoverable from a backup.</div>'
-    +'<button onclick="attemptRecoveryFromSnapshot()" style="width:100%;max-width:320px;padding:14px;background:#3dd68c;color:#0a1628;font-family:var(--mono,monospace);font-size:13px;font-weight:600;border:none;border-radius:8px;margin-bottom:10px;cursor:pointer">Restore from last backup</button>'
-    +'<button onclick="importRecoveryJSON()" style="width:100%;max-width:320px;padding:14px;background:none;color:#3dd68c;font-family:var(--mono,monospace);font-size:13px;border:1px solid #3dd68c;border-radius:8px;margin-bottom:10px;cursor:pointer">Import JSON backup</button>'
+    +'<button onclick="attemptRecoveryFromSnapshot()" style="width:100%;max-width:320px;padding:14px;background:#57E6B4;color:#0C1210;font-family:var(--mono,monospace);font-size:13px;font-weight:600;border:none;border-radius:8px;margin-bottom:10px;cursor:pointer">Restore from last backup</button>'
+    +'<button onclick="importRecoveryJSON()" style="width:100%;max-width:320px;padding:14px;background:none;color:#57E6B4;font-family:var(--mono,monospace);font-size:13px;border:1px solid #57E6B4;border-radius:8px;margin-bottom:10px;cursor:pointer">Import JSON backup</button>'
     +'<button onclick="dismissRecoveryAndOnboard()" style="width:100%;max-width:320px;padding:12px;background:none;color:rgba(255,255,255,.3);font-family:var(--mono,monospace);font-size:11px;border:none;cursor:pointer">Start fresh (data is gone)</button>';
   document.body.appendChild(div);
 }
@@ -12289,5 +12649,56 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 
 <input type="file" id="bcScreenshotInput" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" onchange="parseBodyScreenshot(this)">
+<div class="bc-scrim" id="bcScrim" onclick="if(event.target===this)closeBCSheet()">
+  <div class="bc-sheet">
+    <div class="bc-grip"></div>
+    <div class="bc-sheet-hd">
+      <h3>Log reading</h3>
+      <label for="bcScreenshotInput" id="bcScreenshotBtn" class="bc-import">Import screenshot</label>
+    </div>
+    <div class="bc-sheet-sub" id="bcSheetSub">Adds a point to your signal</div>
+    <div class="bc-mode-row">
+      <button id="bcModeWeight" onclick="setBCMode('weight')" class="bc-mode on">Weight only</button>
+      <button id="bcModeFull" onclick="setBCMode('full')" class="bc-mode">Full body comp</button>
+    </div>
+    <div id="bcEntryWeight">
+      <div class="bc-field full">
+        <label>Weight</label>
+        <input type="number" inputmode="decimal" id="tWtOnly" placeholder="165.0" step="0.1">
+        <div class="bc-prev" id="bcPrevWeight"></div>
+      </div>
+      <button class="bc-save" onclick="saveWeightOnly()">Save weight</button>
+    </div>
+    <div id="bcEntryFull" style="display:none">
+      <div class="bc-grid">
+        <div class="bc-field">
+          <label>Muscle</label>
+          <input type="number" inputmode="decimal" id="tM" placeholder="127.3" step="0.1" oninput="bcLiveCalc()">
+          <div class="bc-prev" id="bcPrevMuscle"></div>
+        </div>
+        <div class="bc-field">
+          <label>Fat %</label>
+          <input type="number" inputmode="decimal" id="tF" placeholder="33.9" step="0.1" oninput="bcLiveCalc()">
+          <div class="bc-prev" id="bcPrevFat"></div>
+        </div>
+        <div class="bc-field">
+          <label>Bone</label>
+          <input type="number" inputmode="decimal" id="tB" placeholder="7.3" step="0.1" oninput="bcLiveCalc()">
+          <div class="bc-prev" id="bcPrevBone"></div>
+        </div>
+        <div class="bc-field">
+          <label>Water %</label>
+          <input type="number" inputmode="decimal" id="tW" placeholder="82.4" step="0.1">
+          <div class="bc-prev" id="bcPrevWater"></div>
+        </div>
+      </div>
+      <div class="bc-live" id="bcLiveRow">
+        Total: <b id="bcLiveWt"></b> lbs &nbsp;·&nbsp; Fat <span id="bcLiveFat"></span>% &nbsp;·&nbsp; Lean <span id="bcLiveLean"></span>%
+      </div>
+      <button class="bc-save" onclick="saveTodayBC()">Save reading</button>
+    </div>
+    <button class="bc-cancel" onclick="closeBCSheet()">Cancel</button>
+  </div>
+</div>
 </body>
 </html>
