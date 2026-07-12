@@ -83,7 +83,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .sidebar{display:none}
   .mob-header{display:flex}
   .bottom-tabs{display:flex}
-  .main{height:calc(100dvh - var(--hdr-h) - var(--safe-t));padding:0 16px calc(var(--tab-h) + var(--safe-b) + 16px);overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+  
 }
 .panel{display:none;animation:fadeUp .18s ease}
 .panel.on{display:block;padding-top:0;margin-top:0;background:var(--bg)}
@@ -3155,7 +3155,7 @@ async function parseLabsPDF(input){
       }
     });
     localStorage.setItem('pt_labs_v1',JSON.stringify(labs));
-    if(typeof renderLabs==='function') renderLabs();
+    if(typeof ensureLabsInInsights==='function') ensureLabsInInsights();
     toast(added+' markers imported ('+cdate+') \u2713');
     input.value='';
   }catch(e){
@@ -3172,14 +3172,13 @@ function ensureLabsInInsights(){
   if(!sec){
     sec=document.createElement('div');
     sec.id='labsInsightsSection';
-    sec.style.marginTop='24px';
-    iw.appendChild(sec);
+    sec.style.marginBottom='22px';
+    // Insert as FIRST child — labs are input data, reports below are the analysis of it
+    if(iw.firstChild) iw.insertBefore(sec,iw.firstChild);
+    else iw.appendChild(sec);
   }
-  // Header + import button + labs list
-  var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
-  var hasLabs=Object.keys(labs).length>0;
   var head='<div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding-bottom:8px;border-bottom:1px solid var(--bd);margin-bottom:12px">Lab Results</div>';
-  head+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6;margin-bottom:12px">Identifying details are never stored — only markers, values, and dates. Data stays on your device.</div>';
+  head+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6;margin-bottom:12px">Identifying details are never stored \u2014 only markers, values, and dates. Data stays on your device.</div>';
   head+='<input type="file" id="labsImportInput" accept=".pdf,image/*" style="display:none" onchange="parseLabsPDF(this)">';
   head+='<label for="labsImportInput" id="labsImportBtn" style="font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:6px;border:1px solid var(--p1);background:var(--p1d);color:var(--p1);cursor:pointer;display:inline-block;-webkit-tap-highlight-color:transparent;margin-bottom:14px">Import Lab PDF</label>';
   head+='<div id="labsListContainer"></div>';
@@ -3187,23 +3186,22 @@ function ensureLabsInInsights(){
   renderLabs('labsListContainer');
 }
 
+
 function renderLabs(targetId){
   var wrap=document.getElementById(targetId||'labsInsightsSection');if(!wrap) return;
   var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
   var names=Object.keys(labs);
-  if(!names.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;padding:16px">No labs imported yet — tap Import Lab PDF above</div>';return;}
-  // Sort: flagged first, then alpha
-  names.sort(function(a,b){
-    var af=labs[a].readings[labs[a].readings.length-1].flag?0:1;
-    var bf=labs[b].readings[labs[b].readings.length-1].flag?0:1;
-    if(af!==bf) return af-bf;
-    return a.localeCompare(b);
-  });
-  var flagCount=names.filter(function(n){return labs[n].readings[labs[n].readings.length-1].flag;}).length;
-  var h='';
-  if(flagCount){h+='<div style="font-family:var(--mono);font-size:10px;color:var(--p5);margin-bottom:10px">'+flagCount+' marker'+(flagCount!==1?'s':'')+' out of range</div>';}
-  h+='<div style="display:flex;flex-direction:column;gap:8px">';
+  if(!names.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;padding:16px">No labs imported yet \u2014 tap Import Lab PDF above</div>';return;}
+
+  var flagged=[], normal=[];
   names.forEach(function(n){
+    var last=labs[n].readings[labs[n].readings.length-1];
+    (last.flag?flagged:normal).push(n);
+  });
+  flagged.sort(function(a,b){return a.localeCompare(b);});
+  normal.sort(function(a,b){return a.localeCompare(b);});
+
+  function cardFor(n){
     var L=labs[n];
     var rs=L.readings;
     var last=rs[rs.length-1];
@@ -3219,7 +3217,7 @@ function renderLabs(targetId){
     if(L.ref_low!=null&&L.ref_high!=null) rangeStr=L.ref_low+'\u2013'+L.ref_high;
     else if(L.ref_high!=null) rangeStr='<'+L.ref_high;
     else if(L.ref_low!=null) rangeStr='>'+L.ref_low;
-    h+='<div onclick="showLabTrend(\''+n.replace(/'/g,"\\'")+'\')" style="background:var(--sf2);border:1px solid '+(last.flag?flagColor:'var(--bd)')+';border-radius:8px;padding:10px 12px;cursor:pointer">';
+    var h='<div onclick="showLabTrend(\''+n.replace(/'/g,"\\'")+'\')" style="background:var(--sf2);border:1px solid '+(last.flag?flagColor:'var(--bd)')+';border-radius:8px;padding:10px 12px;cursor:pointer;margin-bottom:8px">';
     h+='<div style="display:flex;align-items:center;justify-content:space-between">';
     h+='<div style="font-family:var(--sans);font-size:13px;color:var(--text)">'+n+'</div>';
     h+='<div style="display:flex;align-items:center;gap:6px">';
@@ -3231,10 +3229,35 @@ function renderLabs(targetId){
     h+='<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">'+last.date+(rs.length>1?' \u00b7 '+rs.length+' readings':'')+'</span>';
     if(rangeStr)h+='<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">ref '+rangeStr+'</span>';
     h+='</div></div>';
-  });
-  h+='</div>';
+    return h;
+  }
+
+  var h='';
+  if(flagged.length){
+    h+='<div style="font-family:var(--mono);font-size:9px;color:var(--p5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">'+flagged.length+' out of range</div>';
+    flagged.forEach(function(n){h+=cardFor(n);});
+  }
+  if(normal.length){
+    var openAttr=flagged.length?'':' open';
+    h+='<details'+openAttr+' style="margin-top:'+(flagged.length?'10px':'0')+'">';
+    h+='<summary style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:4px 0;list-style:none;display:flex;align-items:center;gap:5px">';
+    h+='<span class="labs-caret">\u25b8</span> '+normal.length+' marker'+(normal.length!==1?'s':'')+' in range</summary>';
+    h+='<div style="margin-top:8px">';
+    normal.forEach(function(n){h+=cardFor(n);});
+    h+='</div></details>';
+  }
   wrap.innerHTML=h;
+
+  // Rotate the caret when opened (native <details> toggle event)
+  var det=wrap.querySelector('details');
+  if(det){
+    det.addEventListener('toggle',function(){
+      var c=det.querySelector('.labs-caret');
+      if(c) c.textContent=det.open?'\u25be':'\u25b8';
+    });
+  }
 }
+
 
 function showLabTrend(name){
   var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
