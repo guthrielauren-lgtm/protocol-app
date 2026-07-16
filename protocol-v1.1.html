@@ -1486,9 +1486,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <!-- Body Log Import -->
   <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
     <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">Body Log Import</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:12px">Import a JSON file of body composition entries. Existing dates are preserved.</div>
-    <input type="file" id="bodyLogImportInput" accept=".json" style="display:none" onchange="importBodyLogsFromFile(this)">
-    <button class="btn sm" onclick="document.getElementById('bodyLogImportInput').click()">Import Body Log JSON</button>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mid);line-height:1.7;margin-bottom:12px">Screenshot a history list from your scale's app \u2014 dates, weight, and any Muscle/Fat/Bone breakdown are read automatically. Existing dates are never overwritten.</div>
+    <input type="file" id="bodyLogScreenshotInput" accept="image/*" style="display:none" onchange="parseBodyLogScreenshot(this)">
+    <label for="bodyLogScreenshotInput" id="bodyLogScreenshotBtn" class="btn sm" style="display:inline-block;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent">Import Screenshot</label>
+    <span onclick="document.getElementById('bodyLogJsonRow').style.display='block'" style="font-family:var(--mono);font-size:9px;color:var(--dim);text-decoration:underline;cursor:pointer;margin-left:10px">or import JSON</span>
+    <div id="bodyLogJsonRow" style="display:none;margin-top:10px">
+      <input type="file" id="bodyLogImportInput" accept=".json" style="display:none" onchange="importBodyLogsFromFile(this)">
+      <button class="btn sm ghost" onclick="document.getElementById('bodyLogImportInput').click()">Import Body Log JSON</button>
+    </div>
   </div>
 
   <!-- Claude Health Sync -->
@@ -3135,16 +3140,18 @@ async function parseLabsPDF(input){
     var parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     if(!parsed.markers||!parsed.markers.length){toast('No lab markers found','var(--p5)');return;}
     var cdate=(parsed.collection_date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.collection_date))?parsed.collection_date:today();
-    var piiWords=['name','birth','dob','address','phone','patient','specimen','requisition','provider','facility','client'];
+    var piiWords=['name','birth','dob','address','phone','patient','specimen','requisition','provider','facility','client','mrn'];
     var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
+    var lowerToKey={};
+    Object.keys(labs).forEach(function(k){lowerToKey[k.toLowerCase()]=k;});
     var added=0;
     parsed.markers.forEach(function(m){
       if(!m||!m.name) return;
       var nml=m.name.toLowerCase();
       if(piiWords.some(function(w){return nml.indexOf(w)>-1;})) return;
       if(m.value==null||m.value==='') return;
-      var key=m.name.trim();
-      if(!labs[key]) labs[key]={unit:m.unit||'',ref_low:m.ref_low,ref_high:m.ref_high,readings:[]};
+      var key=lowerToKey[nml]||m.name.trim();
+      if(!labs[key]){labs[key]={unit:m.unit||'',ref_low:m.ref_low,ref_high:m.ref_high,readings:[]};lowerToKey[nml]=key;}
       if(!labs[key].readings.some(function(r){return r.date===cdate;})){
         labs[key].readings.push({date:cdate,value:m.value,flag:m.flag||null});
         labs[key].readings.sort(function(a,b){return a.date>b.date?1:-1;});
@@ -3181,11 +3188,61 @@ function ensureLabsInInsights(){
   head+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6;margin-bottom:12px">Identifying details are never stored \u2014 only markers, values, and dates. Data stays on your device.</div>';
   head+='<input type="file" id="labsImportInput" accept=".pdf,image/*" style="display:none" onchange="parseLabsPDF(this)">';
   head+='<label for="labsImportInput" id="labsImportBtn" style="font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:6px;border:1px solid var(--p1);background:var(--p1d);color:var(--p1);cursor:pointer;display:inline-block;-webkit-tap-highlight-color:transparent;margin-bottom:14px">Import Lab PDF</label>';
+  head+='<span onclick="toggleLabsPaste()" style="font-family:var(--mono);font-size:9px;color:var(--dim);text-decoration:underline;cursor:pointer;margin-left:10px">or paste values</span>';
+  head+='<div id="labsPasteBox" style="display:none;margin-top:10px">'
+    +'<textarea id="labsPasteInput" placeholder="Paste lab JSON here" style="width:100%;min-height:80px;font-family:var(--mono);font-size:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:8px;color:var(--text)"></textarea>'
+    +'<button onclick="importLabsFromPaste()" style="font-family:var(--mono);font-size:10px;padding:6px 14px;background:var(--p1);color:var(--bg);border:none;border-radius:6px;margin-top:6px">Import</button>'
+    +'</div>';
   head+='<div id="labsListContainer"></div>';
   sec.innerHTML=head;
   renderLabs('labsListContainer');
 }
 
+
+function toggleLabsPaste(){
+  var box=document.getElementById('labsPasteBox');
+  if(!box) return;
+  box.style.display=box.style.display==='none'?'block':'none';
+}
+
+function importLabsFromPaste(){
+  var ta=document.getElementById('labsPasteInput');
+  if(!ta||!ta.value.trim()){toast('Paste lab data first','var(--p5)');return;}
+  try{
+    var parsed=JSON.parse(ta.value.trim());
+    if(!parsed.markers||!parsed.markers.length){toast('No markers found in pasted data','var(--p5)');return;}
+    var cdate=(parsed.collection_date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.collection_date))?parsed.collection_date:today();
+    var piiWords=['name','birth','dob','address','phone','patient','specimen','requisition','provider','facility','client','mrn'];
+    var labs=JSON.parse(localStorage.getItem('pt_labs_v1')||'{}');
+    // Case-insensitive key lookup so "Creatinine" and "CREATININE" merge into one trend line
+    var lowerToKey={};
+    Object.keys(labs).forEach(function(k){lowerToKey[k.toLowerCase()]=k;});
+    var added=0;
+    parsed.markers.forEach(function(m){
+      if(!m||!m.name) return;
+      var nml=m.name.toLowerCase();
+      if(piiWords.some(function(w){return nml.indexOf(w)>-1;})) return;
+      if(m.value==null||m.value==='') return;
+      var key=lowerToKey[nml]||m.name.trim();
+      if(!labs[key]){labs[key]={unit:m.unit||'',ref_low:m.ref_low,ref_high:m.ref_high,readings:[]};lowerToKey[nml]=key;}
+      if(!labs[key].readings.some(function(r){return r.date===cdate;})){
+        labs[key].readings.push({date:cdate,value:m.value,flag:m.flag||null});
+        labs[key].readings.sort(function(a,b){return a.date>b.date?1:-1;});
+        if(m.ref_low!=null)labs[key].ref_low=m.ref_low;
+        if(m.ref_high!=null)labs[key].ref_high=m.ref_high;
+        if(m.unit)labs[key].unit=m.unit;
+        added++;
+      }
+    });
+    localStorage.setItem('pt_labs_v1',JSON.stringify(labs));
+    if(typeof ensureLabsInInsights==='function') ensureLabsInInsights();
+    toast(added+' markers imported ('+cdate+') \u2713');
+    ta.value='';
+    toggleLabsPaste();
+  }catch(e){
+    toast('Could not parse pasted data \u2014 check format','var(--p5)');
+  }
+}
 
 function renderLabs(targetId){
   var wrap=document.getElementById(targetId||'labsInsightsSection');if(!wrap) return;
@@ -3412,6 +3469,108 @@ function updateRhythmStatus(){
   var hdr=grp?grp.querySelector('.timing-group-hdr'):null;
   var label=hdr?hdr.textContent.replace(/[^\w\s\u00b7-]/g,'').replace(/\u00b7.*$/,'').trim():'next dose';
   el.innerHTML='<span class="rs-dot"></span>'+label.toLowerCase()+' window';
+}
+
+function _mergeBodyLogs(incoming){
+  // Shared safe-merge logic: never overwrites an existing field, only fills gaps or adds new dates
+  if(!Array.isArray(incoming)||!incoming.length) return {added:0,merged:0,skipped:0};
+  var existingByDate={};
+  bodyLogs.forEach(function(b){if(b.date) existingByDate[b.date]=b;});
+  var added=0,merged=0,skipped=0;
+  incoming.forEach(function(entry){
+    if(!entry.date||entry.weight==null) return;
+    var existing=existingByDate[entry.date];
+    if(existing){
+      var changed=false;
+      ['weight','fatPct','muscle','lean','bone','waterPct','waterLbs'].forEach(function(k){
+        if(entry[k]!=null&&existing[k]==null){existing[k]=entry[k];changed=true;}
+      });
+      if(changed) merged++; else skipped++;
+    } else {
+      bodyLogs.push(entry);existingByDate[entry.date]=entry;added++;
+    }
+  });
+  bodyLogs.sort(function(a,b){return a.date>b.date?-1:1;});
+  persist(KEYS.bodyLogs,bodyLogs);
+  if(typeof renderHero==='function')renderHero();
+  return {added:added,merged:merged,skipped:skipped};
+}
+
+function importBodyLogsFromFile(input){
+  var file=input&&input.files&&input.files[0];if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var parsed=JSON.parse(e.target.result);
+      var incoming=parsed.bodyLogs||parsed;
+      var result=_mergeBodyLogs(incoming);
+      toast(result.added+' added, '+result.merged+' merged, '+result.skipped+' unchanged \u2713');
+      input.value='';
+    }catch(err){toast('Could not read file: '+err.message,'var(--p5)');}
+  };
+  reader.readAsText(file);
+}
+
+async function parseBodyLogScreenshot(input){
+  var file=input&&input.files&&input.files[0];if(!file) return;
+  var apiKey=localStorage.getItem('rp_anthropic_key')||_getApiKeyCookie()||'';
+  if(!apiKey){toast('Add your API key in Settings first','var(--p5)');return;}
+  var btn=document.getElementById('bodyLogScreenshotBtn');
+  if(btn){btn.textContent='Reading\u2026';btn.style.pointerEvents='none';btn.style.opacity='.5';}
+  try{
+    var b64=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result.split(',')[1]);};r.onerror=rej;r.readAsDataURL(file);});
+    var todayStr=today();
+    var promptText='This is a screenshot from a body composition scale app, showing a LIST of dated measurements (like an "All Data" or history view). Extract EVERY visible row as a separate entry. '
+      +'Today\'s actual date is '+todayStr+' \u2014 resolve any relative labels like "Today", "Yesterday" against that date. Absolute dates shown (e.g. "Jul 14, 2026") should be converted to YYYY-MM-DD. '
+      +'If a date has multiple readings (multiple times shown), only include the FIRST (topmost/most recent) one for that date \u2014 skip duplicates of the same date. '
+      +'Fields vary by app: some show total Weight directly; others show only Muscle (M), Fat (F), and Bone (B) each in lbs with no separate total \u2014 in that case do NOT compute a sum, just report the raw M/F/B values as given and leave weight_lbs null. Some apps show Fat as a percentage instead of lbs \u2014 report whichever is shown. '
+      +'Respond ONLY with valid JSON, no markdown, no backticks: {"entries":[{"date":"YYYY-MM-DD","weight_lbs":number|null,"muscle_lbs":number|null,"fat_lbs":number|null,"fat_pct":number|null,"bone_lbs":number|null,"water_pct":number|null}]}. '
+      +'Example: {"entries":[{"date":"2026-07-16","weight_lbs":null,"muscle_lbs":121.5,"fat_lbs":38.3,"fat_pct":null,"bone_lbs":7.2,"water_pct":null}]}';
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},
+        {type:'text',text:promptText}
+      ]}]})
+    });
+    if(!resp.ok){var ed=await resp.json().catch(function(){return {};});throw new Error((ed.error&&ed.error.message)?ed.error.message:('HTTP '+resp.status));}
+    var data=await resp.json();
+    if(data.error) throw new Error(data.error.message||'API error');
+    var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
+    var parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(!parsed.entries||!parsed.entries.length){toast('No measurements found in screenshot','var(--p2)');return;}
+    // Convert raw fields to the app's storage shape: weight, fatPct, muscle, bone, waterPct
+    var converted=[];
+    parsed.entries.forEach(function(e){
+      if(!e||!e.date||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)) return;
+      var weight=e.weight_lbs;
+      var hasParts=e.muscle_lbs!=null&&e.fat_lbs!=null&&e.bone_lbs!=null;
+      if(weight==null&&hasParts){
+        weight=Math.round((e.muscle_lbs+e.fat_lbs+e.bone_lbs)*10)/10;
+      }
+      if(weight==null) return; // can't derive a usable entry without a weight
+      var fatPct=e.fat_pct;
+      if(fatPct==null&&e.fat_lbs!=null){
+        fatPct=Math.round((e.fat_lbs/weight*100)*10)/10;
+      }
+      var entry={date:e.date,weight:weight};
+      if(fatPct!=null) entry.fatPct=fatPct;
+      if(e.muscle_lbs!=null) entry.muscle=e.muscle_lbs;
+      if(e.bone_lbs!=null) entry.bone=e.bone_lbs;
+      if(e.water_pct!=null) entry.waterPct=e.water_pct;
+      converted.push(entry);
+    });
+    if(!converted.length){toast('Could not extract usable readings \u2014 try a clearer screenshot','var(--p5)');return;}
+    var result=_mergeBodyLogs(converted);
+    toast(result.added+' added, '+result.merged+' merged, '+result.skipped+' unchanged \u2713');
+    input.value='';
+  }catch(e){
+    console.error('Body log screenshot parse:',e);
+    var msg='Import failed';
+    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('JSON')>-1)msg='Could not read screenshot';else msg=e.message.slice(0,70);}
+    toast(msg,'var(--p5)');
+  }finally{if(btn){btn.textContent='Import Screenshot';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
 }
 
 function renderHero(){
@@ -8741,10 +8900,9 @@ async function seedDefaults(){
 
 
 function finishInit(){
-  // Restore clinical notes if missing
-  if(!localStorage.getItem('pt_clinical_notes')){
-    localStorage.setItem('pt_clinical_notes','eGFR/creatinine elevation due to high lean body mass and race correction (Black female). Cystatin C 0.71 mg/L — renal function confirmed normal by nephrologist.');
-  }
+  // Clinical notes: no auto-seeded content. This field must only ever contain
+  // what the person explicitly enters — never fabricated or placeholder data,
+  // since APEX treats its contents as verified fact in every report.
   // Restore API key from cookie if localStorage was cleared by iOS
   if(!localStorage.getItem('rp_anthropic_key')){
     var _cookieKey=_getApiKeyCookie();
@@ -9508,6 +9666,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       +'id_adjust (specific actionable recommendations), '
       +'watch_for (forward-looking flags before next check-in), '
       +'looking_ahead (a forward-looking action list as a single string. Cover TWO things concretely: (1) TITRATION: any upcoming dose changes in the next 2-3 weeks based on the titration schedule provided — name the compound, the new dose, the date, and the expected physiological effect (e.g. deeper appetite suppression, prioritize protein). (2) REORDER TIMING: for any compound running low, calculate when to reorder accounting for the stated ~1 week shipping lead time and any upcoming titration step that increases consumption — give a specific "order by" date. Be concrete with dates and numbers. If nothing is upcoming, say so briefly.), '
+      +'protein_check (a short, direct assessment of protein intake vs goal using the 14-day average and goal-hit-rate provided. If the average is below goal or hit-rate is under ~70%, flag it plainly and connect it to relevant context if present — e.g. low total protein/albumin on labs, ongoing lean-mass tracking, or GLP-1 appetite suppression. If intake is consistently at/above goal, say so briefly and move on — do not manufacture a concern that is not supported by the data.), '
       +(_isCompletionReport
         ?'protocol_results (explicit before/after for every tracked metric: weight, fat%, lean mass, water%, visceral fat if available — format: "Metric: X → Y (±Z) over N weeks"), '
          +'transition_guidance (reference specific On Deck protocols by name and compounds — what to expect, how each builds on this protocol), '
@@ -9702,15 +9861,30 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       if(_stockLines.length) userPrompt+='\n=== CURRENT STOCK (for reorder timing; ~1 week shipping lead time) ===\n'+_stockLines.join('\n')+'\n';
     }catch(_te){}
     
-// Protein gram history (v2.0)
+// Protein gram history + computed average (v3)
     var _pG=parseInt((userProfile&&userProfile.proteinGoal)||130);
     var _pD=[];
+    var _pVals=[];
     for(var _pi=0;_pi<14;_pi++){
       var _pdt=new Date();_pdt.setDate(_pdt.getDate()-_pi);
       var _pv=localStorage.getItem('pt_protein_'+localDateStr(_pdt));
-      if(_pv!==null&&_pv!==''&&!isNaN(parseInt(_pv))) _pD.push(localDateStr(_pdt)+': '+parseInt(_pv)+'g');
+      if(_pv!==null&&_pv!==''&&!isNaN(parseInt(_pv))){
+        var _pn=parseInt(_pv);
+        _pD.push(localDateStr(_pdt)+': '+_pn+'g');
+        _pVals.push(_pn);
+      }
     }
-    if(_pD.length) userPrompt+='\n=== PROTEIN INTAKE (goal '+_pG+'g/day) ===\n'+_pD.join('\n')+'\n';
+    if(_pD.length){
+      var _pAvg=Math.round(_pVals.reduce(function(a,b){return a+b;},0)/_pVals.length);
+      var _pGapDays=_pVals.filter(function(v){return v<_pG;}).length;
+      var _pPct=Math.round(_pVals.filter(function(v){return v>=_pG;}).length/_pVals.length*100);
+      userPrompt+='\n=== PROTEIN INTAKE (goal '+_pG+'g/day) ===\n';
+      userPrompt+='14-day average: '+_pAvg+'g ('+(_pAvg>=_pG?'at/above':'below')+' goal by '+Math.abs(_pAvg-_pG)+'g)\n';
+      userPrompt+=_pPct+'% of logged days hit goal ('+_pGapDays+' of '+_pVals.length+' days under goal)\n';
+      userPrompt+='Daily log: '+_pD.join(', ')+'\n';
+    }
+    
+
     var headers={'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
     if(apiKey) headers['x-api-key']=apiKey;
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
@@ -9760,6 +9934,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+proto.compounds.map(function(c){var p=complianceByCompound[c.name];var cl=p>=80?'var(--p1)':p>=50?'var(--p2)':'var(--p5)';return '<span onclick="showComplianceBreakdown(\''+proto.id+'\',\''+c.name.replace(/&#39;/g,'')+'\')" style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid '+cl+';color:'+cl+';cursor:pointer">'+c.name+' '+p+'%</span>';}).join('')+'</div>'
     +(review.looking_ahead?'<div style="margin-bottom:16px;background:var(--p1d);border:1px solid var(--p1);border-radius:10px;padding:14px">'+'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:8px">→ Looking Ahead</div>'+'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.looking_ahead+'</div></div>':'')
+    +(review.protein_check?'<div style="margin-bottom:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px">'+'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Protein Check</div>'+'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.protein_check+'</div></div>':'')
     +(review.whats_working?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:6px">✔ What’s working</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.whats_working+'</div></div>':'')
     +(review.needs_attention?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ What needs attention</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.needs_attention+'</div></div>':'')
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
