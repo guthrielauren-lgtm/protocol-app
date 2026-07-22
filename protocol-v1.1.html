@@ -3066,6 +3066,17 @@ function showComplianceBreakdown(protoId,compoundName){
   modal.style.display='flex';
 }
 
+function _extractJSON(text){
+  var start=text.indexOf('{');
+  if(start<0) throw new Error('Response had no JSON object \u2014 model may have refused or misread the image. Raw reply: '+text.slice(0,120));
+  var depth=0;
+  for(var i=start;i<text.length;i++){
+    if(text[i]==='{') depth++;
+    else if(text[i]==='}'){ depth--; if(depth===0) return text.slice(start,i+1); }
+  }
+  throw new Error('Incomplete JSON in response (unbalanced braces) \u2014 reply may have been cut off. Raw reply: '+text.slice(0,120));
+}
+
 async function parseBodyScreenshot(input){
   var file=input.files&&input.files[0];if(!file) return;
   var apiKey=localStorage.getItem('rp_anthropic_key')||_getApiKeyCookie()||'';
@@ -3086,7 +3097,7 @@ async function parseBodyScreenshot(input){
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message||'API error');
     var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
-    var parsed=JSON.parse((text.match(/\{[\s\S]*\}/)||[text.replace(/```json|```/g,'').trim()])[0]);
+    var parsed=JSON.parse(_extractJSON(text));
     var map={tWtOnly:'weight_lbs',tF:'fat_pct',tM:'lean_lbs',tW:'water_pct',tB:'bone_lbs'};
     var filled=0;
     Object.keys(map).forEach(function(elId){var v=parsed[map[elId]];if(v==null||isNaN(parseFloat(v)))return;var el=document.getElementById(elId);if(el){el.value=Math.round(parseFloat(v)*10)/10;filled++;}});
@@ -3142,7 +3153,7 @@ async function parseLabsPDF(input){
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message||'API error');
     var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
-    var parsed=JSON.parse((text.match(/\{[\s\S]*\}/)||[text.replace(/```json|```/g,'').trim()])[0]);
+    var parsed=JSON.parse(_extractJSON(text));
     if(!parsed.markers||!parsed.markers.length){toast('No lab markers found','var(--p5)');return;}
     var cdate=(parsed.collection_date&&/^\d{4}-\d{2}-\d{2}$/.test(parsed.collection_date))?parsed.collection_date:today();
     var piiWords=['name','birth','dob','address','phone','patient','specimen','requisition','provider','facility','client','mrn'];
@@ -3543,7 +3554,7 @@ async function parseBodyLogScreenshot(input){
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message||'API error');
     var text=(data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('');
-    var parsed=JSON.parse((text.match(/\{[\s\S]*\}/)||[text.replace(/```json|```/g,'').trim()])[0]);
+    var parsed=JSON.parse(_extractJSON(text));
     if(!parsed.entries||!parsed.entries.length){toast('No measurements found in screenshot','var(--p2)');return;}
     // Convert raw fields to the app's storage shape: weight, fatPct, muscle, bone, waterPct
     var converted=[];
@@ -3573,7 +3584,7 @@ async function parseBodyLogScreenshot(input){
   }catch(e){
     console.error('Body log screenshot parse:',e);
     var msg='Import failed';
-    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('JSON')>-1)msg='Could not read screenshot';else msg=e.message.slice(0,70);}
+    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1)msg='API key error \u2014 check Settings';else msg=e.message.slice(0,90);}
     toast(msg,'var(--p5)');
   }finally{if(btn){btn.textContent='Import Screenshot';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
 }
