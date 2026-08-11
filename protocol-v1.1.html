@@ -3013,10 +3013,7 @@ function _showUndoToast(msg,undoLabel,undoFn){
   },5000);
 }
 
-function clearProteinLog(){
-  localStorage.removeItem('pt_protein_'+today());
-  renderProteinCard();renderChecklist();
-}
+function clearProteinLog(){ resetProtein(); }
 
 function showComplianceBreakdown(protoId,compoundName){
   var proto=protocols.find(function(p){return p.id===protoId;});
@@ -3109,7 +3106,7 @@ async function parseBodyScreenshot(input){
   }catch(e){
     console.error('Screenshot parse:',e);
     var msg='Import failed';
-    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('fetch')>-1)msg='Network error';else if(e.message.indexOf('JSON')>-1)msg='Could not read image';else msg=e.message.slice(0,60);}
+    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('fetch')>-1)msg='Network error';else msg=e.message.slice(0,90);}
     toast(msg,'var(--p5)');
   }finally{if(btn){btn.textContent='Import';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
 }
@@ -3184,7 +3181,7 @@ async function parseLabsPDF(input){
   }catch(e){
     console.error('Labs parse:',e);
     var msg='Import failed';
-    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1||e.message.indexOf('authentication')>-1)msg='API key error \u2014 check Settings';else if(e.message.indexOf('JSON')>-1||e.message.indexOf('parse')>-1)msg='Could not read labs data';else msg=e.message.slice(0,80);}
+    if(e&&e.message){if(e.message.indexOf('401')>-1||e.message.indexOf('403')>-1||e.message.indexOf('authentication')>-1)msg='API key error \u2014 check Settings';else msg=e.message.slice(0,90);}
     toast(msg,'var(--p5)');
   }finally{if(btn){btn.textContent='Import Lab PDF';btn.style.pointerEvents='';btn.style.opacity='';}input.value='';}
 }
@@ -3195,10 +3192,9 @@ function ensureLabsInInsights(){
   if(!sec){
     sec=document.createElement('div');
     sec.id='labsInsightsSection';
-    sec.style.marginBottom='22px';
-    // Insert as FIRST child — labs are input data, reports below are the analysis of it
-    if(iw.firstChild) iw.insertBefore(sec,iw.firstChild);
-    else iw.appendChild(sec);
+    sec.style.marginTop='24px';
+    // Appended LAST — APEX reports lead the page, raw lab detail sits below them
+    iw.appendChild(sec);
   }
   var head='<div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);padding-bottom:8px;border-bottom:1px solid var(--bd);margin-bottom:12px">Lab Results</div>';
   head+='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6;margin-bottom:12px">Identifying details are never stored \u2014 only markers, values, and dates. Data stays on your device.</div>';
@@ -3797,45 +3793,51 @@ function renderProteinCard(){
   var wrap=document.getElementById('proteinCard');if(!wrap) return;
   var goal=parseInt((userProfile&&userProfile.proteinGoal)||130);
   var t=today();
-  var logged=localStorage.getItem('pt_protein_'+t);
-  if(logged!==null&&logged!==''&&!isNaN(parseInt(logged))){
-    var grams=parseInt(logged)||0;
-    var pct=Math.min(100,Math.round(grams/goal*100));
-    var barColor=grams>=goal?'var(--p1)':grams>=goal*0.7?'var(--p2)':'var(--p5)';
-    var h='<div class="protein-card done-yes" style="padding:14px 16px">';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-    h+='<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px">Protein</div>';
-    h+='<div style="font-family:var(--sans);font-size:15px;color:var(--text)"><strong>'+grams+'g</strong> <span style="color:var(--dim);font-size:13px">/ '+goal+'g</span></div></div>';
-    h+='<div style="display:flex;align-items:center;gap:8px">';
-    h+='<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+barColor+'">'+pct+'%</span>';
-    h+='<button onclick="clearProteinLog()" style="background:none;border:none;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;padding:2px 4px">edit</button>';
-    h+='</div></div>';
-    h+='<div style="height:5px;background:var(--sf2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:3px;transition:width .3s"></div></div>';
-    h+='</div>';
-    wrap.innerHTML=h;
-  } else {
-    var h2='<div class="protein-card" style="padding:14px 16px">';
-    h2+='<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Protein</div>';
-    h2+='<div style="font-family:var(--sans);font-size:14px;color:var(--text);margin-bottom:12px">How many grams today? <span style="color:var(--dim)">(goal '+goal+'g)</span></div>';
-    h2+='<div style="display:flex;gap:8px;align-items:center">';
-    h2+='<input id="proteinGramInput" type="number" inputmode="numeric" min="0" max="500" placeholder="'+goal+'" style="flex:1;padding:10px 12px;font-family:var(--mono);font-size:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--text)" onkeydown="if(event.key===&#39;Enter&#39;)logProtein()">';
-    h2+='<button onclick="logProtein()" class="btn sm" style="justify-content:center;background:var(--p1);border-color:var(--p1);color:var(--bg);padding:10px 16px">Log</button>';
-    h2+='</div></div>';
-    wrap.innerHTML=h2;
-  }
+  var total=parseInt(localStorage.getItem('pt_protein_'+t)||'0');
+  var pct=Math.min(100,Math.round(total/goal*100));
+  var barColor=total>=goal?'var(--p1)':total>=goal*0.6?'var(--p2)':'var(--p5)';
+  var h='<div class="protein-card" style="padding:14px 16px">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h+='<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:3px">Protein</div>';
+  h+='<div style="font-family:var(--sans);font-size:15px;color:var(--text)"><strong>'+total+'g</strong> <span style="color:var(--dim);font-size:13px">/ '+goal+'g</span></div></div>';
+  h+='<div style="display:flex;align-items:center;gap:8px">';
+  h+='<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+barColor+'">'+pct+'%</span>';
+  if(total>0) h+='<button onclick="resetProtein()" style="background:none;border:none;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;padding:2px 4px">reset</button>';
+  h+='</div></div>';
+  h+='<div style="height:5px;background:var(--sf2);border-radius:3px;overflow:hidden;margin-bottom:12px"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:3px;transition:width .3s"></div></div>';
+  h+='<div style="display:flex;gap:8px;align-items:center">';
+  h+='<input id="proteinCustomInput" type="number" inputmode="numeric" min="0" max="300" placeholder="grams eaten" style="flex:1;padding:10px 12px;font-family:var(--mono);font-size:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--text)" onkeydown="if(event.key===&#39;Enter&#39;)addProteinCustom()">';
+  h+='<button onclick="addProteinCustom()" class="btn sm" style="justify-content:center;background:var(--p5);border-color:var(--p5);color:var(--bg);padding:10px 20px">Add</button>';
+  h+='</div></div>';
+  wrap.innerHTML=h;
 }
 
-function logProtein(){
-  var input=document.getElementById('proteinGramInput');
-  var grams=input?parseInt(input.value):NaN;
-  if(isNaN(grams)||grams<0){toast('Enter a number','var(--p5)');return;}
-  localStorage.setItem('pt_protein_'+today(),String(grams));
+function addProtein(grams){
+  var t=today();
+  var total=parseInt(localStorage.getItem('pt_protein_'+t)||'0')+grams;
+  localStorage.setItem('pt_protein_'+t,String(total));
   renderProteinCard();renderChecklist();
   var goal=parseInt((userProfile&&userProfile.proteinGoal)||130);
-  if(grams>=goal) toast('Protein goal hit \u2713');
-  else toast(grams+'g logged');
+  if(total>=goal && total-grams<goal) toast('Protein goal hit \u2713');
+  else toast('+'+grams+'g logged \u2014 '+total+'g today');
   setTimeout(function(){if(typeof checkDailyCompletion==='function')checkDailyCompletion();},300);
 }
+
+function addProteinCustom(){
+  var input=document.getElementById('proteinCustomInput');
+  var grams=input?parseInt(input.value):NaN;
+  if(isNaN(grams)||grams<=0){toast('Enter a number','var(--p5)');return;}
+  if(input) input.value='';
+  addProtein(grams);
+}
+
+function resetProtein(){
+  if(!confirm('Reset today\'s protein total?')) return;
+  localStorage.removeItem('pt_protein_'+today());
+  renderProteinCard();renderChecklist();
+  toast('Protein reset');
+}
+
 
 function isCompoundDueOnDate(c,proto,dateStr){
   if(!c||!proto||!proto.startDate||!dateStr) return false;
@@ -9724,7 +9726,8 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       +'id_adjust (specific actionable recommendations), '
       +'watch_for (forward-looking flags before next check-in), '
       +'looking_ahead (a forward-looking action list as a single string. Cover TWO things concretely: (1) TITRATION: any upcoming dose changes in the next 2-3 weeks based on the titration schedule provided — name the compound, the new dose, the date, and the expected physiological effect (e.g. deeper appetite suppression, prioritize protein). (2) REORDER TIMING: for any compound running low, calculate when to reorder accounting for the stated ~1 week shipping lead time and any upcoming titration step that increases consumption — give a specific "order by" date. Be concrete with dates and numbers. If nothing is upcoming, say so briefly.), '
-      +'protein_check (a short, direct assessment of protein intake vs goal using the 14-day average and goal-hit-rate provided. If the average is below goal or hit-rate is under ~70%, flag it plainly and connect it to relevant context if present — e.g. low total protein/albumin on labs, ongoing lean-mass tracking, or GLP-1 appetite suppression. If intake is consistently at/above goal, say so briefly and move on — do not manufacture a concern that is not supported by the data.), '
+      +'protein_check (CRITICAL: the average provided is computed ONLY from days with a logged entry — a day with no entry means untracked, never assume or imply it was 0g. Do not average in, count, or reference missing days as low/zero intake. Give a short, direct assessment of intake vs goal using the logged-days average and hit-rate. If average is below goal or hit-rate is under ~70%, flag it plainly and connect to relevant context if present — e.g. low total protein/albumin on labs, lean-mass tracking, GLP-1 appetite suppression. Separately, if fewer than ~10 of the 14 days have any entry at all, note that logging itself has been inconsistent as its own distinct observation — this is a tracking-coverage issue, not an intake issue, and the two must not be conflated. If intake is consistently at/above goal on logged days, say so briefly and move on.), '
+      +'hydration_check (same rules as protein_check: the average is computed ONLY from logged days — a missing day means untracked, never assume or state it was 0oz or low intake. Give a short, direct assessment of hydration vs goal using the logged-days average and hit-rate provided. If average is below goal, flag it plainly and connect to relevant context if present — e.g. GLP-1 appetite/thirst suppression, kidney marker history, training load. Separately, if fewer than ~10 of 14 days have any entry, note logging consistency as its own distinct issue, not as evidence of low intake. If hydration is consistently at/above goal on logged days, say so briefly and move on.), '
       +(_isCompletionReport
         ?'protocol_results (explicit before/after for every tracked metric: weight, fat%, lean mass, water%, visceral fat if available — format: "Metric: X → Y (±Z) over N weeks"), '
          +'transition_guidance (reference specific On Deck protocols by name and compounds — what to expect, how each builds on this protocol), '
@@ -9929,9 +9932,12 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
     }
     if(_hD.length){
       var _hAvg=Math.round(_hVals.reduce(function(a,b){return a+b;},0)/_hVals.length);
+      var _hPct=Math.round(_hVals.filter(function(v){return v>=_hG;}).length/_hVals.length*100);
       userPrompt+='\n=== HYDRATION (goal '+_hG+'oz/day) ===\n';
-      userPrompt+='14-day average: '+_hAvg+'oz ('+(_hAvg>=_hG?'at/above':'below')+' goal by '+Math.abs(_hAvg-_hG)+'oz)\n';
-      userPrompt+='Daily log: '+_hD.join(', ')+'\n';
+      userPrompt+='Logged '+_hVals.length+' of last 14 days. IMPORTANT: unlogged days are NOT zero intake \u2014 they mean the day was not tracked. Never treat a missing day as 0oz when reasoning about this data.\n';
+      userPrompt+='Average ON LOGGED DAYS ONLY: '+_hAvg+'oz ('+(_hAvg>=_hG?'at/above':'below')+' goal by '+Math.abs(_hAvg-_hG)+'oz)\n';
+      userPrompt+=_hPct+'% of logged days hit goal\n';
+      userPrompt+='Logged entries only (gaps in dates below = not tracked, not zero): '+_hD.join(', ')+'\n';
     }
     // Protein gram history + computed average (v3)
     var _pG=parseInt((userProfile&&userProfile.proteinGoal)||130);
@@ -9951,9 +9957,10 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
       var _pGapDays=_pVals.filter(function(v){return v<_pG;}).length;
       var _pPct=Math.round(_pVals.filter(function(v){return v>=_pG;}).length/_pVals.length*100);
       userPrompt+='\n=== PROTEIN INTAKE (goal '+_pG+'g/day) ===\n';
-      userPrompt+='14-day average: '+_pAvg+'g ('+(_pAvg>=_pG?'at/above':'below')+' goal by '+Math.abs(_pAvg-_pG)+'g)\n';
-      userPrompt+=_pPct+'% of logged days hit goal ('+_pGapDays+' of '+_pVals.length+' days under goal)\n';
-      userPrompt+='Daily log: '+_pD.join(', ')+'\n';
+      userPrompt+='Logged '+_pVals.length+' of last 14 days. IMPORTANT: unlogged days are NOT zero intake \u2014 they mean the day was not tracked. Never treat a missing day as 0g when reasoning about this data.\n';
+      userPrompt+='Average ON LOGGED DAYS ONLY: '+_pAvg+'g ('+(_pAvg>=_pG?'at/above':'below')+' goal by '+Math.abs(_pAvg-_pG)+'g)\n';
+      userPrompt+=_pPct+'% of logged days hit goal ('+_pGapDays+' of '+_pVals.length+' logged days under goal)\n';
+      userPrompt+='Logged entries only (gaps in dates below = not tracked, not zero): '+_pD.join(', ')+'\n';
     }
     
 
@@ -10007,6 +10014,7 @@ async function runProtocolReview(key,detailId,btnId,explicitProtoId){
     +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+proto.compounds.map(function(c){var p=complianceByCompound[c.name];var cl=p>=80?'var(--p1)':p>=50?'var(--p2)':'var(--p5)';return '<span onclick="showComplianceBreakdown(\''+proto.id+'\',\''+c.name.replace(/&#39;/g,'')+'\')" style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid '+cl+';color:'+cl+';cursor:pointer">'+c.name+' '+p+'%</span>';}).join('')+'</div>'
     +(review.looking_ahead?'<div style="margin-bottom:16px;background:var(--p1d);border:1px solid var(--p1);border-radius:10px;padding:14px">'+'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:8px">→ Looking Ahead</div>'+'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.looking_ahead+'</div></div>':'')
     +(review.protein_check?'<div style="margin-bottom:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px">'+'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Protein Check</div>'+'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.protein_check+'</div></div>':'')
+    +(review.hydration_check?'<div style="margin-bottom:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px">'+'<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Hydration Check</div>'+'<div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.hydration_check+'</div></div>':'')
     +(review.whats_working?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p1);margin-bottom:6px">✔ What’s working</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.whats_working+'</div></div>':'')
     +(review.needs_attention?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p2);margin-bottom:6px">⚠ What needs attention</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.needs_attention+'</div></div>':'')
     +(review.id_adjust?'<div style="margin-bottom:14px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--p3);margin-bottom:6px">→ What I’d adjust</div><div style="font-family:var(--sans,sans-serif);font-size:13px;color:var(--text);line-height:1.7">'+review.id_adjust+'</div></div>':'')
